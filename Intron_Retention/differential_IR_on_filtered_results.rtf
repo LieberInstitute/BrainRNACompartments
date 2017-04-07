@@ -1,0 +1,852 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;\f2\fswiss\fcharset0 ArialMT;
+\f3\fnil\fcharset0 Consolas;}
+{\colortbl;\red255\green255\blue255;\red26\green26\blue26;\red234\green234\blue234;\red64\green11\blue217;
+}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\margl1440\margr1440\vieww34940\viewh14980\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs24 \cf2 # Working Directory\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \CocoaLigature0 cd /dcl01/lieber/ajaffe/Amanda/NucVsCyt\
+\
+
+\f0\b # Open screen and interactive session
+\b0 \cf2 \CocoaLigature1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 qrsh -l mem_free=50G,h_vmem=50G,h_fsize=50G
+\f1 \cf0 \CocoaLigature0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f2\b \cf0 # redo with down-sampled results
+\b0 \
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d 
+\f1\fs22 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA
+\f2\fs24 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /FPC_Pooled -r \cf4 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 /\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d 
+\f1\fs22 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA
+\f2\fs24 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /FP_Pooled -r \cf4 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 /\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam)\
+\
+\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d 
+\f1\fs22 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA
+\f2\fs24 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /CP_Pooled -r \cf4 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA
+\b \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled/
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 # Test Adult PolyA Zone differences
+\b0 \
+\
+module load samtools\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+# Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled/IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.txt \\\
+  > IRfinder_redo/Filtered/Adult_PolyA_Zone_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled/IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_0.1.txt \\\
+  > IRfinder_redo/Filtered/Adult_PolyA_Zone_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled/IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.nowarnA.txt \\\
+  > IRfinder_redo/Filtered/Adult_PolyA_Zone_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled/IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_adult_nonconst.66warnA.txt \\\
+  > IRfinder_redo/Filtered/Adult_PolyA_Zone_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 # Test Fetal PolyA Zone differences
+\b0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+# Redo with down sampled BAMs\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/
+\f1\fs22 Filtered/
+\f2\fs24 PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/
+\f1\fs22 Filtered/
+\f2\fs24 PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  > IRfinder_redo/Filtered/Fetal_PolyA_Zone.tab\kerning1\expnd0\expndtw0 \CocoaLigature0  \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+# Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.txt \\\
+  > IRfinder_redo/Filtered/Fetal_PolyA_Zone_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_0.1.txt \\\
+  > IRfinder_redo/Filtered/Fetal_PolyA_Zone_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.nowarnF.txt \\\
+  > IRfinder_redo/Filtered/Fetal_PolyA_Zone_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_fetal_nonconst.66warnF.txt \\\
+  > IRfinder_redo/Filtered/Fetal_PolyA_Zone_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\pardeftab720\ri720\partightenfactor0
+\cf0 \CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 \CocoaLigature0 # Test Nuclear PolyA Age Differences
+\b0 \
+\
+# Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled\cb1 /IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.txt \\\
+  >  IRfinder_redo/Filtered/Nuclear_PolyA_Age_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled\cb1 /IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_0.1.txt \\\
+  >  IRfinder_redo/Filtered/Nuclear_PolyA_Age_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled\cb1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.nowarnN.txt \\\
+  >  IRfinder_redo/Filtered/Nuclear_PolyA_Age_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 APN_Pooled\cb1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPN_Pooled/IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_nuc_nonconst.66warnN.txt \\\
+  >  IRfinder_redo/Filtered/Nuclear_PolyA_Age_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\pardeftab720\ri720\partightenfactor0
+\cf0 \CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 \CocoaLigature0 # Test Cytosolic PolyA Age Differences
+\b0 \
+\
+# Redo with down sampled BAMs\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA\expnd0\expndtw0\kerning0
+\CocoaLigature1 /APC_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA\expnd0\expndtw0\kerning0
+\CocoaLigature1 /FPC_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  >  IRfinder_redo/Filtered/Cytosol_PolyA_Age.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+# Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.txt \\\
+  >  IRfinder_redo/Filtered/Cytosol_PolyA_Age_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_0.1.txt \\\
+  >  IRfinder_redo/Filtered/Cytosol_PolyA_Age_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.nowarnC.txt \\\
+  >  IRfinder_redo/Filtered/Cytosol_PolyA_Age_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 APC_Pooled/IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FPC_Pooled/IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_cyt_nonconst.66warnC.txt \\\
+  >  IRfinder_redo/Filtered/Cytosol_PolyA_Age_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \
+\pard\pardeftab720\ri720\partightenfactor0
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 \CocoaLigature0 # Test Age Differences in PolyA
+\b0 \
+\
+# Redo with down sampled BAMs\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA\expnd0\expndtw0\kerning0
+\CocoaLigature1 /AP_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA\expnd0\expndtw0\kerning0
+\CocoaLigature1 /FP_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Age.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+# Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 AP_Pooled/IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FP_Pooled/IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Age_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 AP_Pooled/IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FP_Pooled/IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Age_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 AP_Pooled/IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FP_Pooled/IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Age_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 AP_Pooled/IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074C\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br1113N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2046N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br2074N\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt  \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 FP_Pooled/IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341C1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5339N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5340N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/Br5341N1\expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Age_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \
+\pard\pardeftab720\ri-20873\partightenfactor0
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\b \cf0 \CocoaLigature0 # Test Zone Differences in PolyA
+\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 # Redo with down sampled BAMs\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 CP_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/PolyA\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /
+\b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1_downsampled
+\b0 \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /\cb1 IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA\expnd0\expndtw0\kerning0
+\CocoaLigature1 /NP_Pooled/IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Zone.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 # Non-constitutively spliced\
+/users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 CP_Pooled/IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 NP_Pooled/IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Zone_nonconst.tab\
+\
+# At least one intron has ratio >= 0.1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 CP_Pooled/IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 NP_Pooled/IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_0.1.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Zone_0.1.tab\
+\
+# No constitutively spliced, no warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 CP_Pooled/IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 NP_Pooled/IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.nowarn.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Zone_nonconst.nowarn.tab\
+\
+# No constitutively spliced, 66% without warnings (such as for coverage or minor isoform)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 CP_Pooled/IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074C
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341C1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \\\
+  -B \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/\expnd0\expndtw0\kerning0
+\CocoaLigature1 NP_Pooled/IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br1113N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2046N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br2074N
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5339N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5340N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder_redo/Filtered/PolyA/
+\b Br5341N1
+\b0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /IRFinder-IR-nondir_all_nonconst.66warn.txt \\\
+  >  IRfinder_redo/Filtered/PolyA_Zone_nonconst.66warn.tab\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0 \cf0 \
+\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls1\ilvl0
+\f2 \cf0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 #The p-value columns indicate to what extent intron-retention has significantly changed between Condition A and Condition B.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+"known-exon" indicates that there are known transcripts both including and splicing out this region. IRFinder quantifies the relative abundance of these occurrences.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+"anti-near" / "anti-over" appear only in non-directional RNA-Seq analysis. There is a known anti-sense feature near or overlapping this intron. Care should be taken in these cases, visualising the RNA-Seq trace in IGV or similar will indicate if this is likely true intron retention or is polluted by an active anti-sense transcript.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+"NonUniformCover" indicates that the multiple places IRFinder measures the depth of the intron are not consistent. A visual check of the RNA-Seq trace is advised to rule out alternate-TSS or similar. In some cases this warning may simply be triggered by the uneven cover often seen in short-read RNA-Seq experiments.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+"MinorIsoform" indicates IRFinder has detected there is additional alternate-splicing occurring, as such the detection of intron-retention may be confounded by other changes in alternate splicing.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+The 5th column "-" with value always "0" is simply padding to maintain BED format compatibility. The first 6 columns together are in BED format allowing ready visualisation of these regions or further analysis.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+"ExcludedBases" indicates how many bases were excluded from the intron when calculating intronic coverage. Bases are excluded in regions of poor mappability and where other annotated features are present. The 5bp flanking any exon are also excluded, hence all introns exclude at least 10 bases.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+The comment and header lines are structured to allow easy import to R with 
+\f3 data<-read.table("file.tab", header=TRUE, comment.char="#")
+\f2 \
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+This analysis uses the 
+\f3 IRFinder-IR-nondir.txt
+\f2  files. If the experiment had used a strand-specific RNA-Seq protocol directionality would have been automatically determined and analysis should use 
+\f3 IRFinder-IR-dir.txt
+\f2 .}
