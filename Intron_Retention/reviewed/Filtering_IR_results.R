@@ -200,6 +200,7 @@ for (i in 1:length(shortenedNames)){
               quote =F, row.names = F, sep ="\t")
 }
 
+# Suggestions from IRFinder authors
 #cat IRFinder-IR-nondir.txt | grep -P “0\.[1-9]\d+\s+-$” | awk 'BEGIN {OFS="\t"}{if ($9>5 && $19>5 && $20 >0.1)print $0}'
 #to get IR events with at least 5 reads depth in the intron and across spliced exons and at least 0.1 IR ratio. 
 #In fact for my first pass I will often filter very aggressively and look at these manually in an IGV viewer:

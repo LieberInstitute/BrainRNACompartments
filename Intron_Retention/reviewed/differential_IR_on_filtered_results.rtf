@@ -828,23 +828,23 @@ module load samtools\
 \f2 \cf0 \expnd0\expndtw0\kerning0
 \CocoaLigature1 #The p-value columns indicate to what extent intron-retention has significantly changed between Condition A and Condition B.\
 \pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
-\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"known-exon" indicates that there are known transcripts both including and splicing out this region. IRFinder quantifies the relative abundance of these occurrences.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
+\'94known-exon" indicates that there are known transcripts both including and splicing out this region. IRFinder quantifies the relative abundance of these occurrences.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 "anti-near" / "anti-over" appear only in non-directional RNA-Seq analysis. There is a known anti-sense feature near or overlapping this intron. Care should be taken in these cases, visualising the RNA-Seq trace in IGV or similar will indicate if this is likely true intron retention or is polluted by an active anti-sense transcript.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 "NonUniformCover" indicates that the multiple places IRFinder measures the depth of the intron are not consistent. A visual check of the RNA-Seq trace is advised to rule out alternate-TSS or similar. In some cases this warning may simply be triggered by the uneven cover often seen in short-read RNA-Seq experiments.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 "MinorIsoform" indicates IRFinder has detected there is additional alternate-splicing occurring, as such the detection of intron-retention may be confounded by other changes in alternate splicing.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 The 5th column "-" with value always "0" is simply padding to maintain BED format compatibility. The first 6 columns together are in BED format allowing ready visualisation of these regions or further analysis.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 "ExcludedBases" indicates how many bases were excluded from the intron when calculating intronic coverage. Bases are excluded in regions of poor mappability and where other annotated features are present. The 5bp flanking any exon are also excluded, hence all introns exclude at least 10 bases.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 The comment and header lines are structured to allow easy import to R with 
 \f3 data<-read.table("file.tab", header=TRUE, comment.char="#")
 \f2 \
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	#	}\expnd0\expndtw0\kerning0
 This analysis uses the 
 \f3 IRFinder-IR-nondir.txt
 \f2  files. If the experiment had used a strand-specific RNA-Seq protocol directionality would have been automatically determined and analysis should use 

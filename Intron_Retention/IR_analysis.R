@@ -7,18 +7,15 @@ library(data.table)
 names = scan("/Users/amanda/Dropbox/NucVsCytosol/names.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
 path = "/Users/amanda/Dropbox/sorted_figures/IRfinder/"
-IRresP = IRresR = list()
+IRres = list()
 for (i in 1:length(shortenedNames)){
-  IRresP[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
-  IRresR[[i]] = read.table(paste0(path,"Ribozero/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
+  IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
 }
-names(IRresP) = paste0(shortenedNames, "_polyA")
-names(IRresR) = paste0(shortenedNames, "_RiboZero")
-IRres = c(IRresP, IRresR)
+names(IRres) = shortenedNames
 
 # Filter introns
 IRfiltered = lapply(IRres, function(x) x[which(x$Warnings=="-"),])       
-introns = data.frame(elementLengths(IRfiltered))
+introns = data.frame(elementNROWS(IRfiltered))
 introns$SampleID = as.factor(rownames(introns))
 introns$SampleID = gsub("_RiboZero", "\nRibozero", introns$SampleID)
 introns$SampleID = gsub("_polyA", "\npolyA", introns$SampleID)

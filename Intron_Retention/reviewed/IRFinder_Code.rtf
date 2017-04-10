@@ -2,10 +2,8 @@
 {\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;\f2\fswiss\fcharset0 ArialMT;
 \f3\fnil\fcharset0 Menlo-Bold;\f4\fnil\fcharset0 Consolas;}
 {\colortbl;\red255\green255\blue255;\red26\green26\blue26;\red234\green234\blue234;\red180\green36\blue25;
-\red64\green11\blue217;\red252\green33\blue24;\red159\green160\blue28;\red46\green174\blue187;\red178\green178\blue178;
-\red133\green0\blue2;\red200\green20\blue201;}
-{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
-{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\red64\green11\blue217;\red252\green33\blue24;\red159\green160\blue28;\red46\green174\blue187;\red200\green20\blue201;
+\red178\green178\blue178;\red133\green0\blue2;}
 \margl1440\margr1440\vieww26260\viewh15080\viewkind0
 \deftab720
 \pard\pardeftab720\partightenfactor0
@@ -29,37 +27,37 @@
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 
-\fs22 \cf0 Usage: bin/IRFinder -r ReferenceDir raw_reads_1.fastq[.gz] [raw_reads_2.fastq[.gz]]\
-Usage: bin/IRFinder -m BAM -r ReferenceDir Unsorted.bam\
-Usage: bin/IRFinder -m BuildRef -r ReferenceDir ftp://ftp.ensembl.org/pub/release-81/gtf/mus_musculus/Mus_musculus.GRCm38.81.gtf.gz\
+\fs22 \cf0 #Usage: bin/IRFinder -r ReferenceDir raw_reads_1.fastq[.gz] [raw_reads_2.fastq[.gz]]\
+#Usage: bin/IRFinder -m BAM -r ReferenceDir Unsorted.bam\
+#Usage: bin/IRFinder -m BuildRef -r ReferenceDir ftp://ftp.ensembl.org/pub/release-81/gtf/mus_musculus/Mus_musculus.GRCm38.81.gtf.gz\
 \
-    -m RunMode. FastQ (default), BAM, BuildRef,\
-             BuildRefDownload (performs phase 1 of BuildRef only, requires Internet),\
-             BuildRefProcess (performs phase 2 of BuildRef only).\
+#    -m RunMode. FastQ (default), BAM, BuildRef,\
+#             BuildRefDownload (performs phase 1 of BuildRef only, requires Internet),\
+#             BuildRefProcess (performs phase 2 of BuildRef only).\
 \
-Parameters for BuildRef mode:\
-  required:\
-    ftp://... An Ensembl URL to a GTF. Both GTF and a matching genome reference will be downloaded.\
-    -r ReferenceDir. Directory should not yet exist, will be created.\
-  optional:\
-    -e ExtraGenomeRef.fasta.gz: Typically an ERCC reference.\
-    -b Blacklist.bed.gz: BED of regions to be excluded from analysis.\
-    -R ROI.bed.gz: A non-overlapping BED file of additional Regions of Interest for read counts.\
+#Parameters for BuildRef mode:\
+#  required:\
+#    ftp://... An Ensembl URL to a GTF. Both GTF and a matching genome reference will be downloaded.\
+#    -r ReferenceDir. Directory should not yet exist, will be created.\
+#  optional:\
+#    -e ExtraGenomeRef.fasta.gz: Typically an ERCC reference.\
+#    -b Blacklist.bed.gz: BED of regions to be excluded from analysis.\
+#    -R ROI.bed.gz: A non-overlapping BED file of additional Regions of Interest for read counts.\
 \
-Parameters for FastQ / BAM mode:\
-  required:\
-    raw_reads_1.fastq.gz: Either single or paired end fastq file.\
-    Unsorted.bam: Mapped output, with pairs as sequential records. Paired end must not be coordinate sorted.\
-    -r ReferenceDir. As built by the 'BuildRef' option.\
-  optional:\
-   -a Adaptor sequence. 'none' to disable. Default: Illumina Universal is trimmed.\
-   -t Threads. Default is the number of physical CPUs\
-   -d Output Directory. Default is the current directory.\
-   -s STAR memory mode. NoSharedMemory (default), LoadAndKeep, LoadAndRemove.\
-   -S STAR executable. Default is 'STAR'.\
-   -u. Unsorted output. Do not sort the read fragment BAM file. Default is to sort if\
-            a novosort license is present.\
-   -M sort memory. Maximum memory to use for sort, in MB. Default, auto-detected no greater than 10,000MB.\
+#Parameters for FastQ / BAM mode:\
+#  required:\
+#    raw_reads_1.fastq.gz: Either single or paired end fastq file.\
+#    Unsorted.bam: Mapped output, with pairs as sequential records. Paired end must not be coordinate sorted.\
+#    -r ReferenceDir. As built by the 'BuildRef' option.\
+#  optional:\
+#   -a Adaptor sequence. 'none' to disable. Default: Illumina Universal is trimmed.\
+#   -t Threads. Default is the number of physical CPUs\
+#   -d Output Directory. Default is the current directory.\
+#   -s STAR memory mode. NoSharedMemory (default), LoadAndKeep, LoadAndRemove.\
+#   -S STAR executable. Default is 'STAR'.\
+#   -u. Unsorted output. Do not sort the read fragment BAM file. Default is to sort if\
+#            a novosort license is present.\
+#   -M sort memory. Maximum memory to use for sort, in MB. Default, auto-detected no greater than 10,000MB.\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf0 \
@@ -131,19 +129,6 @@ mkdir
 \f2\b0\fs24 \cf0 /
 \f3\b\fs22 \cf5 Br1113C1
 \f2\b0\fs24 \cf0 _*_\cf6 L001_\cf0 R2_001.fastq.gz\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-
-\b \cf0 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-
-\b0 \cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRFinder/PolyA/Br1113C1 -r 
-\b \cf5 Human-hg19-release75 
-\b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br1113C1/Br1113C1_*_\cf6 L001_\cf0 R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/
-\f3\b\fs22 \cf5 Sample_Br1113C1
-\f2\b0\fs24 \cf0 /
-\f3\b\fs22 \cf5 Br1113C1
-\f2\b0\fs24 \cf0 _*_\cf6 L001_\cf0 R2_001.fastq.gz\
 \
 mkdir 
 \f1\fs22 Dougherty_data/IRFinder/
@@ -190,63 +175,33 @@ module load samtools\
 \b \cf5 Human-hg19-release75 
 \b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\{\}/\{\}_*_R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\{\}/\{\}_*_R2_001.fastq.gz
 \b \
-\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
 
-\b0 \cf0 # OR # \
-\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\b0 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f1\fs22 \cf5 # qsub -tc 245 -l mf=20G,h_vmem=20G,h_stack=256M -t 1-12 IRFinderPolyA.sh\cf0 \
+\f1\fs22 \cf5 # qsub -tc 245 -l mf=45G,h_vmem=45G,h_stack=256M  -m e -M amanda.joy.price@gmail.com -t 1-2 IRFinderPolyA_downsampled.sh\cf0 \
 \
 \cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/\
 module load bedtools\
 module load samtools\
 \
-\cf8 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/samplenames.txt\
-\cf8 ID\cf0 =
-\f3\b \cf9 \cb10 $(
-\f1\b0 \cf11 \cb1 awk \cf7 "\cf4 NR==\cf11 $SGE_TASK_ID\cf7 "\cf11  $FILELIST
-\f3\b \cf9 \cb10 )
-\f1\b0 \cf0 \cb1 \
-\cf8 read1P\cf0 =/dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\cf11 $\{ID\}\cf0 /\cf11 $\{ID\}\cf0 _*_L001_R1_001.fastq.gz\
-\cf8 read2P\cf0 =/dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\cf11 $\{ID\}\cf0 /\cf11 $\{ID\}\cf0 _*_L001_R2_001.fastq.gz\
-\cf8 read1R\cf0 =/dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\cf11 $\{ID\}\cf0 /\cf11 $\{ID\}\cf0 _*_R1_001.fastq.gz\
-\cf8 read2R\cf0 =/dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\cf11 $\{ID\}\cf0 /\cf11 $\{ID\}\cf0 _*_R2_001.fastq.gz\
+\cf7 export\cf8  PATH\cf7 =\cf9 $PATH\cf0 :/users/aprice26/biotools/STAR\cf4 -2\cf0 .\cf4 5\cf0 .2a/bin/Linux_x86_64\
 \
-/users/aprice26/biotools/IRFinder\cf4 -1\cf0 .\cf4 1\cf0 .\cf4 1\cf0 /bin/IRFinder \cf11 -d\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/PolyA/\cf11 $\{ID\}\cf0  \cf11 -r\cf0  Human-hg19-release75 \cf11 $read1P\cf0  \cf11 $read2P\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf8 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/scripts/downsample.txt\
+\cf8 ID\cf0 =
+\f3\b \cf10 \cb11 $(
+\f1\b0 \cf9 \cb1 awk \cf7 "\cf4 NR==\cf9 $SGE_TASK_ID\cf7 "\cf9  $FILELIST
+\f3\b \cf10 \cb11 )
+\f1\b0 \cf0 \cb1 \
+\cf8 read1\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf9 $\{ID\}\cf0 _*_L0102_head12M_R1.fastq.gz\
+\cf8 read2\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf9 $\{ID\}\cf0 _*_L0102_head12M_R2.fastq.gz\
+\
+/users/aprice26/biotools/IRFinder\cf4 -1\cf0 .\cf4 1\cf0 .\cf4 1\cf0 /bin/IRFinder \cf9 -d\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/PolyA/\cf9 $\{ID\}\cf0 _downsampled \cf9 -r\cf0  Human-hg19-release75 \cf9 $read1\cf0  \cf9 $read2\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
 
 \f2\fs24 \cf0 \
 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
-\cf0 # qsub -tc 245 -l mf=50G,h_vmem=50G,h_stack=256M -t \CocoaLigature1 1-12\CocoaLigature0  IRFinderRibo.sh
-\b \
-
-\b0 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 cd /dcl01/lieber/ajaffe/Amanda/NucVsCyt/\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
-\cf0 module load bedtools\
-module load samtools\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
-
-\b \cf0 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
-
-\b0 \cf0 FILELIST=/dcl01/lieber/ajaffe/Amanda/NucVsCyt/samplenames.txt\
-ID=$(awk "NR==$SGE_TASK_ID" $FILELIST)\
-read1P=/dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_$\{ID\}/$\{ID\}_*_R1_001.fastq.gz\
-read2P=/dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_$\{ID\}/$\{ID\}_*_R2_001.fastq.gz\
-read1R=/dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_$\{ID\}/$\{ID\}_*_R1_001.fastq.gz\
-read2R=/dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_$\{ID\}/$\{ID\}_*_R2_001.fastq.gz\
-\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder/Ribozero/$\{ID\} -r \expnd0\expndtw0\kerning0
-\CocoaLigature1 Human-hg19-release75 \kerning1\expnd0\expndtw0 \CocoaLigature0 $read1R $read2R\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
-\cf0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
 
 \b \cf0 # Test Adult PolyA Zone differences
@@ -767,41 +722,7 @@ module load samtools\
 \pard\pardeftab720\ri-20873\partightenfactor0
 \cf0   > \expnd0\expndtw0\kerning0
  IRfinder/\kerning1\expnd0\expndtw0 Ribozero_Zone.tab
-\f0\b \CocoaLigature0 \
+\f0 \CocoaLigature0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-
-\b0 \cf0 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-
-\b \cf0 # Test Zone differences
-\b0 \
-\
-\
-\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
-\ls1\ilvl0
-\f2 \cf0 \expnd0\expndtw0\kerning0
-\CocoaLigature1 The p-value columns indicate to what extent intron-retention has significantly changed between Condition A and Condition B.\
-\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
-\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"known-exon" indicates that there are known transcripts both including and splicing out this region. IRFinder quantifies the relative abundance of these occurrences.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"anti-near" / "anti-over" appear only in non-directional RNA-Seq analysis. There is a known anti-sense feature near or overlapping this intron. Care should be taken in these cases, visualising the RNA-Seq trace in IGV or similar will indicate if this is likely true intron retention or is polluted by an active anti-sense transcript.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"NonUniformCover" indicates that the multiple places IRFinder measures the depth of the intron are not consistent. A visual check of the RNA-Seq trace is advised to rule out alternate-TSS or similar. In some cases this warning may simply be triggered by the uneven cover often seen in short-read RNA-Seq experiments.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"MinorIsoform" indicates IRFinder has detected there is additional alternate-splicing occurring, as such the detection of intron-retention may be confounded by other changes in alternate splicing.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-The 5th column "-" with value always "0" is simply padding to maintain BED format compatibility. The first 6 columns together are in BED format allowing ready visualisation of these regions or further analysis.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-"ExcludedBases" indicates how many bases were excluded from the intron when calculating intronic coverage. Bases are excluded in regions of poor mappability and where other annotated features are present. The 5bp flanking any exon are also excluded, hence all introns exclude at least 10 bases.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-The comment and header lines are structured to allow easy import to R with 
-\f4 data<-read.table("file.tab", header=TRUE, comment.char="#")
-\f2 \
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
-This analysis uses the 
-\f4 IRFinder-IR-nondir.txt
-\f2  files. If the experiment had used a strand-specific RNA-Seq protocol directionality would have been automatically determined and analysis should use 
-\f4 IRFinder-IR-dir.txt
-\f2 .\
+\cf0 \
 }
