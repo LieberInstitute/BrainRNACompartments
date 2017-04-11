@@ -46,7 +46,7 @@ introns$Group = factor(x=c("Adult:Cytosol","Adult:Nucleus","Adult:Cytosol","Adul
                                   "Adult:Nucleus","Prenatal:Nucleus"))
 introns$num.genes = as.numeric(lapply(genes, function(x) length(unique(x))))
 introns$MeanIntronDepth = as.numeric(lapply(IRfiltered2, function(x) mean(x$IntronDepth)))
-write.csv(introns, file="./Dropbox/sorted_figures/new/filtered.intron.stats.csv")
+write.csv(introns, file="./Dropbox/sorted_figures/new/github_controlled/filtered.intron.stats.csv")
 
 ggplot(introns, aes(x=Group, y=num.introns)) + 
   geom_boxplot() + geom_jitter() +
