@@ -510,7 +510,6 @@ for (i in 1:length(comps)){
   nonconst.66warn[[i]] = read.table(paste0(path, "PolyA/",comps[i],"_nonconst.66warn.tab"), header = TRUE, comment.char="#")
 }
 names(IRcomp) = names(nonconst) = names(rat.1) = names(nonconst.nowarn) = names(nonconst.66warn) = comps
-
 dIR = list(IRcomp=IRcomp, nonconst=nonconst, rat.1=rat.1, nonconst.nowarn=nonconst.nowarn, nonconst.66warn=nonconst.66warn)
               
 elementNROWS(IRcomp)
@@ -519,82 +518,164 @@ elementNROWS(rat.1)
 elementNROWS(nonconst.nowarn)
 elementNROWS(nonconst.66warn)
 
-string = lapply(IRcomp, function(x) as.character(x$Intron.GeneName.GeneID))
-string = lapply(string, function(x) strsplit(x, "/", fixed = TRUE))
-x = lapply(string, function(x) unlist(x, recursive = FALSE))
-y = lapply(x, function(x) grep("ENSG", x))
-c = lapply(x, function(x) seq.int(from = 3, to=length(x), by=3))
-comments = genes = list()
-for (i in 1:length(string)){
-  tmp = x[[i]]
-  genes[[i]] = tmp[y[[i]]]
-  comments[[i]] = tmp[c[[i]]]
+string = lapply(dIR, function(x) lapply(x, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),
+                                                                   "/", fixed = TRUE),recursive = FALSE)))
+genes = lapply(string, function(x) lapply(x, function(y) y[grep("ENSG", y)]))
+comments = lapply(string, function(x) lapply(x, function(y) as.character(y[seq.int(from = 3, to=length(y), by=3)])))
+IR.diff = lapply(dIR, function(x) lapply(x, function(y) y$A.IRratio - y$B.IRratio))
+Sign = lapply(IR.diff, function(x) lapply(x, function(y) ifelse(y < 0,"MoreIRInNuc.Fetal", "MoreIRInCyt.Adult")))
+IR = list()
+for (i in 1:length(dIR)){
+  IR[[i]] = Map(cbind, dIR[[i]], ensID = genes[[i]], comments = comments[[i]], IR.diff = IR.diff[[i]], Sign = Sign[[i]])
 }
-names(genes) = names(comments) = names(x)
-IR.diff = lapply(IRcomp, function(x) x$A.IRratio - x$B.IRratio)
-Sign = lapply(IR.diff, function(x) ifelse(x < 0,"MoreIRInNuc.Fetal", "MoreIRInCyt.Adult"))
-IRcomp = Map(cbind, IRcomp, ensID = genes, comments = comments, IR.diff = IR.diff, Sign = Sign)
+names(IR) = names(dIR)
+dIR = IR
+IRclean = lapply(dIR, function(x) lapply(x, function(y) 
+                  y[which(y$A.warnings!="LowCover" & y$A.warnings!="LowSplicing" & 
+                            y$B.warnings!="NonUniformIntronCover" & y$B.warnings!="LowCover" & 
+                            y$B.warnings!="LowSplicing" & y$B.warnings!="NonUniformIntronCover" &
+                            y$comments=="clean"),]))
 
-polya = IRcomp[1:6]
-IRclean = lapply(polya, function(x) x[which(x$A.warnings=="-" & x$B.warnings=="-" & x$comments=="clean"),])
 
 # Explore the results
-elementLengths(IRclean)
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #761               481               517               662                53                82
-elementLengths(lapply(IRclean, function(x) x[which(x$Sign=="MoreIRInNuc.Fetal"),]))
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #752               445               461               343                53                67
-elementLengths(lapply(IRclean, function(x) x[which(x$p.diff<=0.05),]))
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #161               166                97               156                34                36 
-elementLengths(lapply(IRclean, function(x) x[which(x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),]))
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #159               164                77                64                34                26
-elementLengths(lapply(IRclean, function(x) x[which(x$A.IRratio>=0.5 | x$B.IRratio>=0.5),]))
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #4                 3                 4                10                 2                 1
-elementLengths(lapply(lapply(IRclean, function(x) x[which(x$A.IRratio>=0.5 | x$B.IRratio>=0.5),]), function(x) 
-  x[which(x$Sign=="MoreIRInNuc.Fetal"),]))
-      #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-      #4                 2                 4                 3                 2                 1
-fisher.test(data.frame(c(159,2),c(593,7))) 
-#data:  polyA adult
-#p-value = 1
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.176366 9.346762
-#sample estimates:
-#  odds ratio 
-#0.9385205 
-fisher.test(data.frame(c(164,2),c(281,36)))
-#data:  polyA fetal
-#p-value = 2.19e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.636957 90.956349
-#sample estimates:
-#  odds ratio 
-#10.47494
-fisher.test(data.frame(c(77,20),c(384,36)))
-#data:  data.frame(c(77, 20), c(384, 36))
-#p-value = 0.001621
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1918414 0.6970453
-#sample estimates:
-#  odds ratio 
-#0.3618495 
-fisher.test(data.frame(c(64,92),c(279,227)))
-#data:  data.frame(c(64, 92), c(279, 227))
-#p-value = 0.002444
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.3862584 0.8272246
-#sample estimates:
-#  odds ratio 
-#0.5665001
+lapply(IRclean, function(x) elementNROWS(x))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#1097              1001               689              1214               136               168 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#1097              1001               689              1214               136               168 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#785               661               421               877               131               155 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#184               330                94               237                 5                 3 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#646               710               409               694                56                57
+lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$Sign=="MoreIRInNuc.Fetal"),])))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#1087               975               576               595               136               104 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#1087               975               576               595               136               104 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#776               641               334               380               131                95 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#182               322                80               137                 5                 3 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#638               698               344               355                56                38 
+lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$p.diff<=0.05),])))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#314               213               171               351                99                95 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#314               213               171               351                99                95 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#268               192               141               323                97                93 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#57                30                18                48                 3                 2 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#203               134                83               191                42                36
+lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$p.diff<=0.05 & y$Sign=="MoreIRInNuc.Fetal"),])))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#312               212               140               165                99                62 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#312               212               140               165                99                62 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#266               191               112               145                97                60 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#56                30                14                23                 3                 2 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#201               134                67                91                42                25
+lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$A.IRratio>=0.5 | y$B.IRratio>=0.5),])))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 3                16                 3                 7 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 3                16                 3                 7 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 3                16                 3                 7 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#0                 0                 0                 1                 0                 0 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#2                 1                 0                 9                 0                 1      
+lapply(IRclean, function(x) elementNROWS(lapply(lapply(x, function(y) y[which(y$A.IRratio>=0.5 | y$B.IRratio>=0.5),]), 
+                                                function(z) z[which(z$Sign=="MoreIRInNuc.Fetal"),])))
+#IRcomp
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 1                 6                 3                 5 
+#nonconst
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 1                 6                 3                 5 
+#rat.1
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#8                 5                 1                 6                 3                 5 
+#nonconst.nowarn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#0                 0                 0                 1                 0                 0 
+#nonconst.66warn
+#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#2                 1                 0                 4                 0                 1
 
+#moving forward with the nonconstitutively spliced results because they capture more introns, 
+  #and coverage issues are filtered after differential retention calculation
+
+# Comparison of significantly vs nonsignificantly retained introns by zone/age
+fisher.test(data.frame(c(312,2),c(775,8))) 
+# adult zone
+#p-value = 0.7332
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.3188043 15.6435734
+#sample estimates:
+#  odds ratio 
+#1.609729
+fisher.test(data.frame(c(212,1),c(763,25)))
+# fetal zone
+#p-value = 0.02666
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.122308 286.209119
+#sample estimates:
+#  odds ratio 
+#6.938855
+fisher.test(data.frame(c(141,30),c(435,83)))
+# cytosol age
+#p-value = 0.6352
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.5572585 1.4726430
+#sample estimates:
+#  odds ratio 
+#0.8969333 
+fisher.test(data.frame(c(165,186),c(430,433)))
+# nucleus age
+#p-value = 0.3762
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.6912077 1.1541152
+#sample estimates:
+#  odds ratio 
+#0.8933697
 
 # Are IR genes significantly regulated by fraction?
 FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv"),
@@ -602,7 +683,7 @@ FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_
                 Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv"),
                 Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv"))
 SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementLengths(SigFracList)
+elementNROWS(SigFracList)
 Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
 SigFracList = Map(cbind, SigFracList, Sign = Sign)
 DirList = lapply(SigFracList, function(x) split(x, x$Sign))
@@ -613,7 +694,7 @@ SigList = list(Apres.Up = DirList[["Apres"]][["UpNuc"]], Apres.Down = DirList[["
 SigList = lapply(SigList, function(x) as.character(x$X))
 names(SigList) = c("Adult\nPolyA\nNucleus", "Adult\nPolyA\nCytosol", "Fetal\nPolyA\nNucleus", "Fetal\nPolyA\nCytosol", 
                    "Adult\nRibozero\nNucleus", "Adult\nRibozero\nCytosol", "Fetal\nRibozero\nNucleus", "Fetal\nRibozero\nCytosol")
-elementLengths(SigList)
+elementNROWS(SigList)
 allgenes = FracList[[1]]
 allgenes = as.character(allgenes$X)
 string = lapply(IRfiltered, function(x) as.character(x$GeneIntronDetails))
@@ -697,7 +778,7 @@ APC = SigList[["Adult\nPolyA\nCytosol"]]
 APN = SigList[["Adult\nPolyA\nNucleus"]]
 FPC = SigList[["Fetal\nPolyA\nCytosol"]]
 FPN = SigList[["Fetal\nPolyA\nNucleus"]]
-elementLengths(IRcomp)
+elementNROWS(IRcomp)
 head(IRcomp[[1]])
 IR.APC = IRclean[["Adult_PolyA_Zone"]]
 IR.APN = IRclean[["Adult_PolyA_Zone"]]
@@ -739,7 +820,7 @@ venn.Age <- venn.diagram(AdultfracIR.sig, "/Users/amanda/Desktop/AdultfracIR.sig
                          fontface = "bold",
                          cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                          cat.fontfamily = "Arial", margin=0.2)
-elementLengths(FetalfracIR.sig)
+elementNROWS(FetalfracIR.sig)
 venn.Age <- venn.diagram(FetalfracIR.sig, "/Users/amanda/Desktop/FetalfracIR.sig.jpeg", main="FetalfracIR.sig",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -778,7 +859,7 @@ fisher.test(fetal)
 
 AdultfracIR.perc = list(IR.APC = IR.APC.perc, IR.APN = IR.APN.perc, YesFrac = as.character(FPC$X), NoFrac = as.character(FPN$X))
 FetalfracIR.perc = list(IR.FPC = IR.FPC.perc, IR.FPN = IR.FPN.perc, YesFrac = as.character(FPC$X), NoFrac = as.character(FPN$X))
-elementLengths(AdultfracIR.perc)
+elementNROWS(AdultfracIR.perc)
 venn.Age <- venn.diagram(AdultfracIR.perc, "/Users/amanda/Desktop/AdultfracIR.perc.jpeg", main="AdultfracIR.perc",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -790,7 +871,7 @@ venn.Age <- venn.diagram(AdultfracIR.perc, "/Users/amanda/Desktop/AdultfracIR.pe
                          fontface = "bold",
                          cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                          cat.fontfamily = "Arial", margin=0.2)
-elementLengths(FetalfracIR.perc)
+elementNROWS(FetalfracIR.perc)
 venn.Age <- venn.diagram(FetalfracIR.perc, "/Users/amanda/Desktop/FetalfracIR.perc.jpeg", main="FetalfracIR.perc",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -807,7 +888,7 @@ venn.Age <- venn.diagram(FetalfracIR.perc, "/Users/amanda/Desktop/FetalfracIR.pe
 AgeList = list(Cpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Cpres.csv"),
                Npres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Npres.csv"))
 SigAgeList = lapply(AgeList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementLengths(SigAgeList)
+elementNROWS(SigAgeList)
 Sign = lapply(SigAgeList, function(x) ifelse(x$log2FoldChange > 0,"UpFetal", "UpAdult"))
 SigAgeList = Map(cbind, SigAgeList, Sign = Sign)
 DirList = lapply(SigAgeList, function(x) split(x, x$Sign))
@@ -815,7 +896,7 @@ SigList = list(Apres.Up = DirList[["Cpres"]][["UpFetal"]], Apres.Down = DirList[
                Fpres.Up = DirList[["Npres"]][["UpFetal"]], Fpres.Down = DirList[["Npres"]][["UpAdult"]]) 
 SigList = lapply(SigList, function(x) as.character(x$X))
 names(SigList) = c("Cytosol\nPolyA\nFetal", "Cytosol\nPolyA\nAdult", "Nucleus\nPolyA\nFetal", "Nucleus\nPolyA\nAdult")
-elementLengths(SigList)
+elementNROWS(SigList)
 allgenes = AgeList[[1]]
 allgenes = as.character(allgenes$X)
 
@@ -911,7 +992,7 @@ venn.Age <- venn.diagram(CytAgeIR.sig, "/Users/amanda/Desktop/CytAgeIR.sig.jpeg"
                          fontface = "bold",
                          cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                          cat.fontfamily = "Arial", margin=0.2)
-elementLengths(NucAgeIR.sig)
+elementNROWS(NucAgeIR.sig)
 venn.Age <- venn.diagram(NucAgeIR.sig, "/Users/amanda/Desktop/NucAgeIR.sig.jpeg", main="NucAgeIR.sig",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -950,7 +1031,7 @@ fisher.test(nuc)
 
 CytAgeIR.perc = list(IR.CPA = IR.CPA.perc, IR.CPF = IR.CPF.perc, YesAge = as.character(NPA$X), NoAge = as.character(NPF$X))
 NucAgeIR.perc = list(IR.NPA = IR.NPA.perc, IR.NPF = IR.NPF.perc, YesAge = as.character(NPA$X), NoAge = as.character(NPF$X))
-elementLengths(CytAgeIR.perc)
+elementNROWS(CytAgeIR.perc)
 venn.Age <- venn.diagram(CytAgeIR.perc, "/Users/amanda/Desktop/CytAgeIR.perc.jpeg", main="CytAgeIR.perc",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -962,7 +1043,7 @@ venn.Age <- venn.diagram(CytAgeIR.perc, "/Users/amanda/Desktop/CytAgeIR.perc.jpe
                          fontface = "bold",
                          cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                          cat.fontfamily = "Arial", margin=0.2)
-elementLengths(NucAgeIR.perc)
+elementNROWS(NucAgeIR.perc)
 venn.Age <- venn.diagram(NucAgeIR.perc, "/Users/amanda/Desktop/NucAgeIR.perc.jpeg", main="NucAgeIR.perc",
                          col = "transparent",
                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
@@ -976,97 +1057,3 @@ venn.Age <- venn.diagram(NucAgeIR.perc, "/Users/amanda/Desktop/NucAgeIR.perc.jpe
                          cat.fontfamily = "Arial", margin=0.2)
 
 # Are the retained introns the last introns?
-
-
-
-
-
-
-
-
-
-
-
-
-
-####### From before
-
-# Do the gene sets overlap?
-geneIDs = lapply(lapply(IRclean, function(x) x[which(x$p.diff<=0.05),]), function(x) unique(x$GeneID))
-IRZone = list("Adult:PolyA"=geneIDs[["AdultPolyA"]], "Fetal:PolyA"=geneIDs[["FetalPolyA"]], 
-                "Adult:RiboZero"=geneIDs[["AdultRibo"]], "Fetal:RiboZero"=geneIDs[["FetalRibo"]])
-
-venn.IRZone <- venn.diagram(IRZone, "/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/Figure_PDFs/Venn.IRbyZone.jpeg", 
-                            main="Genes with Significantly Differentially Retained Introns by Fraction",
-                            col = "transparent",
-                            fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
-                            alpha = 0.50,
-                            label.col = c("olivedrab4", "white", "darkorchid4", "white",
-                                          "white", "white", "white", "white", "palevioletred4", "white",
-                                          "white", "white", "white", "darkblue", "white"),
-                            fontfamily = "Arial",
-                            fontface = "bold",
-                            cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-                            cat.fontfamily = "Arial", margin=0.2)
-
-# How many are differentially expressed by fraction?
-Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv")
-Fpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Fpres.csv")
-Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv")
-Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv")
-
-DE.IR = list(AP.IR = Apres[which(Apres$X %in% geneIDs[["AdultPolyA"]]),], FP.IR = Fpres[which(Fpres$X %in% geneIDs[["FetalPolyA"]]),], 
-                 AR.IR = Arres[which(Arres$X %in% geneIDs[["AdultRibo"]]),], FR.IR = Frres[which(Frres$X %in% geneIDs[["FetalRibo"]]),])
-    elementLengths(DE.IR)
-      #AP.IR FP.IR  AR.IR  FR.IR 
-      #144   149  1015   881
-    elementLengths(lapply(DE.IR, function(x) x[which(x$padj<=0.05),])) 
-      #AP.IR FP.IR AR.IR FR.IR 
-      #71    19   543   105 
-    elementLengths(lapply(FracList, function(x) x[which(x$padj<=0.05),]))
-      #Apres Fpres Arres Frres 
-      #4417   297  5605  1515
-fisher.test(data.frame(c(71,4346), c(73,39951)))
-    #data:  data.frame(c(71, 4346), c(73, 39951))
-    #p-value < 2.2e-16
-    #alternative hypothesis: true odds ratio is not equal to 1
-    #95 percent confidence interval:
-    #  6.346241 12.585631
-    #sample estimates:
-    #  odds ratio 
-    #8.939848
-fisher.test(data.frame(c(19,278),c(130,44014)))
-    #data:  data.frame(c(19, 278), c(130, 44014))
-    #p-value < 2.2e-16
-    #alternative hypothesis: true odds ratio is not equal to 1
-    #95 percent confidence interval:
-    #  13.29770 38.24939
-    #sample estimates:
-    #  odds ratio 
-    #23.12528
-
-# Are the genes also differentially polyadenylated?
-DE.dapars = list(AP.Dapars = Apres[which(Apres$X %in% DaparsGenes[["AdultPolyA"]]),], FP.Dapars = Fpres[which(Fpres$X %in% DaparsGenes[["FetalPolyA"]]),], 
-                 AR.Dapars = Arres[which(Arres$X %in% DaparsGenes[["AdultRiboZero"]]),], FR.Dapars = Frres[which(Frres$X %in% DaparsGenes[["FetalRiboZero"]]),])
-    elementLengths(DE.dapars)
-      #AP.Dapars FP.Dapars AR.Dapars FR.Dapars
-      #422   609   132   162 
-    elementLengths(lapply(DE.dapars, function(x) x[which(x$padj<=0.05),])) 
-      #AP.Dapars FP.Dapars AR.Dapars FR.Dapars 
-      #181    23   103    38 
-    elementLengths(lapply(DE.dapars, function(x) x[which(x$padj<=0.05 & x$log2FoldChange >= 1),])) #greater exp in nuc
-      #AP.Dapars FP.Dapars AR.Dapars FR.Dapars
-      #12         3         4         3 
-Daparsgenes = list(AdultPolyA=DaparsGenes[["AdultPolyA"]], FetalPolyA=DaparsGenes[["FetalPolyA"]], AdultRiboZero=DaparsGenes[["AdultRiboZero"]], FetalRiboZero=DaparsGenes[["FetalRiboZero"]])
-Dapars.IR = list()
-    for (i in 1:4){
-    tmp=IRclean[[i]]
-    Dapars.IR[[i]]=tmp[which(tmp$GeneID %in% Daparsgenes[[i]] & tmp$p.diff <=0.05),]}
-names(Dapars.IR) = c("AdultPolyA", "FetalPolyA", "AdultRibo", "FetalRibo")  
-    elementLengths(Dapars.IR)
-      #AdultPolyA FetalPolyA  AdultRibo  FetalRibo 
-      #11         11         44         79  
-    elementLengths(lapply(Dapars.IR, function(x) x[which(x$Sign=="MoreIRInNuc"),]))
-      #AdultPolyA FetalPolyA  AdultRibo  FetalRibo 
-      #11         11         44         79
-
