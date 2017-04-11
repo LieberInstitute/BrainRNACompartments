@@ -1,9 +1,7 @@
-install.packages("ggplot2")
-source("http://bioconductor.org/biocLite.R")
-biocLite("DESeq2")
 library("ggplot2")
 library(DESeq2)
 
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 vsd = varianceStabilizingTransformation(geneCounts)
 testgenes = rbind(geneRpkm["ENSG00000075624",], geneRpkm["ENSG00000102081",], geneRpkm["ENSG00000229807",], geneRpkm["ENSG00000251562",])
 rownames(testgenes)=c("ACTB", "FMR1", "XIST", "MALAT1")

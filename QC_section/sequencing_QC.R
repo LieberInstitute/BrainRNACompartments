@@ -2,12 +2,7 @@ library("readxl")
 library('DESeq2')
 library("ggplot2")
 
-df = read_excel("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/QCpd.xlsx")
-df$Label = as.factor(paste(df$Group, df$Fraction, df$Library, sep="\n"))
-df$Label = factor(df$Label, 
-                  levels = c("Adult\nCytosol\npolyA", "Fetal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
-                             "Fetal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Fetal\nCytosol\nRiboZero",
-                             "Adult\nNucleus\nRiboZero", "Fetal\nNucleus\nRiboZero"))
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
 
 percrRNA = df$rRNAreads / df$totalMapped * 100
 percMapped = df$totalMapped / df$TotalReads * 100
