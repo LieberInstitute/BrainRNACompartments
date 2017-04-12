@@ -1,17 +1,28 @@
 library("ggplot2")
 library(DESeq2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 vsd = varianceStabilizingTransformation(geneCounts)
-testgenes = rbind(geneRpkm["ENSG00000075624",], geneRpkm["ENSG00000102081",], geneRpkm["ENSG00000229807",], geneRpkm["ENSG00000251562",])
-rownames(testgenes)=c("ACTB", "FMR1", "XIST", "MALAT1")
 
-FracList = list(Apres = read.csv("/Users/amandaprice/Downloads/Apres.csv"),
-                Fpres = read.csv("/Users/amandaprice/Downloads/Fpres.csv"),
-                Arres = read.csv("/Users/amandaprice/Downloads/Arres.csv"),
-                Frres = read.csv("/Users/amandaprice/Downloads/Frres.csv"))
-genes = c("ENSG00000075624","ENSG00000251562")
-lfc = lapply(FracList, function(x) x[which(x$X %in% genes),])
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/DESeq2_results.rda")
+
+ens = c("ENSG00000075624","ENSG00000102081","ENSG00000229807","ENSG00000251562")
+ids = rownames(geneMap[which(geneMap$ensemblID %in% ens),])
+
+testgenes = geneRpkm[which(rownames(geneRpkm) %in% ids),]
+rownames(testgenes)=geneMap[match(ids,rownames(geneMap)), "Symbol"]
+
+FracList = list(full = list(Apres = Apres,Fpres = Fpres,Arres = Arres,Frres = Frres),
+                downsampled = list(Apres= Apres.down, Fpres = Fpres.down, 
+                                   Arres = Arres.down, Frres = Frres.down))
+map = data.frame(ids = rownames(geneMap[rownames(geneMap) %in% ids,]), 
+                 ens = geneMap[rownames(geneMap) %in% ids,"ensemblID"],
+                 sym = geneMap[rownames(geneMap) %in% ids,"Symbol"])
+
+genes = c("ENSG00000075624.13_2","ENSG00000251562.7_1")
+lfc = lapply(FracList, function(x) lapply(x, function(y) y[which(rownames(y) %in% genes),]))
+
 x = do.call(rbind, lfc)
 write.table(x, "./Dropbox/sorted_figures/new/MALAT1.ACTB.txt", quote=F)
 
