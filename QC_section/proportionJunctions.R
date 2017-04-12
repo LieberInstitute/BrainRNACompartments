@@ -16,6 +16,10 @@ df = df[order(df$ID),]
 df = df[which(df$ID!="Br1113N1_RiboZero"),]
 match(df$ID, pd$SampleID)
 df$Label = pd$Label
+levels(df$Label) = levels = c("Adult\nCytosol\npolyA", "Prenatal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
+                              "Prenatal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Prenatal\nCytosol\nRiboZero",
+                              "Adult\nNucleus\nRiboZero", "Prenatal\nNucleus\nRiboZero")
+
 
 ggplot(df, aes(x=Label, y=propJunc)) + geom_boxplot() + 
   geom_jitter() + 
@@ -40,6 +44,10 @@ rownames(df.down) = gsub("downsamp", "polyA", rownames(df.down))
 df.down = df.down[order(df.down$ID),]
 match(df.down$ID, pd$SampleID)
 df.down$Label = pd$Label
+levels(df$Label) = levels = c("Adult\nCytosol\npolyA", "Prenatal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
+                              "Prenatal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Prenatal\nCytosol\nRiboZero",
+                              "Adult\nNucleus\nRiboZero", "Prenatal\nNucleus\nRiboZero")
+
 
 ggplot(df.down, aes(x=Label, y=propJunc)) + geom_boxplot() + 
   geom_jitter() + 

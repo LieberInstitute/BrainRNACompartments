@@ -37,16 +37,17 @@ exonCounts = exonCounts[,which(colnames(exonCounts)!="Br1113N1_RiboZero")]
 pd = pd[which(pd$SampleID!="Br1113N1_RiboZero"),]
 geneCounts.down = geneCounts.down[which(rowSums(geneCounts.down) > 0),which(colnames(geneCounts.down)!="Br1113N1_RiboZero")]
 exonCounts.down = exonCounts.down[,which(colnames(exonCounts.down)!="Br1113N1_RiboZero")]
+pd$Fetal = gsub("Fetal", "Prenatal", pd$Fetal)
 pd$Label = factor(paste(pd$Fetal, pd$Zone,pd$Library, sep="\n"), 
-                  levels = c("Adult\nCytosol\npolyA", "Fetal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
-                             "Fetal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Fetal\nCytosol\nRiboZero",
-                             "Adult\nNucleus\nRiboZero", "Fetal\nNucleus\nRiboZero"))
+                  levels = c("Adult\nCytosol\npolyA", "Prenatal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
+                             "Prenatal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Prenatal\nCytosol\nRiboZero",
+                             "Adult\nNucleus\nRiboZero", "Prenatal\nNucleus\nRiboZero"))
 pd$WorkingID = c("Adult1_Cytosol_polyA", "Adult1_Nucleus_polyA", "Adult2_Cytosol_polyA", "Adult2_Nucleus_polyA",
-                "Adult3_Cytosol_polyA", "Adult3_Nucleus_polyA", "Fetal1_Cytosol_polyA", "Fetal1_Nucleus_polyA",
-                "Fetal2_Cytosol_polyA", "Fetal2_Nucleus_polyA", "Fetal3_Cytosol_polyA", "Fetal3_Nucleus_polyA",
+                "Adult3_Cytosol_polyA", "Adult3_Nucleus_polyA", "Prenatal1_Cytosol_polyA", "Prenatal1_Nucleus_polyA",
+                "Prenatal2_Cytosol_polyA", "Prenatal2_Nucleus_polyA", "Prenatal3_Cytosol_polyA", "Prenatal3_Nucleus_polyA",
                 "Adult1_Cytosol_RiboZero", "Adult2_Cytosol_RiboZero", "Adult2_Nucleus_RiboZero",
-                "Adult3_Cytosol_RiboZero", "Adult3_Nucleus_RiboZero", "Fetal1_Cytosol_RiboZero", "Fetal1_Nucleus_RiboZero",
-                "Fetal2_Cytosol_RiboZero", "Fetal2_Nucleus_RiboZero", "Fetal3_Cytosol_RiboZero", "Fetal3_Nucleus_RiboZero")
+                "Adult3_Cytosol_RiboZero", "Adult3_Nucleus_RiboZero", "Prenatal1_Cytosol_RiboZero", "Prenatal1_Nucleus_RiboZero",
+                "Prenatal2_Cytosol_RiboZero", "Prenatal2_Nucleus_RiboZero", "Prenatal3_Cytosol_RiboZero", "Prenatal3_Nucleus_RiboZero")
 pd = pd[order(pd$SampleID),]
 rownames(pd) = pd$SampleID
 geneCounts = geneCounts[,order(colnames(geneCounts))]
