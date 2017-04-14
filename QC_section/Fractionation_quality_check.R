@@ -1,163 +1,109 @@
-library("ggplot2")
+library(ggplot2)
 library(DESeq2)
-
-vsd = varianceStabilizingTransformation(geneCounts)
 
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
 
 ens = c("ENSG00000075624","ENSG00000102081","ENSG00000229807","ENSG00000251562")
-ids = rownames(geneMap[which(geneMap$ensemblID %in% ens),])
-
-testgenes = geneRpkm[which(rownames(geneRpkm) %in% ids),]
-rownames(testgenes)=geneMap[match(ids,rownames(geneMap)), "Symbol"]
-
-FracList = list(full = list(Apres = Apres,Fpres = Fpres,Arres = Arres,Frres = Frres),
+map = data.frame(ids = rownames(geneMap[which(geneMap$ensemblID %in% ens),]), 
+                 ens = geneMap[which(geneMap$ensemblID %in% ens),"ensemblID"],
+                 sym = geneMap[which(geneMap$ensemblID %in% ens),"Symbol"])
+testgenes = geneRpkm[which(rownames(geneRpkm) %in% map$ids),]
+rownames(testgenes)=geneMap[match(map$ids,rownames(geneMap)), "Symbol"]
+FracList = list(full = list(Apres = Apres, Fpres = Fpres, Arres = Arres, Frres = Frres),
                 downsampled = list(Apres= Apres.down, Fpres = Fpres.down, 
                                    Arres = Arres.down, Frres = Frres.down))
-map = data.frame(ids = rownames(geneMap[rownames(geneMap) %in% ids,]), 
-                 ens = geneMap[rownames(geneMap) %in% ids,"ensemblID"],
-                 sym = geneMap[rownames(geneMap) %in% ids,"Symbol"])
-
-genes = c("ENSG00000075624.13_2","ENSG00000251562.7_1")
-lfc = lapply(FracList, function(x) lapply(x, function(y) y[which(rownames(y) %in% genes),]))
-
-x = do.call(rbind, lfc)
-write.table(x, "./Dropbox/sorted_figures/new/MALAT1.ACTB.txt", quote=F)
+FracList = lapply(FracList, function(x) lapply(x, function(y) data.frame(y)))
+lfc = lapply(FracList, function(x) lapply(x, function(y) 
+  y[which(rownames(y) %in% map[which(map$sym=="ACTB" | map$sym=="MALAT1"),"ids"]),]))
+x = list()
+for (i in 1:2){x[[i]] = do.call(rbind, lfc[[i]])}
+x[[1]]["Comparison"] = x[[2]]["Comparison"] = c("Adult:PolyA","Adult:PolyA","Prenatal:PolyA","Prenatal:PolyA",
+                   "Adult:RiboZero","Adult:RiboZero","Prenatal:RiboZero","Prenatal:RiboZero")
+x[[1]]["Gene"] = x[[2]]["Gene"] = rep.int(c("ACTB","MALAT1"),4)
+write.table(x[[1]], "./Dropbox/sorted_figures/new/github_controlled/QC_section/data/MALAT1.ACTB.txt", 
+            row.names=F, quote=F, sep="\t")
+write.table(x[[2]], "./Dropbox/sorted_figures/new/github_controlled/QC_section/data/MALAT1.ACTB.downsampled.txt", 
+            row.names=F, quote=F, sep="\t")
 
 # Exclude the unpaired sample
-tg = t(testgenes[,which(colnames(testgenes)!="Br1113C1_RiboZero")])
-tg = data.frame(tg)
+tg = data.frame(t(testgenes[,which(colnames(testgenes)!="Br1113C1_RiboZero")]))
 Cytosol <- pd[which(pd$Zone=="Cytosol"),]
-Nucleus <- pd[which(pd$Zone=="Nucleus"),]
-testnuc = tg[which(rownames(tg)%in%Nucleus$SampleID),]
-testcyt = tg[which(rownames(tg)%in%Cytosol$SampleID),]
+Nucleus <- pd[,]
+testnuc = tg[which(rownames(tg) %in% pd[which(pd$Zone=="Nucleus"),"SampleID"]),]
+testcyt = tg[which(rownames(tg) %in% pd[which(pd$Zone=="Cytosol"),"SampleID"]),]
 
 # one-tailed paired t test: ACTB
-t.test(testnuc$ACTB, testcyt$ACTB, paired=TRUE, alternative = "less")
-
-#data (using VSD):  testnuc$ACTB and testcyt$ACTB
-#t = -5.7857, df = 10, p-value = 8.818e-05
+t.test(log(testnuc$ACTB), log(testcyt$ACTB), paired=TRUE, alternative = "less")
+#data:  log(testnuc$ACTB) and log(testcyt$ACTB)
+#t = -5.8346, df = 10, p-value = 8.251e-05
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf -0.6481196
+#  -Inf -0.5340181
 #sample estimates:
 #  mean of the differences 
-#-0.9437691
-
-#data (using RPKM):  testnuc$ACTB and testcyt$ACTB
-#t = -4.5757, df = 10, p-value = 0.0005086
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -128.8618
-#sample estimates:
-#  mean of the differences 
-#-213.3835
+#-0.7746596
 
 # one-tailed paired t test: FMR1
-t.test(testnuc$FMR1, testcyt$FMR1, paired=TRUE, alternative = "less")
-
-#data (using VSD):  testnuc$FMR1 and testcyt$FMR1
-#t = -0.9437, df = 10, p-value = 0.1838
+t.test(log(testnuc$FMR1), log(testcyt$FMR1), paired=TRUE, alternative = "less")
+#data:  log(testnuc$FMR1) and log(testcyt$FMR1)
+#t = -2.4166, df = 10, p-value = 0.01814
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf 0.05699625
+#  -Inf -0.0338547
 #sample estimates:
 #  mean of the differences 
-#-0.06191235 
-
-#data (using RPKM):  testnuc$FMR1 and testcyt$FMR1
-#t = -2.9087, df = 10, p-value = 0.0078
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -0.7006774
-#sample estimates:
-#  mean of the differences 
-#-1.859164
+#-0.1354167 
 
 # one-tailed paired t test in PolyA samples: FMR1
-FMR1pN = rbind(testnuc[1,],  testnuc[2,], testnuc[3,], testnuc[4,], testnuc[5,], testnuc[6,])
-FMR1pC = rbind(testcyt[1,],  testcyt[2,], testcyt[3,], testcyt[4,], testcyt[5,], testcyt[6,])
-t.test(FMR1pN$FMR1, FMR1pC$FMR1, paired=TRUE, alternative = "less")
-
-#data (usng VSD):  FMR1pN$FMR1 and FMR1pC$FMR1
-#t = -3.1722, df = 5, p-value = 0.01238
+t.test(testnuc[c(1:2,4,6,8,10),"FMR1"], testcyt[c(1:2,4,6,8,10),"FMR1"], paired=TRUE, alternative = "less")
+#data:  testnuc[c(1:2, 4, 6, 8, 10), "FMR1"] and testcyt[c(1:2, 4, 6, 8, 10), "FMR1"]
+#t = -2.5587, df = 5, p-value = 0.02536
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf -0.05447295
+#  -Inf -0.1752863
 #sample estimates:
 #  mean of the differences 
-#-0.1493327
-
-#data (using RPKM):  FMR1pN$FMR1 and FMR1pC$FMR1
-#t = -2.0609, df = 5, p-value = 0.04717
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -0.02070892
-#sample estimates:
-#  mean of the differences 
-#-0.9316126 
+#-0.824947 
 
 # one-tailed paired t test in females: XIST
-females <- pd[which(pd$Sex=="F"),]
-XISTnuc = rbind(testnuc[1,],  testnuc[4,], testnuc[9,])
-XISTcyt = rbind(testcyt[1,],  testcyt[4,], testcyt[9,])
-t.test(XISTnuc$XIST, XISTcyt$XIST, paired=TRUE, alternative = "greater")
-
-#data (using VSD):  XISTnuc$XIST and XISTcyt$XIST
-#t = 2.2905, df = 2, p-value = 0.07456
+t.test(testnuc[which(rownames(testnuc) %in% rownames(pd[which(pd$Sex=="F"),])),"XIST"], 
+       testcyt[which(rownames(testcyt) %in% rownames(pd[which(pd$Sex=="F"),])),"XIST"], 
+       paired=TRUE, alternative = "greater")
+#data:  testnuc[which(rownames(testnuc) %in% rownames(pd[which(pd$Sex ==  and testcyt[which(rownames(testcyt) %in% rownames(pd[which(pd$Sex ==     "F"), ])), "XIST"] and     "F"), ])), "XIST"]
+#t = 1.2936, df = 2, p-value = 0.1625
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.6471344        Inf
+#  -14.1975      Inf
 #sample estimates:
 #  mean of the differences 
-#2.354768 
-
-#data (using RPKM):  XISTnuc$XIST and XISTcyt$XIST
-#t = 1.9355, df = 2, p-value = 0.09628
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -2.763293       Inf
-#sample estimates:
-#  mean of the differences 
-#5.432986
+#11.29229 
 
 # one-tailed paired t test: MALAT1
 t.test(testnuc$MALAT1, testcyt$MALAT1, paired=TRUE, alternative = "greater")
-
-#data (using VSD):  testnuc$MALAT1 and testcyt$MALAT1
-#t = 6.1758, df = 10, p-value = 5.236e-05
+#data:  testnuc$MALAT1 and testcyt$MALAT1
+#t = 2.6881, df = 10, p-value = 0.01139
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.9017213       Inf
+#  33.81784      Inf
 #sample estimates:
 #  mean of the differences 
-#1.276278
-
-#data (using RPKM):  testnuc$MALAT1 and testcyt$MALAT1
-#t = 2.8484, df = 10, p-value = 0.008649
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  36.94485      Inf
-#sample estimates:
-#  mean of the differences 
-#101.5832 
-
+#103.8188
 
 # Plot the Log2 Fold Change and SE by library for these genes
-Zpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Zpres.csv")
-Zrres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Zrres.csv")
-genes = rbind(Zpres[which(Zpres$X=="ENSG00000075624"),], Zrres[which(Zrres$X=="ENSG00000075624"),], 
-              Zpres[which(Zpres$X=="ENSG00000102081"),], Zrres[which(Zrres$X=="ENSG00000102081"),],
-             Zpres[which(Zpres$X=="ENSG00000229807"),], Zrres[which(Zrres$X=="ENSG00000229807"),], 
-             Zpres[which(Zpres$X=="ENSG00000251562"),], Zrres[which(Zrres$X=="ENSG00000251562"),])
-genes = data.frame(genes, "gene"=c("ACTB", "ACTB", "FMR1", "FMR1", "XIST", "XIST", "MALAT1", "MALAT1"), 
-                   Library = c("PolyA", "RiboZero", "PolyA", "RiboZero", "PolyA", "RiboZero", "PolyA", "RiboZero"))
+zone.res = list(list(Zpres = data.frame(Zpres), Zrres = data.frame(Zrres)), 
+                list(Zpres.down = data.frame(Zpres.down), Zrres.down = data.frame(Zrres.down)))
+zone.res = lapply(zone.res, function(x) lapply(x, function(y) y[which(rownames(y) %in% map$ids),]))
+zone.res[[1]][[1]]["Gene"] = zone.res[[2]][[1]]["Gene"] = 
+  zone.res[[1]][[2]]["Gene"] = zone.res[[2]][[2]]["Gene"] = map$sym
+zone.res = lapply(zone.res, function(x) do.call(rbind,x))
+zone.res[[1]]["Library"] = zone.res[[2]]["Library"] = c(rep.int("PolyA", 4), rep.int("RiboZero",4))
 
 dodge <- position_dodge(width=0.9)
 limits <- aes(ymax = log2FoldChange + lfcSE, ymin=log2FoldChange - lfcSE)
-ggplot(genes[which(genes$gene!="XIST" & genes$gene!="FMR1"),], aes(x=gene, y=log2FoldChange, fill=Library), color=Library) + 
+lapply(zone.res, function(x) {ggplot(x[which(x$Gene!="XIST" & x$Gene!="FMR1"),], 
+       aes(x=Gene, y=log2FoldChange, fill=Library), color=Library) + 
   stat_summary(position=position_dodge(),geom="bar") +
   geom_errorbar(mapping = limits, position = dodge, width=0.25) +
   ylim(-2,2) +
@@ -168,4 +114,4 @@ ggplot(genes[which(genes$gene!="XIST" & genes$gene!="FMR1"),], aes(x=gene, y=log
   theme(legend.position = c(.83, 0.3)) + 
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
-        legend.key = element_rect(fill = "transparent", color = "transparent"))
+        legend.key = element_rect(fill = "transparent", color = "transparent"))})
