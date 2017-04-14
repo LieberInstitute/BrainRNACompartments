@@ -1,0 +1,11 @@
+# On server 4,
+
+< /media/DATA/Amanda/fullnames.txt parallel -P23 read_distribution.py -i /media/DATA/Amanda/NucVSCyt/{}_accepted_hits.sorted.bam -r /home/nina/rseqc_data/hg19.RefSeq_gene.bed ">" /media/DATA/Amanda/read_distribution/{}.dist.txt
+
+scp /media/DATA/Amanda/read_distribution/*.dist.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/read_distribution/
+
+< /media/DATA/Amanda/fullnames.txt parallel -P23 more {}.dist.txt "|" grep -w Total "|" sort stdin ">" /media/DATA/Amanda/read_distribution/total/{}.total.txt
+
+join -1 /media/DATA/Amanda/read_distribution/total/*.total.txt > /media/DATA/Amanda/read_distribution/total/read.dist.totals.txt
+
+read.table("/media/DATA/Amanda/read_distribution/*.dist.txt", header = TRUE, skip = 4, nrow = length(count.fields("/media/DATA/Amanda/read_distribution/*.dist.txt")) - 1)
