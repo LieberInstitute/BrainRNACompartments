@@ -119,6 +119,11 @@ Nr.dds <- DESeqDataSetFromMatrix(countData = Nuc.Ribo.counts, colData = Nuc.Ribo
 Nr.dds <- DESeq(Nr.dds)
 Nrres <- results(Nr.dds)
 
+#Gene expression by library
+Ln.dds <- DESeqDataSetFromMatrix(countData = Nucleus.counts, colData = Nucleus, design = ~ Fetal + Library)
+Ln.dds <- DESeq(Ln.dds)
+Lnres <- results(Ln.dds)
+
 ## Using counts from downsampled BAMs
 #How many genes are differentially expressed by fraction?
 dds.down <- DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Zone + Fetal)
@@ -174,11 +179,16 @@ Nr.dds.down <- DESeqDataSetFromMatrix(countData = Nuc.Ribo.counts.down, colData 
 Nr.dds.down <- DESeq(Nr.dds.down)
 Nrres.down <- results(Nr.dds.down)
 
+#Gene expression by library
+Ln.dds.down <- DESeqDataSetFromMatrix(countData = Nucleus.counts.down, colData = Nucleus, design = ~ Fetal + Library)
+Ln.dds.down <- DESeq(Ln.dds.down)
+Lnres.down <- results(Ln.dds.down)
+
 save(res.down,Irres.down,Ipres.down,Zrres.down,Zpres.down,Apres.down,Fpres.down,Arres.down,Frres.down,
-     Agerres.down,Agepres.down,Cpres.down,Npres.down,Crres.down,Nrres.down,
+     Agerres.down,Agepres.down,Cpres.down,Npres.down,Crres.down,Nrres.down, Lnres.down,
      res,Irres,Ipres,Zrres,Zpres,Apres,Fpres,Arres,Frres,
-     Agerres,Agepres,Cpres,Npres,Crres,Nrres, 
-     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/DESeq2_results.rda")
+     Agerres,Agepres,Cpres,Npres,Crres,Nrres, Lnres,
+     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
 
 
 
