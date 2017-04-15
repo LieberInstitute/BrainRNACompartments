@@ -1,6 +1,6 @@
 # read in Dougherty table
-dopd = read.table("./Dropbox/sorted_figures/new/dougherty.pd.txt", header=T)
-doCounts = read.csv("./Dropbox/sorted_figures/new/GSE73391_Counts.csv", header=T)
+dopd = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/other_datasets/data/dougherty.pd.txt", header=T)
+doCounts = read.csv("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/other_datasets/data/GSE73391_Counts.csv", header=T)
 rownames(doCounts) = doCounts$X
 doCounts = doCounts[,-1]
 colnames(doCounts) = gsub("X920_", "", colnames(doCounts))
@@ -14,4 +14,4 @@ pd = pd[,1:4]
 pd = pd[order(pd$ID),]
 doCounts = doCounts[,order(colnames(doCounts))]
 doCounts = as.matrix(doCounts)
-save(doCounts, pd, file="./Dropbox/sorted_figures/new/Dougherty_counts.rda")
+save(doCounts, pd, file="./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/Dougherty_counts.rda")
