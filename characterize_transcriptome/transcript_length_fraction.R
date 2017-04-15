@@ -1,12 +1,12 @@
 library(ggplot2)
 
+load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
+load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+
 # Make list of length of significant genes in a list
-FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv"),
-                Fpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Fpres.csv"),
-                Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv"),
-                Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv"))
+FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres), Arres = data.frame(Arres), Frres = data.frame(Frres))
 SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementLengths(SigFracList)
+elementNROWS(SigFracList)
 Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
 sigFracBySign = Map(cbind, SigFracList, Sign = Sign)
 DirList = lapply(sigFracBySign, function(x) split(x, x$Sign))
@@ -14,20 +14,21 @@ SigList = list(Apres.Up = DirList[["Apres"]][["UpNuc"]], Apres.Down = DirList[["
                Fpres.Up = DirList[["Fpres"]][["UpNuc"]], Fpres.Down = DirList[["Fpres"]][["DownNuc"]],
                Arres.Up = DirList[["Arres"]][["UpNuc"]], Arres.Down = DirList[["Arres"]][["DownNuc"]],
                Frres.Up = DirList[["Frres"]][["UpNuc"]], Frres.Down = DirList[["Frres"]][["DownNuc"]]) 
-elementLengths(SigList)
+elementNROWS(SigList)
 APu = data.frame(SigList[["Apres.Up"]], Group1 = "Adult:PolyA:Nucleus", Group = "Adult:Nucleus",Age = "Adult", Library = "PolyA", Fraction = "Nucleus") 
 APd = data.frame(SigList[["Apres.Down"]], Group1 = "Adult:PolyA:Cytosol", Group = "Adult:Cytosol",Age = "Adult", Library = "PolyA", Fraction = "Cytosol") 
-FPu = data.frame(SigList[["Fpres.Up"]], Group1 = "Fetal:PolyA:Nucleus", Group = "Fetal:Nucleus",Age = "Fetal", Library = "PolyA", Fraction = "Nucleus") 
-FPd = data.frame(SigList[["Fpres.Down"]], Group1 = "Fetal:PolyA:Cytosol", Group = "Fetal:Cytosol",Age = "Fetal", Library = "PolyA", Fraction = "Cytosol") 
-ARu = data.frame(SigList[["Arres.Up"]], Group1 = "Adult:Ribozero:Nucleus", Group = "Adult:Nucleus",Age = "Adult", Library = "Ribozero", Fraction = "Nucleus") 
-ARd = data.frame(SigList[["Arres.Down"]], Group1 = "Adult:Ribozero:Cytosol", Group = "Adult:Cytosol",Age = "Adult", Library = "Ribozero", Fraction = "Cytosol") 
-FRu = data.frame(SigList[["Frres.Up"]], Group1 = "Fetal:Ribozero:Nucleus", Group = "Fetal:Nucleus",Age = "Fetal", Library = "Ribozero", Fraction = "Nucleus")
-FRd = data.frame(SigList[["Frres.Down"]], Group1 = "Fetal:Ribozero:Cytosol", Group = "Fetal:Cytosol",Age = "Fetal", Library = "Ribozero", Fraction = "Cytosol")
+FPu = data.frame(SigList[["Fpres.Up"]], Group1 = "Prenatal:PolyA:Nucleus", Group = "Prenatal:Nucleus",Age = "Prenatal", Library = "PolyA", Fraction = "Nucleus") 
+FPd = data.frame(SigList[["Fpres.Down"]], Group1 = "Prenatal:PolyA:Cytosol", Group = "Prenatal:Cytosol",Age = "Prenatal", Library = "PolyA", Fraction = "Cytosol") 
+ARu = data.frame(SigList[["Arres.Up"]], Group1 = "Adult:RiboZero:Nucleus", Group = "Adult:Nucleus",Age = "Adult", Library = "RiboZero", Fraction = "Nucleus") 
+ARd = data.frame(SigList[["Arres.Down"]], Group1 = "Adult:RiboZero:Cytosol", Group = "Adult:Cytosol",Age = "Adult", Library = "RiboZero", Fraction = "Cytosol") 
+FRu = data.frame(SigList[["Frres.Up"]], Group1 = "Prenatal:RiboZero:Nucleus", Group = "Prenatal:Nucleus",Age = "Prenatal", Library = "RiboZero", Fraction = "Nucleus")
+FRd = data.frame(SigList[["Frres.Down"]], Group1 = "Prenatal:RiboZero:Cytosol", Group = "Prenatal:Cytosol",Age = "Prenatal", Library = "RiboZero", Fraction = "Cytosol")
 allgenes = data.frame(FracList[[1]], Sign = NA, Group1 = "All Genes", Group = "All Genes", Age = NA, Library = "None", Fraction = NA)
 lengthList = list(APu,APd,FPu,FPd,ARu,ARd,FRu,FRd)
-names(lengthList) = c("Adult:PolyA:Nucleus", "Adult:PolyA:Cytosol", "Fetal:PolyA:Nucleus", "Fetal:PolyA:Cytosol",
-                      "Adult:Ribozero:Nucleus", "Adult:Ribozero:Cytosol", "Fetal:Ribozero:Nucleus", "Fetal:Ribozero:Cytosol")
+names(lengthList) = c("Adult:PolyA:Nucleus", "Adult:PolyA:Cytosol", "Prenatal:PolyA:Nucleus", "Prenatal:PolyA:Cytosol",
+                      "Adult:RiboZero:Nucleus", "Adult:RiboZero:Cytosol", "Prenatal:RiboZero:Nucleus", "Prenatal:RiboZero:Cytosol")
 length = rbind(APu,FPu,ARu,FRu,APd,FPd,ARd,FRd, allgenes)
+length = cbind(length, geneMap[match(rownames(length), geneMap$gencodeID),])
 
 # All 8 groups
 ggplot(length, aes(x=Length/1000)) + geom_density(aes(group=Group1, colour=Group1)) +
@@ -54,10 +55,10 @@ ggplot(length[which(length$Library=="PolyA" | length$Library=="None"),], aes(x=L
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 
-ggplot(length[which(length$Library=="Ribozero"| length$Library=="None"),], aes(x=Length/1000)) + geom_density(aes(group=Group, colour=Group)) +
+ggplot(length[which(length$Library=="RiboZero"| length$Library=="None"),], aes(x=Length/1000)) + geom_density(aes(group=Group, colour=Group)) +
   ylab("") + 
   xlab("Gene Length (Kb)") +
-  ggtitle("Gene Length By Group (Ribozero)") +
+  ggtitle("Gene Length By Group (RiboZero)") +
   xlim(0,20) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
@@ -110,8 +111,8 @@ ggplot(length, aes(x=Length/1000)) + geom_density(aes(group=Library, colour=Libr
 stats = lapply(lengthList, function(x) {c(Number = nrow(x), Min = min(x$Length), Max = max(x$Length), 
                                            Mean = mean(x$Length), Median = median(x$Length), Std = sd(x$Length))})
 Genelength = do.call(rbind, stats)
-Genelength = data.frame(Genelength, Group = c("Adult:PolyA","Adult:PolyA","Fetal:PolyA","Fetal:PolyA","Adult:Ribozero",
-                                              "Adult:Ribozero","Fetal:Ribozero","Fetal:Ribozero"), 
+Genelength = data.frame(Genelength, Group = c("Adult:PolyA","Adult:PolyA","Prenatal:PolyA","Prenatal:PolyA","Adult:RiboZero",
+                                              "Adult:RiboZero","Prenatal:RiboZero","Prenatal:RiboZero"), 
                         Fraction = c("Nucleus", "Cytosol", "Nucleus", "Cytosol", "Nucleus", "Cytosol", "Nucleus", "Cytosol"))
 
 dodge <- position_dodge(width=0.9)
@@ -129,10 +130,10 @@ ggplot(Genelength, aes(x=Group, y=Mean, fill=Fraction), color=Fraction) +
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 
 # t test of Up vs Down length
-Up.polya = rbind(lengthList[["Adult:PolyA:Nucleus"]], lengthList[["Fetal:PolyA:Nucleus"]])
-Up.ribo = rbind(lengthList[["Adult:Ribozero:Nucleus"]], lengthList[["Fetal:Ribozero:Nucleus"]])
-D.polya = rbind(lengthList[["Adult:PolyA:Cytosol"]], lengthList[["Fetal:PolyA:Cytosol"]])
-D.ribo = rbind(lengthList[["Adult:Ribozero:Cytosol"]], lengthList[["Fetal:Ribozero:Cytosol"]])
+Up.polya = rbind(lengthList[["Adult:PolyA:Nucleus"]], lengthList[["Prenatal:PolyA:Nucleus"]])
+Up.ribo = rbind(lengthList[["Adult:RiboZero:Nucleus"]], lengthList[["Prenatal:RiboZero:Nucleus"]])
+D.polya = rbind(lengthList[["Adult:PolyA:Cytosol"]], lengthList[["Prenatal:PolyA:Cytosol"]])
+D.ribo = rbind(lengthList[["Adult:RiboZero:Cytosol"]], lengthList[["Prenatal:RiboZero:Cytosol"]])
 
 t.test(Up.polya$Length, D.polya$Length, alternative = "greater")
 #Welch Two Sample t-test
@@ -168,8 +169,8 @@ t.test(length[["Adult:PolyA:Nucleus"]], length[["Adult:PolyA:Cytosol"]], alterna
 #  mean of x mean of y 
 #5620.999  2914.288
 
-t.test(length[["Adult:Ribozero:Nucleus"]], length[["Adult:Ribozero:Cytosol"]], alternative = "greater")
-#data:  length[["Adult:Ribozero:Nucleus"]] and length[["Adult:Ribozero:Cytosol"]]
+t.test(length[["Adult:RiboZero:Nucleus"]], length[["Adult:RiboZero:Cytosol"]], alternative = "greater")
+#data:  length[["Adult:RiboZero:Nucleus"]] and length[["Adult:RiboZero:Cytosol"]]
 #t = 0.95917, df = 1958.9, p-value = 0.1688
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -178,11 +179,11 @@ t.test(length[["Adult:Ribozero:Nucleus"]], length[["Adult:Ribozero:Cytosol"]], a
 #  mean of x mean of y 
 #3351.997  3216.721
 
-t.test(length[["Fetal:PolyA:Nucleus"]], length[["Fetal:PolyA:Cytosol"]], alternative = "greater")
+t.test(length[["Prenatal:PolyA:Nucleus"]], length[["Prenatal:PolyA:Cytosol"]], alternative = "greater")
 #Not enough samples
 
-t.test(length[["Fetal:Ribozero:Nucleus"]], length[["Fetal:Ribozero:Cytosol"]], alternative = "greater")
-#data:  length[["Fetal:Ribozero:Nucleus"]] and length[["Fetal:Ribozero:Cytosol"]]
+t.test(length[["Prenatal:RiboZero:Nucleus"]], length[["Prenatal:RiboZero:Cytosol"]], alternative = "greater")
+#data:  length[["Prenatal:RiboZero:Nucleus"]] and length[["Prenatal:RiboZero:Cytosol"]]
 #t = 6.4975, df = 258.76, p-value = 2.084e-10
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -192,13 +193,13 @@ t.test(length[["Fetal:Ribozero:Nucleus"]], length[["Fetal:Ribozero:Cytosol"]], a
 #3561.72    365.00 
 
 t.test(length[["Adult:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
-t.test(length[["Adult:Ribozero:Nucleus"]], allgenes$Length, alternative = "greater")
-t.test(length[["Fetal:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
-t.test(length[["Fetal:Ribozero:Nucleus"]], allgenes$Length, alternative = "greater")
+t.test(length[["Adult:RiboZero:Nucleus"]], allgenes$Length, alternative = "greater")
+t.test(length[["Prenatal:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
+t.test(length[["Prenatal:RiboZero:Nucleus"]], allgenes$Length, alternative = "greater")
 t.test(allgenes$Length, length[["Adult:PolyA:Cytosol"]], alternative = "greater")
-t.test(allgenes$Length, length[["Adult:Ribozero:Cytosol"]], alternative = "greater")
-t.test(allgenes$Length, length[["Fetal:PolyA:Cytosol"]], alternative = "greater")
-t.test(allgenes$Length, length[["Fetal:Ribozero:Cytosol"]], alternative = "greater")
+t.test(allgenes$Length, length[["Adult:RiboZero:Cytosol"]], alternative = "greater")
+t.test(allgenes$Length, length[["Prenatal:PolyA:Cytosol"]], alternative = "greater")
+t.test(allgenes$Length, length[["Prenatal:RiboZero:Cytosol"]], alternative = "greater")
 
 t.test(length[["Adult:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
 #data:  length[["Adult:PolyA:Nucleus"]] and allgenes$Length
@@ -210,8 +211,8 @@ t.test(length[["Adult:PolyA:Nucleus"]], allgenes$Length, alternative = "greater"
 #  mean of x mean of y 
 #5620.999  2665.459 
 
-t.test(length[["Adult:Ribozero:Nucleus"]], allgenes$Length, alternative = "greater")
-#data:  length[["Adult:Ribozero:Nucleus"]] and allgenes$Length
+t.test(length[["Adult:RiboZero:Nucleus"]], allgenes$Length, alternative = "greater")
+#data:  length[["Adult:RiboZero:Nucleus"]] and allgenes$Length
 #t = 5.1986, df = 1546.4, p-value = 1.138e-07
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -220,8 +221,8 @@ t.test(length[["Adult:Ribozero:Nucleus"]], allgenes$Length, alternative = "great
 #  mean of x mean of y 
 #3351.997  2665.459 
 
-t.test(length[["Fetal:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
-#data:  length[["Fetal:PolyA:Nucleus"]] and allgenes$Length
+t.test(length[["Prenatal:PolyA:Nucleus"]], allgenes$Length, alternative = "greater")
+#data:  length[["Prenatal:PolyA:Nucleus"]] and allgenes$Length
 #t = 7.0056, df = 73.404, p-value = 4.968e-10
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -230,8 +231,8 @@ t.test(length[["Fetal:PolyA:Nucleus"]], allgenes$Length, alternative = "greater"
 #  mean of x mean of y 
 #4687.081  2665.459 
 
-t.test(length[["Fetal:Ribozero:Nucleus"]], allgenes$Length, alternative = "greater")
-#data:  length[["Fetal:Ribozero:Nucleus"]] and allgenes$Length
+t.test(length[["Prenatal:RiboZero:Nucleus"]], allgenes$Length, alternative = "greater")
+#data:  length[["Prenatal:RiboZero:Nucleus"]] and allgenes$Length
 #t = 1.9395, df = 338.73, p-value = 0.02663
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -250,8 +251,8 @@ t.test(allgenes$Length, length[["Adult:PolyA:Cytosol"]], alternative = "greater"
 #  mean of x mean of y 
 #2665.459  2914.288 
 
-t.test(allgenes$Length, length[["Adult:Ribozero:Cytosol"]], alternative = "greater")
-#data:  allgenes$Length and length[["Adult:Ribozero:Cytosol"]]
+t.test(allgenes$Length, length[["Adult:RiboZero:Cytosol"]], alternative = "greater")
+#data:  allgenes$Length and length[["Adult:RiboZero:Cytosol"]]
 #t = -10.221, df = 1603.7, p-value = 1
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -260,10 +261,10 @@ t.test(allgenes$Length, length[["Adult:Ribozero:Cytosol"]], alternative = "great
 #  mean of x mean of y 
 #2665.459  3216.721 
 
-t.test(allgenes$Length, length[["Fetal:PolyA:Cytosol"]], alternative = "greater")
+t.test(allgenes$Length, length[["Prenatal:PolyA:Cytosol"]], alternative = "greater")
 #not enough 'y' observations
-t.test(allgenes$Length, length[["Fetal:Ribozero:Cytosol"]], alternative = "greater")
-#data:  allgenes$Length and length[["Fetal:Ribozero:Cytosol"]]
+t.test(allgenes$Length, length[["Prenatal:RiboZero:Cytosol"]], alternative = "greater")
+#data:  allgenes$Length and length[["Prenatal:RiboZero:Cytosol"]]
 #t = 13.515, df = 9.1442, p-value = 1.187e-07
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
@@ -273,7 +274,7 @@ t.test(allgenes$Length, length[["Fetal:Ribozero:Cytosol"]], alternative = "great
 #2665.459   365.000
 
 t.test(allgenes$Length, length[["Adult:PolyA:Cytosol"]])
-t.test(allgenes$Length, length[["Adult:Ribozero:Cytosol"]])
+t.test(allgenes$Length, length[["Adult:RiboZero:Cytosol"]])
 
 t.test(allgenes$Length, length[["Adult:PolyA:Cytosol"]])
 #data:  allgenes$Length and length[["Adult:PolyA:Cytosol"]]
@@ -285,8 +286,8 @@ t.test(allgenes$Length, length[["Adult:PolyA:Cytosol"]])
 #  mean of x mean of y 
 #2665.459  2914.288 
 
-t.test(allgenes$Length, length[["Adult:Ribozero:Cytosol"]])
-#data:  allgenes$Length and length[["Adult:Ribozero:Cytosol"]]
+t.test(allgenes$Length, length[["Adult:RiboZero:Cytosol"]])
+#data:  allgenes$Length and length[["Adult:RiboZero:Cytosol"]]
 #t = -10.221, df = 1603.7, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
