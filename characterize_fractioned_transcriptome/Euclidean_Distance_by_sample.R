@@ -7,7 +7,7 @@ load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_c
 rlog  = rlog(geneCounts)
 rlog.down = rlog(geneCounts.down)
 save(rlog, rlog.down, 
-     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/rlog_transformed_counts.rda")
+     file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_counts.rda")
 
 # Euclidean distance between samples heatmap
 sampleDists <- dist(t(rlog))

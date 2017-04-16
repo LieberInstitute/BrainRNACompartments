@@ -7,8 +7,8 @@ dds.down = DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, des
 rlog  = rlog(dds)
 rlog.down = rlog(dds.down)
 save(rlog, rlog.down, 
-     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/rlog_transformed_dds.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/rlog_transformed_dds.rda")
+     file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_dds.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_dds.rda")
 ### PCA Functions ###
 
 plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE) 

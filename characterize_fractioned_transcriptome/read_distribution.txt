@@ -8,4 +8,4 @@ read_distribution.py -i /media/DATA/Amanda/NucVSCyt/Br5339C1_downsamp_accepted_h
 
 scp amanda@10.17.9.91:/media/DATA/Amanda/read_distribution/*.dist.txt /dcl01/lieber/ajaffe/Amanda/NucVsCyt/read_distribution/
 
-# continue analysis using /Users/amanda/Dropbox/BrainRNACompartments/characterize_transcriptome/read_distribution.R 
+# continue analysis using /Users/amanda/Dropbox/BrainRNACompartments/characterize_fractioned_transcriptome/read_distribution.R 

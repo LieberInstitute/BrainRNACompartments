@@ -6,22 +6,22 @@ load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_c
 Cytosol <- pd[which(pd$Zone=="Cytosol"),]
 Nucleus <- pd[which(pd$Zone=="Nucleus"),]
 Adult <- pd[which(pd$Fetal=="Adult"),]
-Fetal <- pd[which(pd$Fetal=="Fetal"),]
+Fetal <- pd[which(pd$Fetal=="Prenatal"),]
 PolyA <- pd[which(pd$Library=="polyA"),]
 Ribozero <- pd[which(pd$Library=="RiboZero"),]
 
 Adult.Ribo <-pd[which(pd$Fetal=="Adult" & pd$Library=="RiboZero"),]
-Fetal.Ribo <-pd[which(pd$Fetal=="Fetal" & pd$Library=="RiboZero"),]
+Fetal.Ribo <-pd[which(pd$Fetal=="Prenatal" & pd$Library=="RiboZero"),]
 Adult.polyA <-pd[which(pd$Fetal=="Adult" & pd$Library=="polyA"),]
-Fetal.polyA <-pd[which(pd$Fetal=="Fetal" & pd$Library=="polyA"),]
+Fetal.polyA <-pd[which(pd$Fetal=="Prenatal" & pd$Library=="polyA"),]
 Cyt.Ribo <-  pd[which(pd$Zone=="Cytosol" & pd$Library=="RiboZero"),]
 Nuc.Ribo <-pd[which(pd$Zone=="Nucleus" & pd$Library=="RiboZero"),]
 Nuc.polyA <-pd[which(pd$Zone=="Nucleus"  & pd$Library=="polyA"),]
 Cyt.polyA <-pd[which(pd$Zone=="Cytosol"  & pd$Library=="polyA"),]
 Adult.cyt <-pd[which(pd$Zone=="Cytosol" & pd$Fetal=="Adult"),]
 Adult.nuc <-pd[which(pd$Zone=="Nucleus" & pd$Fetal=="Adult"),]
-Fetal.cyt <-pd[which(pd$Zone=="Cytosol" & pd$Fetal=="Fetal"),]
-Fetal.nuc <-pd[which(pd$Zone=="Nucleus" & pd$Fetal=="Fetal"),]
+Fetal.cyt <-pd[which(pd$Zone=="Cytosol" & pd$Fetal=="Prenatal"),]
+Fetal.nuc <-pd[which(pd$Zone=="Nucleus" & pd$Fetal=="Prenatal"),]
 
 # Parse count matrices
 polya.counts <- geneCounts[,which(colnames(geneCounts)%in%PolyA$SampleID)]
@@ -188,7 +188,7 @@ save(res.down,Irres.down,Ipres.down,Zrres.down,Zpres.down,Apres.down,Fpres.down,
      Agerres.down,Agepres.down,Cpres.down,Npres.down,Crres.down,Nrres.down, Lnres.down,
      res,Irres,Ipres,Zrres,Zpres,Apres,Fpres,Arres,Frres,
      Agerres,Agepres,Cpres,Npres,Crres,Nrres, Lnres,
-     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
+     file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 
 

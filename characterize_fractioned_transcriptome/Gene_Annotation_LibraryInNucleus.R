@@ -1,7 +1,7 @@
 library(ggplot2)
 library(plyr)
 
-load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
+load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 # Library differences in the nucleus

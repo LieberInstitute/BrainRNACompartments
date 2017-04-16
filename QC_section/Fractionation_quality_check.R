@@ -3,7 +3,7 @@ library(DESeq2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 ens = c("ENSG00000075624","ENSG00000102081","ENSG00000229807","ENSG00000251562")
 map = data.frame(ids = rownames(geneMap[which(geneMap$ensemblID %in% ens),]), 

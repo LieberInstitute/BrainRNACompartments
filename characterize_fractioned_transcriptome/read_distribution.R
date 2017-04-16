@@ -27,7 +27,7 @@ totals = do.call(rbind, total)
 save(dist, totals, file="/media/DATA/Amanda/read_distribution/read_distribution_data.rda")
 
 # load and format objects
-load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/read_distribution_data.rda")
+load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_data.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 head(dist)
