@@ -1,7 +1,14 @@
 library(DESeq2)
-dds <- DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ Library + Fetal + Zone)
-vsd <- varianceStabilizingTransformation(dds)
 
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+
+dds = DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ Library + Fetal + Zone)
+dds.down = DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Fetal + Zone)
+rlog  = rlog(dds)
+rlog.down = rlog(dds.down)
+save(rlog, rlog.down, 
+     file="./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/rlog_transformed_dds.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_transcriptome/data/rlog_transformed_dds.rda")
 ### PCA Functions ###
 
 plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE) 
@@ -109,15 +116,14 @@ plotPCA4 <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE)
 }
 
 ### Run PCA
-
 require(genefilter)
-plotPCA(vsd, intgroup = c("Fetal", "Zone", "Library"))
-plotPCA2(vsd, intgroup = c("Fetal", "Zone", "Library"))
-plotPCA3(vsd, intgroup = c("Fetal", "Zone", "Library"))
-plotPCA4(vsd, intgroup = c("Fetal", "Zone", "Library"))
 
-# Add fourth variable (Sex)
-dds <- DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ Sex + Library + Fetal + Zone)
-vsd <- varianceStabilizingTransformation(dds)
-plotPCA(vsd, intgroup = c("Fetal", "Zone", "Library", "Sex"))
-plotPCA2(vsd, intgroup = c("Fetal", "Zone", "Library",  "Sex"))
+plotPCA(rlog, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA2(rlog, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA3(rlog, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA4(rlog, intgroup = c("Fetal", "Zone", "Library"))
+
+plotPCA(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA2(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA3(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
+plotPCA4(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
