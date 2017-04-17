@@ -99,6 +99,7 @@ DirList = Map(cbind, AgeList,
               Comparison = list("Cytosol:PolyA","Nucleus:PolyA",
                                 "Cytosol:RiboZero","Nucleus:RiboZero","Nucleus:PolyA"),
               Sig=lapply(AgeList, function(x) ifelse(x$padj<=0.05,"YES", "NO")))
+elementNROWS(DirList)
 
 # in all genes
 DirList = lapply(DirList, function(x) x[order(x$GeneID),])
