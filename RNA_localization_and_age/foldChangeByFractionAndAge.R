@@ -1,56 +1,61 @@
-library("GenomicRanges")
-library("ggplot2")
+library(GenomicRanges)
+library(ggplot2)
+
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 # Prepare significant genes in a list
-FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv"),
-                Fpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Fpres.csv"),
-                Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv"),
-                Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv"))
-
-SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05),])
-elementLengths(SigFracList)
-AP = SigFracList[[1]]
-FP = SigFracList[[2]]
-AR = SigFracList[[3]]
-FR = SigFracList[[4]]
-sigGenesP = unique(c(as.character(AP[,1]),as.character(FP[,1])))
-sigGenesR = unique(c(as.character(AR[,1]),as.character(FR[,1])))
-SigP = lapply(FracList[1:2], function(x) x[which(x$X %in% sigGenesP),])
-SigR = lapply(FracList[3:4], function(x) x[which(x$X %in% sigGenesR),])
+FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres), 
+                Arres = data.frame(Arres), Frres = data.frame(Frres),
+                Fpres_down = data.frame(Fpres.down))
+DirList = Map(cbind, FracList, 
+              GeneID = lapply(FracList, function(x) rownames(x)),
+              Sign = lapply(FracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc")),
+              Comparison = list("Adult:PolyA","Prenatal:PolyA",
+                                "Adult:RiboZero","Prenatal:RiboZero","Prenatal:PolyA"),
+              Sig=lapply(FracList, function(x) ifelse(x$padj<=0.05,"YES", "NO")))
 
 # in all genes
-x = lapply(FracList, function(x) x[order(x$X),])
-lfc = list()
-for (i in 1:length(FracList)){
-  tmp = x[[i]]
-  lfc[[i]] = data.frame(Gene=tmp$X, baseMean = tmp$baseMean, log2FoldChange = tmp$log2FoldChange, padj = tmp$padj, comparison = names[i])
-  tmp2 = lfc[[i]]
-  tmp2$Sig= ifelse(tmp2$padj<=0.05,"YES", "NO")
-  lfc[[i]] = tmp2
-}
-AP = lfc[[1]]
-FP = lfc[[2]]
-AR = lfc[[3]]
-FR = lfc[[4]]
+DirList = lapply(DirList, function(x) x[order(x$GeneID),])
+polya = data.frame(gene.A = DirList[["Apres"]][,7], gene.F = DirList[["Fpres"]][,7],
+                   LFC.A = DirList[["Apres"]][,2], LFC.F = DirList[["Fpres"]][,2],
+                   Sign.A = DirList[["Apres"]][,8], Sign.F = DirList[["Fpres"]][,8],
+                   Sig.A = DirList[["Apres"]][,10], Sig.F = DirList[["Fpres"]][,10])
+ribo = data.frame(gene.A = DirList[["Arres"]][,7], gene.F = DirList[["Frres"]][,7],
+                   LFC.A = DirList[["Arres"]][,2], LFC.F = DirList[["Frres"]][,2],
+                   Sign.A = DirList[["Arres"]][,8], Sign.F = DirList[["Frres"]][,8],
+                   Sig.A = DirList[["Arres"]][,10], Sig.F = DirList[["Frres"]][,10])
+x = DirList[["Apres"]]
+x = x[match(as.character(DirList[["Fpres_down"]][,7]),as.character(x$GeneID)),]
+polya.down = data.frame(gene.A = x[,7], gene.F = DirList[["Fpres_down"]][,7],
+                   LFC.A = x[,2], LFC.F = DirList[["Fpres_down"]][,2],
+                   Sign.A = x[,8], Sign.F = DirList[["Fpres_down"]][,8],
+                   Sig.A = x[,10], Sig.F = DirList[["Fpres_down"]][,10])
+identical(as.character(polya.down$gene.A),as.character(polya.down$gene.F))
+x = ifelse(as.character(polya.down$gene.A)==as.character(polya.down$gene.F), "YES","NO")
+x[which(x=="NO")]
+identical(as.character(polya$gene.A),as.character(polya$gene.F))
+identical(as.character(ribo$gene.A),as.character(ribo$gene.F))
+polya$quad = ifelse(polya$Sign.A==polya$Sign.F, "same","diff")
+polya.down$quad = ifelse(polya.down$Sign.A==polya.down$Sign.F, "same","diff")
+ribo$quad = ifelse(ribo$Sign.A==ribo$Sign.F, "same","diff")
 
-polyA = data.frame(Gene = AP$Gene, Adult.LFC = AP$log2FoldChange, Fetal.LFC = FP$log2FoldChange)
-ribo = data.frame(Gene = AR$Gene, Adult.LFC = AR$log2FoldChange, Fetal.LFC = FR$log2FoldChange)
-polyA$As=ifelse(polyA$Adult.LFC>0, "pos","neg")
-polyA$Fs=ifelse(polyA$Fetal.LFC>0, "pos","neg")
-polyA$quad=ifelse(polyA$As==polyA$Fs, "same","diff")
-ribo$As=ifelse(ribo$Adult.LFC>0, "pos","neg")
-ribo$Fs=ifelse(ribo$Fetal.LFC>0, "pos","neg")
-ribo$quad=ifelse(ribo$As==ribo$Fs, "same","diff")
-
-ggplot(polyA, aes(Adult.LFC, Fetal.LFC)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Fetal") + 
+ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-ggplot(ribo, aes(Adult.LFC, Fetal.LFC)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Fetal") + 
+ggplot(polya.down[which(polya.down$quad!="NA"),], 
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
+  xlab("Adult") +
+  ylim(-3,3) + xlim(-3,3) +
+  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20))
+ggplot(ribo[which(ribo$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
@@ -58,62 +63,34 @@ ggplot(ribo, aes(Adult.LFC, Fetal.LFC)) + geom_point(aes(colour = factor(quad)))
   theme(text = element_text(size = 20))
 
 # in significant genes
-SigP = lapply(SigP, function(x) x[order(x$X),])
-SigR = lapply(SigR, function(x) x[order(x$X),])
-lfcP = lfcR = list()
-for (i in 1:length(SigP)){
-  tmpP = SigP[[i]]
-  tmpR = SigR[[i]]
-  lfcP[[i]] = data.frame(Gene=tmpP$X, baseMean = tmpP$baseMean, log2FoldChange = tmpP$log2FoldChange, padj = tmpP$padj)
-  lfcR[[i]] = data.frame(Gene=tmpR$X, baseMean = tmpR$baseMean, log2FoldChange = tmpR$log2FoldChange, padj = tmpR$padj)
-}
-AP = lfcP[[1]]
-FP = lfcP[[2]]
-AR = lfcR[[1]]
-FR = lfcR[[2]]
-
-polyA = data.frame(Gene = AP$Gene, Adult.LFC = AP$log2FoldChange, Fetal.LFC = FP$log2FoldChange)
-ribo = data.frame(Gene = AR$Gene, Adult.LFC = AR$log2FoldChange, Fetal.LFC = FR$log2FoldChange)
-polyA$As=ifelse(polyA$Adult.LFC>0, "pos","neg")
-polyA$Fs=ifelse(polyA$Fetal.LFC>0, "pos","neg")
-polyA$quad=ifelse(polyA$As==polyA$Fs, "same","diff")
-ribo$As=ifelse(ribo$Adult.LFC>0, "pos","neg")
-ribo$Fs=ifelse(ribo$Fetal.LFC>0, "pos","neg")
-ribo$quad=ifelse(ribo$As==ribo$Fs, "same","diff")
-
-dim(polyA)
-#[1] 4474    6
-dim(polyA[which(polyA$quad=="same"),])
-#[1] 4034    6
-dim(ribo)
-#[1] 6063    6
-dim(ribo[which(ribo$quad=="same"),])
-#[1] 5475    6
-
-ggplot(polyA, aes(Adult.LFC, Fetal.LFC)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Fetal") + 
+ggplot(polya[which((polya$Sig.A=="YES" | polya$Sig.F=="YES") & polya$quad!="NA"),], 
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-ggplot(ribo, aes(Adult.LFC, Fetal.LFC)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Fetal") + 
+ggplot(polya.down[which((polya.down$Sig.A=="YES" | polya.down$Sig.F=="YES") & polya.down$quad!="NA"),], 
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
+  xlab("Adult") +
+  ylim(-3,3) + xlim(-3,3) +
+  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20))
+ggplot(ribo[which((ribo$Sig.A=="YES" | ribo$Sig.F=="YES") & ribo$quad!="NA"),],
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+  ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 
+# 
 
-elementLengths(DirList)
-Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
-Sign = Map(cbind, SigFracList, Sign = Sign)
-DirList = lapply(Sign, function(x) split(x, x$Sign))
-DirList = list(Apres.Up = DirList[["Apres"]][["UpNuc"]], Apres.Down = DirList[["Apres"]][["DownNuc"]],
-               Fpres.Up = DirList[["Fpres"]][["UpNuc"]], Fpres.Down = DirList[["Fpres"]][["DownNuc"]],
-               Arres.Up = DirList[["Arres"]][["UpNuc"]], Arres.Down = DirList[["Arres"]][["DownNuc"]],
-               Frres.Up = DirList[["Frres"]][["UpNuc"]], Frres.Down = DirList[["Frres"]][["DownNuc"]]) 
+
 names(DirList) = c("Adult\nPolyA\nUp", "Adult\nPolyA\nDown", "Fetal\nPolyA\nUp", "Fetal\nPolyA\nDown", 
                    "Adult\nRibozero\nUp", "Adult\nRibozero\nDown", "Fetal\nRibozero\nUp", 
                    "Fetal\nRibozero\nDown")
