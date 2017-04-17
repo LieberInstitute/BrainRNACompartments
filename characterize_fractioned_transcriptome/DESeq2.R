@@ -129,6 +129,10 @@ Idds = DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ L
 Idds = DESeq(Idds)
 Ires = results(Idds)
 
+Idds.down = DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Fetal + Zone + Fetal:Zone)
+Idds.down = DESeq(Idds.down)
+Ires.down = results(Idds.down)
+
 Adds = DESeqDataSetFromMatrix(countData = Adult.counts, colData = Adult, design = ~ Library + Zone)
 Adds = DESeq(Adds)
 Ares = results(Adds)
@@ -190,5 +194,5 @@ Lnres.down <- results(Ln.dds.down)
 save(res.down,Ipres.down,Zpres.down,Fpres.down,Agepres.down,Cpres.down,Lnres.down,
      res,Irres,Ipres,Zrres,Zpres,Apres,Fpres,Arres,Frres,
      Agerres,Agepres,Cpres,Npres,Crres,Nrres,Lnres,
-     Ires,Ares,Fres,Cres,Nres,Fres.down,Cres.down, geneMap,
+     Ires,Ares,Fres,Cres,Nres,Ires.down,Fres.down,Cres.down, geneMap,
      file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
