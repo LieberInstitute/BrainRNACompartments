@@ -124,44 +124,55 @@ Ln.dds <- DESeqDataSetFromMatrix(countData = Nucleus.counts, colData = Nucleus, 
 Ln.dds <- DESeq(Ln.dds)
 Lnres <- results(Ln.dds)
 
+# Combining both libraries
+Idds = DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ Library + Fetal + Zone + Fetal:Zone)
+Idds = DESeq(Idds)
+Ires = results(Idds)
+
+Adds = DESeqDataSetFromMatrix(countData = Adult.counts, colData = Adult, design = ~ Library + Zone)
+Adds = DESeq(Adds)
+Ares = results(Adds)
+
+Fdds = DESeqDataSetFromMatrix(countData = Fetal.counts, colData = Fetal, design = ~ Library + Zone)
+Fdds = DESeq(Fdds)
+Fres = results(Fdds)
+
+Cdds = DESeqDataSetFromMatrix(countData = Cytosol.counts, colData = Cytosol, design = ~ Library + Fetal)
+Cdds = DESeq(Cdds)
+Cres = results(Cdds)
+
+Ndds = DESeqDataSetFromMatrix(countData = Nucleus.counts, colData = Nucleus, design = ~ Library + Fetal)
+Ndds = DESeq(Ndds)
+Nres = results(Ndds)
+
+Fdds.down = DESeqDataSetFromMatrix(countData = Fetal.counts.down, colData = Fetal, design = ~ Library + Zone)
+Fdds.down = DESeq(Fdds.down)
+Fres.down = results(Fdds.down)
+
+Cdds.down = DESeqDataSetFromMatrix(countData = Cytosol.counts.down, colData = Cytosol, design = ~ Library + Fetal)
+Cdds.down = DESeq(Cdds.down)
+Cres.down = results(Cdds.down)
+
+
 ## Using counts from downsampled BAMs
 #How many genes are differentially expressed by fraction?
 dds.down <- DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Zone + Fetal)
 dds.down <- DESeq(dds.down)
 res.down <- results(dds.down)
 
-Irdds.down <- DESeqDataSetFromMatrix(countData = ribozero.counts.down, colData = Ribozero, design = ~ Fetal + Zone + Fetal:Zone)
-Irdds.down <- DESeq(Irdds.down)
-Irres.down <- results(Irdds.down)
 Ipdds.down <- DESeqDataSetFromMatrix(countData = polya.counts.down, colData = PolyA, design = ~ Fetal + Zone + Fetal:Zone)
 Ipdds.down <- DESeq(Ipdds.down)
 Ipres.down <- results(Ipdds.down)
 
-Zrdds.down <- DESeqDataSetFromMatrix(countData = ribozero.counts.down, colData = Ribozero, design = ~ Fetal + Zone)
-Zrdds.down <- DESeq(Zrdds.down)
-Zrres.down <- results(Zrdds.down)
 Zpdds.down <- DESeqDataSetFromMatrix(countData = polya.counts.down, colData = PolyA, design = ~ Fetal + Zone)
 Zpdds.down <- DESeq(Zpdds.down)
 Zpres.down <- results(Zpdds.down)
 
-Ap.dds.down <- DESeqDataSetFromMatrix(countData = Adult.polyA.counts.down, colData = Adult.polyA, design = ~ Zone)
-Ap.dds.down <- DESeq(Ap.dds.down)
-Apres.down <- results(Ap.dds.down)
 Fp.dds.down <- DESeqDataSetFromMatrix(countData = Fetal.polyA.counts.down, colData = Fetal.polyA, design = ~ Zone)
 Fp.dds.down <- DESeq(Fp.dds.down)
 Fpres.down <- results(Fp.dds.down)
-Ar.dds.down <- DESeqDataSetFromMatrix(countData = Adult.Ribo.counts.down, colData = Adult.Ribo, design = ~ Zone)
-Ar.dds.down <- DESeq(Ar.dds.down)
-Arres.down <- results(Ar.dds.down)
-Fr.dds.down <- DESeqDataSetFromMatrix(countData = Fetal.Ribo.counts.down, colData = Fetal.Ribo, design = ~ Zone)
-Fr.dds.down <- DESeq(Fr.dds.down)
-Frres.down <- results(Fr.dds.down)
 
 #How many genes are differentially expressed by Age?
-Ager.dds.down <- DESeqDataSetFromMatrix(countData = ribozero.counts.down, colData = Ribozero, design = ~ Zone + Fetal)
-Ager.dds.down <- DESeq(Ager.dds.down)
-Agerres.down <- results(Ager.dds.down)
-resultsNames(Ager.dds.down)
 Agep.dds.down <- DESeqDataSetFromMatrix(countData = polya.counts.down, colData = PolyA, design = ~ Zone + Fetal)
 Agep.dds.down <- DESeq(Agep.dds.down)
 Agepres.down <- results(Agep.dds.down)
@@ -169,26 +180,15 @@ Agepres.down <- results(Agep.dds.down)
 Cp.dds.down <- DESeqDataSetFromMatrix(countData = Cyt.polyA.counts.down, colData = Cyt.polyA, design = ~ Fetal)
 Cp.dds.down <- DESeq(Cp.dds.down)
 Cpres.down <- results(Cp.dds.down)
-Np.dds.down <- DESeqDataSetFromMatrix(countData = Nuc.polyA.counts.down, colData = Nuc.polyA, design = ~ Fetal)
-Np.dds.down <- DESeq(Np.dds.down)
-Npres.down <- results(Np.dds.down)
-Cr.dds.down <- DESeqDataSetFromMatrix(countData = Cyt.Ribo.counts.down, colData = Cyt.Ribo, design = ~ Fetal)
-Cr.dds.down <- DESeq(Cr.dds.down)
-Crres.down <- results(Cr.dds.down)
-Nr.dds.down <- DESeqDataSetFromMatrix(countData = Nuc.Ribo.counts.down, colData = Nuc.Ribo, design = ~ Fetal)
-Nr.dds.down <- DESeq(Nr.dds.down)
-Nrres.down <- results(Nr.dds.down)
 
 #Gene expression by library
 Ln.dds.down <- DESeqDataSetFromMatrix(countData = Nucleus.counts.down, colData = Nucleus, design = ~ Fetal + Library)
 Ln.dds.down <- DESeq(Ln.dds.down)
 Lnres.down <- results(Ln.dds.down)
 
-save(res.down,Irres.down,Ipres.down,Zrres.down,Zpres.down,Apres.down,Fpres.down,Arres.down,Frres.down,
-     Agerres.down,Agepres.down,Cpres.down,Npres.down,Crres.down,Nrres.down, Lnres.down,
+
+save(res.down,Ipres.down,Zpres.down,Fpres.down,Agepres.down,Cpres.down,Lnres.down,
      res,Irres,Ipres,Zrres,Zpres,Apres,Fpres,Arres,Frres,
-     Agerres,Agepres,Cpres,Npres,Crres,Nrres, Lnres,
+     Agerres,Agepres,Cpres,Npres,Crres,Nrres,Lnres,
+     Ires,Ares,Fres,Cres,Nres,Fres.down,Cres.down, geneMap,
      file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
-
-
-
