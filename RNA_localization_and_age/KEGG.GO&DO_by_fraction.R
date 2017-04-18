@@ -1,135 +1,131 @@
 library("clusterProfiler")
-require("S4Vectors")
 require("org.Hs.eg.db")
-require("Rgraphviz")
-library("DOSE")
+
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 # Prepare significant genes in a list
-FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv"),
-                Fpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Fpres.csv"),
-                Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv"),
-                Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv"))
+FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres),
+                Arres = data.frame(Arres),Frres = data.frame(Frres), 
+                Fpres.down = data.frame(Fpres.down))
 
 # Define universe as all genes expressed in each of the four groups
 GeneUniverse = lapply(FracList, function(x) x[which(x$baseMean > 0),])
-elementLengths(GeneUniverse)
-GeneUniverse = lapply(GeneUniverse, function(x) unique(x$EntrezID[!is.na(x$EntrezID)]))
+elementNROWS(GeneUniverse)
+GeneUniverse = lapply(GeneUniverse, function(x) geneMap[match(rownames(x),geneMap$gencodeID),"EntrezID"])
+GeneUniverse = lapply(GeneUniverse, na.omit)
 GeneUniverse = list("Apres.Up"= GeneUniverse[["Apres"]], "Apres.Down"= GeneUniverse[["Apres"]],
                     "Fpres.Up"= GeneUniverse[["Fpres"]], "Fpres.Down"= GeneUniverse[["Fpres"]],
                     "Arres.Up"= GeneUniverse[["Arres"]], "Arres.Down"= GeneUniverse[["Arres"]],
-                    "Frres.Up"= GeneUniverse[["Frres"]], "Frres.Down"= GeneUniverse[["Frres"]])
-elementLengths(GeneUniverse)
+                    "Frres.Up"= GeneUniverse[["Frres"]], "Frres.Down"= GeneUniverse[["Frres"]],
+                    "Fpres.Up.down"= GeneUniverse[["Fpres.down"]], "Fpres.Down.Down"= GeneUniverse[["Fpres.down"]])
 
 # Define significantly differently expressed genes
 SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementLengths(SigFracList)
+elementNROWS(SigFracList)
 Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
-sigFracBySign = Map(cbind, SigFracList, Sign = Sign)
-DirList = lapply(sigFracBySign, function(x) split(x, x$Sign))
-SigList = list(Apres.Up = DirList[["Apres"]][["UpNuc"]], Apres.Down = DirList[["Apres"]][["DownNuc"]],
-               Fpres.Up = DirList[["Fpres"]][["UpNuc"]], Fpres.Down = DirList[["Fpres"]][["DownNuc"]],
-               Arres.Up = DirList[["Arres"]][["UpNuc"]], Arres.Down = DirList[["Arres"]][["DownNuc"]],
-               Frres.Up = DirList[["Frres"]][["UpNuc"]], Frres.Down = DirList[["Frres"]][["DownNuc"]]) 
-elementLengths(SigList)
-sigGeneList = lapply(SigList, function(x) unique(x$EntrezID[!is.na(x$EntrezID)]))
-elementLengths(sigGeneList)
+Sign = Map(cbind, SigFracList, Sign = Sign)
+SigList = lapply(Sign, function(x) split(x, x$Sign))
+SigList = unlist(SigList, recursive = F) 
+sigGeneList = lapply(SigList, function(x) geneMap[match(rownames(x),geneMap$gencodeID),"EntrezID"])
+sigGeneList = lapply(sigGeneList, function(x) unique(na.omit(x)))
+elementNROWS(sigGeneList)
+names(sigGeneList) = names = c("Apres.Cytosolic", "Apres.Nuclear", "Fpres.Cytosolic", "Fpres.Nuclear", "Arres.Cytosolic", "Arres.Nuclear", 
+          "Frres.Cytosolic", "Frres.Nuclear", "Fpres.Down.Cytosolic", "Fpres.Down.Nuclear")
 
 # Find enriched Pathways via KEGG
 keggList = mapply(function(g, bg) {
   ht=enrichKEGG(as.character(g), organism="human", universe= as.character(bg), 
-  minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1, readable=TRUE)}, 
+  minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1)}, 
   sigGeneList, GeneUniverse, SIMPLIFY=FALSE)
-keggListdf = lapply(keggList, function(x) summary(x))
-dotplot(keggList[["Apres.Up"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(keggList[["Apres.Down"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(keggList[["Arres.Up"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(keggList[["Arres.Down"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(keggList[["Fpres.Up"]], showCategory =15, title = "Fetal PolyA Up in Nucleus")
-dotplot(keggList[["Fpres.Down"]], showCategory =15, title = "Fetal PolyA Up in Nucleus")
-dotplot(keggList[["Frres.Up"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
-dotplot(keggList[["Frres.Down"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
+keggListdf = lapply(keggList, function(x) as.data.frame(x))
 
 # Enriched Molecular Function GOs
 goList_MF = mapply(function(g, bg) {
-  ht=enrichGO(as.character(g), ont = "MF", organism="human", universe= as.character(bg), 
+  ht=enrichGO(as.character(g), ont = "MF", OrgDb = org.Hs.eg.db, universe= as.character(bg), 
   minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1, readable=TRUE)}, 
   sigGeneList, GeneUniverse, SIMPLIFY=FALSE)
-goListdf_MF = lapply(goList_MF, function(x) summary(x))
-plotGOgraph(goList_MF[["Apres.Up"]])
-plotGOgraph(goList_MF[["Apres.Down"]])
-dotplot(goList_MF[["Apres.Up"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_MF[["Apres.Down"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_MF[["Arres.Up"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_MF[["Arres.Down"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_MF[["Frres.Up"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
-dotplot(goList_MF[["Frres.Down"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
+goListdf_MF = lapply(goList_MF, function(x) as.data.frame(x))
 
 # Biological Process GO enrichment
 goList_BP = mapply(function(g, bg) {
-  ht=enrichGO(as.character(g), ont = "BP", organism="human", universe= as.character(bg), 
+  ht=enrichGO(as.character(g), ont = "BP", OrgDb = org.Hs.eg.db, universe= as.character(bg), 
   minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1, readable=TRUE)}, 
   sigGeneList, GeneUniverse, SIMPLIFY=FALSE)
-goListdf_BP = lapply(goList_BP, function(x) summary(x))
-plotGOgraph(goList_BP[["Apres.Up"]])
-plotGOgraph(goList_BP[["Apres.Down"]])
-dotplot(goList_BP[["Apres.Up"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_BP[["Apres.Down"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_BP[["Arres.Up"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_BP[["Arres.Down"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_BP[["Frres.Up"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
-dotplot(goList_BP[["Frres.Down"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
+goListdf_BP = lapply(goList_BP, function(x) as.data.frame(x))
 
 # Cellular Compartment GO enrichment
 goList_CC = mapply(function(g, bg) {
-  ht=enrichGO(as.character(g), ont = "CC", organism="human", universe= as.character(bg), 
+  ht=enrichGO(as.character(g), ont = "CC", OrgDb = org.Hs.eg.db, universe= as.character(bg), 
   minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1, readable=TRUE)}, 
   sigGeneList, GeneUniverse, SIMPLIFY=FALSE)
-goListdf_CC = lapply(goList_CC, function(x) summary(x))
-plotGOgraph(goList_CC[["Apres.Up"]])
-plotGOgraph(goList_CC[["Apres.Down"]])
-dotplot(goList_CC[["Apres.Up"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_CC[["Apres.Down"]], showCategory =15, title = "Adult PolyA Up in Nucleus")
-dotplot(goList_CC[["Arres.Up"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_CC[["Arres.Down"]], showCategory =15, title = "Adult RiboZero Up in Nucleus")
-dotplot(goList_CC[["Frres.Down"]], showCategory =15, title = "Fetal RiboZero Up in Nucleus")
+goListdf_CC = lapply(goList_CC, function(x) as.data.frame(x))
+
+# Disease Ontology Enrichment
+goList_DO = mapply(function(g, bg) {
+  ht=enrichDO(as.character(g), ont = "DO", universe= as.character(bg), 
+              minGSSize=5, pAdjustMethod="BH", qvalueCutoff=1, readable=TRUE)}, 
+  sigGeneList, GeneUniverse, SIMPLIFY=FALSE)
+goListdf_DO = lapply(goList_DO, function(x) as.data.frame(x))
+
+lists = list(DO = goListdf_DO, CC = goListdf_CC, BP = goListdf_BP, MF = goListdf_MF, KEGG = keggListdf)
+for (i in 1:length(lists)){
+  for (j in 1:length(names)){
+    if (nrow(lists[[i]][[j]])>0){
+  lists[[i]][[j]] = data.frame(lists[[i]][[j]], Comparison = names[j])
+}}}
+lists = lapply(lists, function(x) do.call(rbind, x))
+write.csv(lists[["KEGG"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.GO.KEGG.csv")
+write.csv(lists[["BP"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.GO.BP.csv")
+write.csv(lists[["MF"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.GO.MF.csv")
+write.csv(lists[["CC"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.GO.CC.csv")
+write.csv(lists[["DO"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.DO.csv")
 
 # Compare the enriched terms between four groups
-elementLengths(sigGeneList)
-names(sigGeneList) = c("Adult\nPolyA\nUp", "Adult\nPolyA\nDown", "Fetal\nPolyA\nUp", "Fetal\nPolyA\nDown", 
-                       "Adult\nRibozero\nUp", "Adult\nRibozero\nDown", "Fetal\nRibozero\nUp", "Fetal\nRibozero\nDown")
+elementNROWS(sigGeneList)
+names(sigGeneList) = c("Adult\nPolyA\nCytosolic", "Adult\nPolyA\nNuclear", "Fetal\nPolyA\nCytosolic", "Fetal\nPolyA\nNuclear", 
+                       "Adult\nRibozero\nCytosolic", "Adult\nRibozero\nNuclear", "Fetal\nRibozero\nCytosolic", "Fetal\nRibozero\nNuclear",
+                       "Fetal\nPolyA\nCytosolic", "Fetal\nPolyA\nNuclear")
 # KEGG
-compareKegg = compareCluster(sigGeneList, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-summary(compareKegg)
-plot(compareKegg,colorBy="p.adjust",  showCategory = 20, title= "KEGG Pathway Enrichment")
+compareKegg = compareCluster(sigGeneList[1:8], fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareKegg,colorBy="p.adjust",  showCategory = 30, title= "KEGG Pathway Enrichment")
+
+compareKegg.down = compareCluster(sigGeneList[c(1:2,5:10)], fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareKegg.down,colorBy="p.adjust",  showCategory = 30, title= "KEGG Pathway Enrichment")
 
 # Biological Process
-compareBP = compareCluster(sigGeneList, fun="enrichGO",  ont = "BP", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-summary(compareBP)
-plot(compareBPDropped,colorBy="p.adjust",  showCategory = 20, title= "Biological Process GO Enrichment")
-compareBPDropped = dropGO(compareBP,  level = 1)
-compareBPDropped = dropGO(compareBPDropped,  level = 2)
-compareBPDropped = dropGO(compareBPDropped,  level = 3)
+compareBP = compareCluster(sigGeneList[1:8], fun="enrichGO",  ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareBPDropped,colorBy="p.adjust",  showCategory = 30, title= "Biological Process GO Enrichment")
+compareBPDropped = dropGO(compareBP,  level = 3)
+
+compareBP.down = compareCluster(sigGeneList[c(1:2,5:10)], fun="enrichGO",  ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareBPDropped,colorBy="p.adjust",  showCategory = 30, title= "Biological Process GO Enrichment")
+compareBPDropped = dropGO(compareBP.down,  level = 3)
 
 # Molecular Function
-compareMF = compareCluster(sigGeneList, fun="enrichGO",  ont = "MF", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-summary(compareMF)
-plot(compareMFDropped,colorBy="p.adjust",  showCategory = 20, title= "Molecular Function GO Enrichment")
-compareMFDropped = dropGO(compareMF,  level = 1)
-compareMFDropped = dropGO(compareMFDropped,  level = 2)
-compareMFDropped = dropGO(compareMFDropped,  level = 3)
+compareMF = compareCluster(sigGeneList[1:8], fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareMFDropped,colorBy="p.adjust",  showCategory = 30, title= "Molecular Function GO Enrichment")
+compareMFDropped = dropGO(compareMF,  level = 3)
+
+compareMF.down = compareCluster(sigGeneList[c(1:2,5:10)], fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareMFDropped,colorBy="p.adjust",  showCategory = 30, title= "Molecular Function GO Enrichment")
+compareMFDropped = dropGO(compareMF.down,  level = 3)
 
 # Cellular Component
-compareCC = compareCluster(sigGeneList, fun="enrichGO",  ont = "CC", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-summary(compareCC)
-plot(compareCCDropped,colorBy="p.adjust",  showCategory = 20, title= "Cellular Compartment GO Enrichment")
-compareCCDropped = dropGO(compareCC,  level = 1)
-compareCCDropped = dropGO(compareCCDropped,  level = 2)
-compareCCDropped = dropGO(compareCCDropped,  level = 3)
+compareCC = compareCluster(sigGeneList[1:8], fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareCCDropped,colorBy="p.adjust",  showCategory = 30, title= "Cellular Compartment GO Enrichment")
+compareCCDropped = dropGO(compareCC,  level = 3)
+
+compareCC.down = compareCluster(sigGeneList[c(1:2,5:10)], fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareCCDropped,colorBy="p.adjust",  showCategory = 30, title= "Cellular Compartment GO Enrichment")
+compareCCDropped = dropGO(compareCC.down,  level = 3)
 
 # Disease Ontology
-compareDO = compareCluster(sigGeneList, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-summary(compareDO)
+compareDO = compareCluster(sigGeneList[1:8], fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(compareDO,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology Enrichment")
 
-save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
-     file="/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/kegg.GO.DO.objects.rda")
+compareDO.down = compareCluster(sigGeneList[c(1:2,5:10)], fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+plot(compareDO.down,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology Enrichment")
+
+save(compareKegg, compareBP, compareMF, compareCC, compareDO,
+     compareKegg.down, compareBP.down, compareMF.down, compareCC.down, compareDO.down, 
+     file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Fraction.kegg.GO.DO.objects.rda")
