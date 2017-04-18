@@ -13,12 +13,12 @@ sigres.down = data.frame(Ires.down[which(Ires.down$padj<=0.05 & abs(Ires.down$lo
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/interaction_genes.downsampled.pdf")
 plots = list()
 for (i in 1:nrow(sigres.down)){
-  plots[[i]] = plotCounts(Idds, as.character(rownames(sigres.down[i,])), 
+  plots[[i]] = plotCounts(Idds.down, as.character(rownames(sigres.down[i,])), 
                                intgroup = c("Fetal", "Zone", "Library"), returnData =TRUE)
   tmp = plots[[i]]
   tmp$Group = paste(tmp$Fetal,tmp$Zone, sep = "\n")
   x = ggplot(tmp, aes(x=Group, y=count)) + geom_boxplot() + 
-    geom_jitter() +
+    geom_jitter() + scale_colour_manual(name = "Library") +
     scale_y_log10(breaks=c(25,100,400)) +
     ylab("Normalized Count") + 
     xlab("") +
@@ -79,9 +79,6 @@ sig = lapply(sig, function(x) data[which(data$geneID%in%rownames(x)),])
 sig.1 = lapply(sig, function(x) x[which(abs(x$Prenatal.LFC)>=1 | abs(x$Adult.LFC)>=1),])
 save(Ires.down,Fres.down,Ares,sig,sig.1, 
      file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-
-
-
 
 
 # Annotate genes
@@ -259,16 +256,17 @@ goListdf_DO = lapply(goList_DO, function(x) as.data.frame(x))
 # write to csv
 names = c("Retained_Both", "Exported_Both", "Retained_Prenatal.Only", "Retained_Adult.Only",
                  "Retained_Adult.Exported_Prenatal", "Retained_Prenatal.Exported_Adult", "Interaction")
-for (i in c(1:2,6:7)){write.csv(keggListdf[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.KEGG.csv"))}
+for (i in c(1:4,6:7)){
+  write.csv(keggListdf[[i]], 
+            file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.KEGG.downsampled.csv"))
+  write.csv(goListdf_MF[[i]], 
+            file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.MF.downsampled.csv"))}
 for (i in c(1:2,4,6:7)){write.csv(goListdf_BP[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.BP.csv"))}
-for (i in c(1:4,6:7)){write.csv(goListdf_MF[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.MF.csv"))}
-for (i in c(2,4,7)){write.csv(goListdf_CC[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.CC.csv"))}
-for (i in c(6:7)){write.csv(goListdf_DO[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".DO.csv"))}
+                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.BP.downsampled.csv"))}
+for (i in c(2:4,7)){write.csv(goListdf_CC[[i]], 
+                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.CC.downsampled.csv"))}
+for (i in c(3,6:7)){write.csv(goListdf_DO[[i]], 
+                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".DO.downsampled.csv"))}
 
 # Compare the enriched terms between 7 groups
 # KEGG
@@ -299,7 +297,7 @@ plot(compareDO,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology 
 entrez.noLFC = lapply(sig, function(x) na.omit(x$EntrezID))
 compareDO = compareCluster(entrez.noLFC, fun="enrichDO",
                            ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(compareDO,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology Enrichment")
+plot(compareDO,colorBy="p.adjust",  showCategory = 40, title= "Disease Ontology Enrichment")
 
 save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
-     file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.rda")
+     file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.downsampled.rda")
