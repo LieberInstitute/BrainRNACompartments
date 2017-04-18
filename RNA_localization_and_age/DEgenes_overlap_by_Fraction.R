@@ -1,70 +1,101 @@
 library(VennDiagram)
 
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+
 ### Which Fractional DE Genes Overlap? ###
-FracList = list(Apres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Apres.csv"),
-                Fpres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Fpres.csv"),
-                Arres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Arres.csv"),
-                Frres = read.csv("/Users/amanda/Dropbox/NucVsCytosol/Manuscript_Materials/RDAs/Frres.csv"))
+FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres),
+                Arres = data.frame(Arres),Frres = data.frame(Frres), 
+                Fpres.down = data.frame(Fpres.down))
 SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
 Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
 Sign = Map(cbind, SigFracList, Sign = Sign)
 DirList = lapply(Sign, function(x) split(x, x$Sign))
-DirList = list(Apres.Up = DirList[["Apres"]][["UpNuc"]], Apres.Down = DirList[["Apres"]][["DownNuc"]],
-               Fpres.Up = DirList[["Fpres"]][["UpNuc"]], Fpres.Down = DirList[["Fpres"]][["DownNuc"]],
-               Arres.Up = DirList[["Arres"]][["UpNuc"]], Arres.Down = DirList[["Arres"]][["DownNuc"]],
-               Frres.Up = DirList[["Frres"]][["UpNuc"]], Frres.Down = DirList[["Frres"]][["DownNuc"]]) 
-names(DirList) = c("Adult\nPolyA\nUp", "Adult\nPolyA\nDown", "Fetal\nPolyA\nUp", "Fetal\nPolyA\nDown", 
-                   "Adult\nRibozero\nUp", "Adult\nRibozero\nDown", "Fetal\nRibozero\nUp", "Fetal\nRibozero\nDown")
-elementLengths(SigFracList)
-Names.Zone <- list("Adult:PolyA\n(1648)"=SigFracList[["Apres"]], "Fetal:PolyA\n(75)"=SigFracList[["Fpres"]], 
-                   "Adult:Ribozero\n(2869)"=SigFracList[["Arres"]], "Fetal:Ribozero\n(349)"=SigFracList[["Frres"]])
-Names.Zone = lapply(Names.Zone, function(x) x$X)
+DirList = unlist(DirList, recursive = F)
+names(DirList) = c("Adult\nPolyA\nCytosolic", "Adult\nPolyA\nNuclear", "Fetal\nPolyA\nCytosolic", "Fetal\nPolyA\nNuclear", 
+                   "Adult\nRibozero\nCytosolic", "Adult\nRibozero\nNuclear", "Fetal\nRibozero\nCytosolic", 
+                   "Fetal\nRibozero\nNuclear", "Fetal\nPolyA\nCytosolic", "Fetal\nPolyA\nNuclear")
+elementNROWS(SigFracList)
+Names.Zone <- list("Adult:PolyA\n(1894)"=SigFracList[["Apres"]], "Fetal:PolyA\n(52)"=SigFracList[["Fpres"]], 
+                   "Adult:Ribozero\n(1892)"=SigFracList[["Arres"]], "Fetal:Ribozero\n(30)"=SigFracList[["Frres"]])
+Names.Zone = lapply(Names.Zone, function(x) rownames(x))
+Names.Zone.down <- list("Adult:PolyA\n(1894)"=SigFracList[["Apres"]], "Fetal:PolyA\n(40)"=SigFracList[["Fpres.down"]], 
+                   "Adult:Ribozero\n(1892)"=SigFracList[["Arres"]], "Fetal:Ribozero\n(30)"=SigFracList[["Frres"]])
+Names.Zone.down = lapply(Names.Zone.down, function(x) rownames(x))
 
-elementLengths(DirList)
-DirList = lapply(DirList, function(x) as.character(x$X))
-Names.ZoneUP <- list("Adult:PolyA\n(954)"=DirList[["Adult\nPolyA\nUp"]], "Fetal:PolyA\n(74)"=DirList[["Fetal\nPolyA\nUp"]], 
-                     "Adult:Ribozero\n(1507)"=DirList[["Adult\nRibozero\nUp"]], "Fetal:Ribozero\n(339)"=DirList[["Fetal\nRibozero\nUp"]])
-Names.ZoneD <- list("Adult:PolyA\n(694)"=DirList[["Adult\nPolyA\nDown"]], "Fetal:PolyA\n(1)"=DirList[["Fetal\nPolyA\nDown"]], 
-                    "Adult:Ribozero\n(1362)"=DirList[["Adult\nRibozero\nDown"]], "Fetal:Ribozero\n(10)"=DirList[["Fetal\nRibozero\nDown"]])
+elementNROWS(DirList)
+DirList = lapply(DirList, function(x) rownames(x))
+Names.ZoneUP <- list("Adult:PolyA\n(956)"=DirList[["Adult\nPolyA\nNuclear"]], "Fetal:PolyA\n(51)"=DirList[[4]], 
+                     "Adult:Ribozero\n(868)"=DirList[["Adult\nRibozero\nNuclear"]], "Fetal:Ribozero\n(23)"=DirList[["Fetal\nRibozero\nNuclear"]])
+Names.ZoneD <- list("Adult:PolyA\n(938)"=DirList[["Adult\nPolyA\nCytosolic"]], "Fetal:PolyA\n(1)"=DirList[[3]], 
+                    "Adult:Ribozero\n(1024)"=DirList[["Adult\nRibozero\nCytosolic"]], "Fetal:Ribozero\n(7)"=DirList[["Fetal\nRibozero\nCytosolic"]])
+Names.ZoneUP.down <- list("Adult:PolyA\n(956)"=DirList[["Adult\nPolyA\nNuclear"]], "Fetal:PolyA\n(39)"=DirList[[10]], 
+                     "Adult:Ribozero\n(868)"=DirList[["Adult\nRibozero\nNuclear"]], "Fetal:Ribozero\n(23)"=DirList[["Fetal\nRibozero\nNuclear"]])
+Names.ZoneD.down <- list("Adult:PolyA\n(938)"=DirList[["Adult\nPolyA\nCytosolic"]], "Fetal:PolyA\n(1)"=DirList[[9]], 
+                    "Adult:Ribozero\n(1024)"=DirList[["Adult\nRibozero\nCytosolic"]], "Fetal:Ribozero\n(7)"=DirList[["Fetal\nRibozero\nCytosolic"]])
 
-list.Zone <- calculate.overlap(Names.Zone)
-list.ZoneUP <- calculate.overlap(Names.ZoneUP)
-list.ZoneD <- calculate.overlap(Names.ZoneD)
-venn.ZoneUP <- venn.diagram(Names.ZoneUP, "/Users/amanda/Dropbox/NucVsCytosol/Results/venn.zoneUP.jpeg", main="Differentially Expressed Genes\nUp-regulated in Nucleus (LFC≥1, FDR<0.05)",
+venn.ZoneUP <- venn.diagram(Names.ZoneUP, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.nuclear.jpeg", 
+                            main="Differentially Expressed Genes\nUp-regulated in Nucleus (LFC≥1, FDR<0.05)",
                             col = "transparent",
                             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
                             alpha = 0.50,
-                            label.col = c("olivedrab4", "white", "darkorchid4", "white",
-                                          "white", "white", "white", "white", "palevioletred4", "white",
-                                          "white", "white", "white", "darkblue", "white"),
+                            label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                          "palevioletred4","white","white", "white", "white", "darkblue", "white"),
                             fontfamily = "Arial",
                             fontface = "bold",
                             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                             cat.fontfamily = "Arial", margin=0.2)
-venn.ZoneD <- venn.diagram(Names.ZoneD, "/Users/amanda/Dropbox/NucVsCytosol/Results/venn.zoneD.jpeg", main="Differentially expressed Genes\nDown-regulated in Nucleus (LFC≥1, FDR<0.05)",
+venn.ZoneD <- venn.diagram(Names.ZoneD, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.cytosolic.jpeg", 
+                           main="Differentially expressed Genes\nDown-regulated in Nucleus (LFC≥1, FDR<0.05)",
                            col = "transparent",
                            fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
                            alpha = 0.50,
-                           label.col = c("olivedrab4", "white", "darkorchid4", "white",
-                                         "white", "white", "white", "white", "palevioletred4", "white",
-                                         "white", "white", "white", "darkblue", "white"),
+                           label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                         "palevioletred4","white","white", "white", "white", "darkblue", "white"),
                            fontfamily = "Arial",
                            fontface = "bold",
                            cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                            cat.fontfamily = "Arial", margin=0.2)
-venn.zone <- venn.diagram(Names.Zone, "/Users/amanda/Dropbox/NucVsCytosol/Results/venn.zone.jpeg", main="Differentially expressed Genes\nby Fraction (LFC≥1, FDR<0.05)",
+venn.zone <- venn.diagram(Names.Zone, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.zone.jpeg", 
+                          main="Differentially expressed Genes\nby Fraction (LFC≥1, FDR<0.05)",
                           col = "transparent",
                           fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
                           alpha = 0.50,
-                          label.col = c("olivedrab4", "white", "darkorchid4", "white",
-                                        "white", "white", "white", "white", "palevioletred4", "white",
-                                        "white", "white", "white", "darkblue", "white"),
+                          label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                        "palevioletred4","white","white", "white", "white", "darkblue", "white"),
                           fontfamily = "Arial",
                           fontface = "bold",
                           cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                           cat.fontfamily = "Arial", margin=0.2)
-
-### Characterizing the significantly different genes that don't overlap ###
-
-
-
+venn.ZoneUP.down <- venn.diagram(Names.ZoneUP.down, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.nuclear.downsampled.jpeg", 
+                            main="Differentially Expressed Genes\nUp-regulated in Nucleus (LFC≥1, FDR<0.05)",
+                            col = "transparent",
+                            fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
+                            alpha = 0.50,
+                            label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                          "palevioletred4","white","white", "white", "white", "darkblue", "white"),
+                            fontfamily = "Arial",
+                            fontface = "bold",
+                            cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+                            cat.fontfamily = "Arial", margin=0.2)
+venn.ZoneD.down <- venn.diagram(Names.ZoneD.down, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.cytosolic.downsampled.jpeg", 
+                           main="Differentially expressed Genes\nDown-regulated in Nucleus (LFC≥1, FDR<0.05)",
+                           col = "transparent",
+                           fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
+                           alpha = 0.50,
+                           label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                         "palevioletred4","white","white", "white", "white", "darkblue", "white"),
+                           fontfamily = "Arial",
+                           fontface = "bold",
+                           cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+                           cat.fontfamily = "Arial", margin=0.2)
+venn.zone.down <- venn.diagram(Names.Zone.down, "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/venn.zone.downsampled.jpeg", 
+                          main="Differentially expressed Genes\nby Fraction (LFC≥1, FDR<0.05)",
+                          col = "transparent",
+                          fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),
+                          alpha = 0.50,
+                          label.col = c("olivedrab4", "white", "darkorchid4", "white","white", "white", "white", "white",
+                                        "palevioletred4","white","white", "white", "white", "darkblue", "white"),
+                          fontfamily = "Arial",
+                          fontface = "bold",
+                          cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+                          cat.fontfamily = "Arial", margin=0.2)
