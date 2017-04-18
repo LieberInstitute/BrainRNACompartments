@@ -90,7 +90,6 @@ compareBP.Age.down = compareCluster(sigGeneList, fun="enrichGO",  ont = "BP", Or
 
 # Molecular Function
 compareMF.Age = compareCluster(sigGeneList, fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(compareMF.Age,colorBy="p.adjust",  showCategory = 20, title= "Molecular Function GO Enrichment")
 compareMF.Age.down = compareCluster(sigGeneList, fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 
 # Cellular Component
