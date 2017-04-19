@@ -56,6 +56,8 @@ sig = list(both_retained = Ires.down[which(rownames(Ires.down)%in%AdPos & rownam
            Fet_retained = Ires.down[which(rownames(Ires.down)%in%FetPos & !(rownames(Ires.down)%in%AdSig) & 
                                        rownames(Ires.down)%in%FetSig),],
            Ad_retained = Ires.down[which(rownames(Ires.down)%in%AdPos & rownames(Ires.down)%in%AdSig & !(rownames(Ires.down)%in%FetSig)),],
+           Fet_exported = Ires[which(rownames(Ires.down)%in%FetNeg & !(rownames(Ires.down)%in%AdSig) & rownames(Ires.down)%in%FetSig),],
+           Ad_exported = Ires[which(rownames(Ires.down)%in%AdNeg & rownames(Ires.down)%in%AdSig & !(rownames(Ires.down)%in%FetSig)),],
            ret_Ad_exp_Fet = Ires.down[which(rownames(Ires.down)%in%AdPos & rownames(Ires.down)%in%FetNeg 
                                       & rownames(Ires.down)%in%AdSig & rownames(Ires.down)%in%FetSig),],
            ret_Fet_exp_Ad = Ires.down[which(rownames(Ires.down)%in%FetPos & rownames(Ires.down)%in%AdNeg 
@@ -100,8 +102,8 @@ ggplot(TypeFreq, aes(x = Group, y = Count, fill = RNA_Type)) + geom_bar(stat = "
 # Condense to 4 groups
 group = as.character(names(freq))
 RNA.Type = c("Protein-coding", "Pseudogene", "Long Non-coding", "Short Non-coding")
-type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 7), rep.int(RNA.Type[2], 7),
-                               rep.int(RNA.Type[3], 7),rep.int(RNA.Type[4], 7))),
+type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), rep.int(RNA.Type[2], 9),
+                               rep.int(RNA.Type[3], 9),rep.int(RNA.Type[4], 9))),
                   Count = NA, Group = factor(x=rep.int(group, 4)))
 
 for (i in 1:length(group)){
@@ -143,9 +145,11 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2])
 }
 group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
+          "Exported:\nPrenatal Only", "Exported:\nAdult Only",
                "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
 type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-  "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
+                                                    "Exported:\nPrenatal Only", "Exported:\nAdult Only",
+                                                    "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
 
 # Graph the Frequencies
 ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
@@ -166,8 +170,8 @@ colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
 # Condense to 4 groups
 group = as.character(names(freq))
 RNA.Type = c("Protein-coding", "Pseudogene", "Long Non-coding", "Short Non-coding")
-type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 7), rep.int(RNA.Type[2], 7),
-                                            rep.int(RNA.Type[3], 7),rep.int(RNA.Type[4], 7))),
+type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), rep.int(RNA.Type[2],9),
+                                            rep.int(RNA.Type[3], 9),rep.int(RNA.Type[4], 9))),
                   Count = NA, Group = factor(x=rep.int(group, 4)))
 for (i in 1:length(group)){
   type[which(type$RNA.Type=="Protein-coding" & type$Group==group[i]),2] = 
@@ -208,8 +212,10 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2])
 }
 group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
+          "Exported:\nPrenatal Only", "Exported:\nAdult Only",
           "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
 type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
+                                                    "Exported:\nPrenatal Only", "Exported:\nAdult Only",
                                                     "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
 # Graph the Frequencies
 ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
@@ -223,7 +229,8 @@ ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "iden
 
 ## Gene Ontology
 names(sig.1) = names(sig) = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
-                 "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
+                              "Exported:\nPrenatal Only", "Exported:\nAdult Only","Retained: Adult/\nExported: Prenatal",
+                              "Retained: Prenatal/\nExported: Adult", "Interaction")
 entrezID = lapply(sig.1, function(x) na.omit(x$EntrezID))
 # Define universe as all genes expressed in each of the four groups
 GeneUniverse = as.character(unique(geneMap[match(rownames(Ires.down),geneMap$gencodeID),"EntrezID"]))
@@ -255,18 +262,20 @@ goListdf_DO = lapply(goList_DO, function(x) as.data.frame(x))
 
 # write to csv
 names = c("Retained_Both", "Exported_Both", "Retained_Prenatal.Only", "Retained_Adult.Only",
+          "Exported_Prenatal.Only", "Exported_Adult.Only",
                  "Retained_Adult.Exported_Prenatal", "Retained_Prenatal.Exported_Adult", "Interaction")
-for (i in c(1:4,6:7)){
-  write.csv(keggListdf[[i]], 
-            file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.KEGG.downsampled.csv"))
-  write.csv(goListdf_MF[[i]], 
-            file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.MF.downsampled.csv"))}
-for (i in c(1:2,4,6:7)){write.csv(goListdf_BP[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.BP.downsampled.csv"))}
-for (i in c(2:4,7)){write.csv(goListdf_CC[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".GO.CC.downsampled.csv"))}
-for (i in c(3,6:7)){write.csv(goListdf_DO[[i]], 
-                       file=paste0("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/",names[i],".DO.downsampled.csv"))}
+lists = list(DO = goListdf_DO, CC = goListdf_CC, BP = goListdf_BP, MF = goListdf_MF, KEGG = keggListdf)
+for (i in 1:length(lists)){
+  for (j in 1:length(names)){
+    if (nrow(lists[[i]][[j]])>0){
+      lists[[i]][[j]] = data.frame(lists[[i]][[j]], Comparison = names[j])
+    }}}
+lists = lapply(lists, function(x) do.call(rbind, x))
+write.csv(lists[["KEGG"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.GO.KEGG.downsampled.csv")
+write.csv(lists[["BP"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.GO.BP.downsampled.csv")
+write.csv(lists[["MF"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.GO.MF.downsampled.csv")
+write.csv(lists[["CC"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.GO.CC.downsampled.csv")
+write.csv(lists[["DO"]], file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.DO.downsampled.csv")
 
 # Compare the enriched terms between 7 groups
 # KEGG
@@ -274,25 +283,18 @@ compareKegg = compareCluster(entrezID, fun="enrichKEGG", qvalueCutoff = 0.05, pv
 plot(compareKegg,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment")
 # Biological Process
 compareBP = compareCluster(entrezID, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+compareBPDropped = dropGO(compareBP,  level = 3)
 plot(compareBPDropped,colorBy="p.adjust",  showCategory = 30, title= "Biological Process GO Enrichment")
-compareBPDropped = dropGO(compareBP,  level = 1)
-compareBPDropped = dropGO(compareBPDropped,  level = 2)
-compareBPDropped = dropGO(compareBPDropped,  level = 3)
 # Molecular Function
 compareMF = compareCluster(entrezID, fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+compareMFDropped = dropGO(compareMF,  level = 3)
 plot(compareMFDropped,colorBy="p.adjust",  showCategory = 30, title= "Molecular Function GO Enrichment")
-compareMFDropped = dropGO(compareMF,  level = 1)
-compareMFDropped = dropGO(compareMFDropped,  level = 2)
-compareMFDropped = dropGO(compareMFDropped,  level = 3)
 # Cellular Component
 compareCC = compareCluster(entrezID, fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+compareCCDropped = dropGO(compareCC,  level = 3)
 plot(compareCCDropped,colorBy="p.adjust",  showCategory = 30, title= "Cellular Compartment GO Enrichment")
-compareCCDropped = dropGO(compareCC,  level = 1)
-compareCCDropped = dropGO(compareCCDropped,  level = 2)
-compareCCDropped = dropGO(compareCCDropped,  level = 3)
 # Disease Ontology
 compareDO = compareCluster(entrezID, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-as.data.frame(compareDO)
 plot(compareDO,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology Enrichment")
 entrez.noLFC = lapply(sig, function(x) na.omit(x$EntrezID))
 compareDO = compareCluster(entrez.noLFC, fun="enrichDO",

@@ -97,10 +97,10 @@ compareCC.Age = compareCluster(sigGeneList, fun="enrichGO",  ont = "CC", OrgDb =
 compareCC.Age.down = compareCluster(sigGeneList, fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 
 # Disease Ontology
-compareDO.Age = compareCluster(sigGeneList, fun="enrichDO",  ont = "DO", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+compareDO.Age = compareCluster(sigGeneList, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(compareDO.Age,colorBy="p.adjust",  showCategory = 20, title= "Disease Ontology Enrichment")
 
-compareDO.Age.down = compareCluster(sigGeneList, fun="enrichDO",  ont = "DO", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+compareDO.Age.down = compareCluster(sigGeneList, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(compareDO.Age.down,colorBy="p.adjust",  showCategory = 20, title= "Disease Ontology Enrichment")
 
 save(compareKegg.Age, compareBP.Age, compareMF.Age, compareCC.Age, compareDO.Age,

@@ -94,8 +94,8 @@ ggplot(TypeFreq, aes(x = Group, y = Count, fill = RNA_Type)) + geom_bar(stat = "
 # Condense to 4 groups
 group = as.character(names(freq))
 RNA.Type = c("Protein-coding", "Pseudogene", "Long Non-coding", "Short Non-coding")
-type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 7), rep.int(RNA.Type[2], 7),
-                               rep.int(RNA.Type[3], 7),rep.int(RNA.Type[4], 7))),
+type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), rep.int(RNA.Type[2], 9),
+                               rep.int(RNA.Type[3], 9),rep.int(RNA.Type[4], 9))),
                   Count = NA, Group = factor(x=rep.int(group, 4)))
 
 for (i in 1:length(group)){
@@ -139,8 +139,10 @@ for (i in 1:length(group)){
 group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
           "Exported:\nPrenatal Only", "Exported:\nAdult Only",
           "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-                                                    "Exported:\nPrenatal Only", "Exported:\nAdult Only", "Retained: Adult/\nExported: Prenatal",
+type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", 
+                                                    "Retained:\nAdult Only", "Retained:\nPrenatal Only",
+                                                    "Exported:\nPrenatal Only", "Exported:\nAdult Only", 
+                                                    "Retained: Adult/\nExported: Prenatal",
                                                     "Retained: Prenatal/\nExported: Adult", "Interaction"))
 
 # Graph the Frequencies
@@ -162,8 +164,8 @@ colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
 # Condense to 4 groups
 group = as.character(names(freq))
 RNA.Type = c("Protein-coding", "Pseudogene", "Long Non-coding", "Short Non-coding")
-type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 7), rep.int(RNA.Type[2], 7),
-                                            rep.int(RNA.Type[3], 7),rep.int(RNA.Type[4], 7))),
+type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), rep.int(RNA.Type[2], 9),
+                                            rep.int(RNA.Type[3], 9),rep.int(RNA.Type[4], 9))),
                   Count = NA, Group = factor(x=rep.int(group, 4)))
 for (i in 1:length(group)){
   type[which(type$RNA.Type=="Protein-coding" & type$Group==group[i]),2] = 
@@ -217,7 +219,7 @@ ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "iden
   ggtitle("Gene Annotation:\nLog2 Fold Change >1") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.rda")
+
 ## Gene Ontology
 names(sig.1) = names(sig) = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
                               "Exported:\nPrenatal Only", "Exported:\nAdult Only","Retained: Adult/\nExported: Prenatal",
@@ -274,15 +276,15 @@ compareKegg = compareCluster(entrezID, fun="enrichKEGG", qvalueCutoff = 0.05, pv
 plot(compareKegg,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment")
 # Biological Process
 compareBP = compareCluster(entrezID, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareBPDropped = dropGO(compareBPDropped,  level = 3)
+compareBPDropped = dropGO(compareBP,  level = 3)
 plot(compareBPDropped,colorBy="p.adjust",  showCategory = 30, title= "Biological Process GO Enrichment")
 # Molecular Function
 compareMF = compareCluster(entrezID, fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareMFDropped = dropGO(compareMFDropped,  level = 3)
+compareMFDropped = dropGO(compareMF,  level = 3)
 plot(compareMFDropped,colorBy="p.adjust",  showCategory = 30, title= "Molecular Function GO Enrichment")
 # Cellular Component
 compareCC = compareCluster(entrezID, fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareCCDropped = dropGO(compareCCDropped,  level = 3)
+compareCCDropped = dropGO(compareCC,  level = 3)
 plot(compareCCDropped,colorBy="p.adjust",  showCategory = 30, title= "Cellular Compartment GO Enrichment")
 # Disease Ontology
 compareDO = compareCluster(entrezID, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
