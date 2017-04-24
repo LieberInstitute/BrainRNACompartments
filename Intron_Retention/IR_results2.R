@@ -1,6 +1,5 @@
 library(ggplot2)
 library(reshape2)
-install.packages("VennDiagram")
 library(VennDiagram)
 library(data.table)
 library("GenomicRanges")
