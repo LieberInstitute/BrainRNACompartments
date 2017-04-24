@@ -1,9 +1,9 @@
 library(GenomicRanges)
 library(data.table)
-
-library(ggplot2)
-library(reshape2)
 library(VennDiagram)
+library(ggplot2)
+
+library(reshape2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
@@ -57,181 +57,148 @@ sigIR = lapply(sig, function(x) max[which(max$genes %in% x$ensID),])
 lapply(sigIR, function(x) length(unique(x$genes)))
 
 # genes >50% retained in at least one sample
-sigIR.50 = lapply(sigGenes, function(x) x[which(x$IRratio>=.50),colnames(x)=="ensID"])
-sigIR.u50 = lapply(sigGenes, function(x) x[which(x$IRratio<.50),colnames(x)=="ensID"])
-allgenes.50 = allGenes[which(allGenes$IRratio>=.50),colnames(all)=="ensID"]
-allgenes.u50 = allGenes[which(allGenes$IRratio<.50),colnames(all)=="ensID"]
+perc = lapply(sigIR, function(x) list(sig.more=as.character(unique(x[which(x$IRratio>=0.50),colnames(x)=="genes"])),
+                                            sig.less=as.character(unique(x[which(x$IRratio<0.50),colnames(x)=="genes"])),
+                                            all.more=as.character(unique(max[which(max$IRratio>=0.50),colnames(max)=="genes"])),
+                                            all.less=as.character(unique(max[which(max$IRratio<0.50),colnames(max)=="genes"]))))
+names = names(perc)
+for (i in 1:length(perc)){
+venn.diagram(perc[[i]], paste0("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/",names[i], ".50.percent.IRratio.jpeg"), 
+             main=names[i], col = "transparent", 
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold", 
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+} # Saved as pdfs together as 50.percent.IRratio.overlap.pdf
 
-both_retained = list(sig.more = sigIR.50[["both_retained"]], sig.less = sigIR.u50[["both_retained"]],
-                     all.more = allgenes.50, all.less = allgenes.u50)
-both_exported =  list(sig.more = sigIR.50[["both_exported"]], sig.less = sigIR.u50[["both_exported"]],
-                      all.more = allgenes.50, all.less = allgenes.u50)
-Fet_retained =  list(sig.more = sigIR.50[["Fet_retained"]], sig.less = sigIR.u50[["Fet_retained"]],
-                     all.more = allgenes.50, all.less = allgenes.u50)
-Ad_retained =  list(sig.more = sigIR.50[["Ad_retained"]], sig.less = sigIR.u50[["Ad_retained"]],
-                    all.more = allgenes.50, all.less = allgenes.u50)
-ret_Ad_exp_Fet =  list(sig.more = sigIR.50[["ret_Ad_exp_Fet"]], sig.less = sigIR.u50[["ret_Ad_exp_Fet"]],
-                       all.more = allgenes.50, all.less = allgenes.u50)
-ret_Fet_exp_Ad =  list(sig.more = sigIR.50[["ret_Fet_exp_Ad"]], sig.less = sigIR.u50[["ret_Fet_exp_Ad"]],
-                       all.more = allgenes.50, all.less = allgenes.u50)
-interacting =  list(sig.more = sigIR.50[["interacting"]], sig.less = sigIR.u50[["interacting"]],
-                    all.more = allgenes.50, all.less = allgenes.u50)
-
-both_retained = lapply(both_retained, function(x) as.character(unique(x)))
-both_exported = lapply(both_exported, function(x) as.character(unique(x))) 
-Fet_retained =  lapply(Fet_retained, function(x) as.character(unique(x)))
-Ad_retained =  lapply(Ad_retained, function(x) as.character(unique(x)))
-ret_Ad_exp_Fet = lapply(ret_Ad_exp_Fet, function(x) as.character(unique(x)))
-ret_Fet_exp_Ad = lapply(ret_Fet_exp_Ad, function(x) as.character(unique(x)))
-interacting = lapply(interacting, function(x) as.character(unique(x)))
-
-venn.diagram(both_retained, "/Users/amandaprice/Dropbox/sorted_figures/new/both_retained.50.jpeg", 
-             main="both_retained.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(both_exported, "/Users/amandaprice/Dropbox/sorted_figures/new/both_exported.50.jpeg", 
-             main="both_exported.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(Fet_retained, "/Users/amandaprice/Dropbox/sorted_figures/new/Fet_retained.50.jpeg", 
-             main="Fet_retained.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(Ad_retained, "/Users/amandaprice/Dropbox/sorted_figures/new/Ad_retained.50.jpeg", 
-             main="Ad_retained.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(ret_Ad_exp_Fet, "/Users/amandaprice/Dropbox/sorted_figures/new/ret_Ad_exp_Fet.50.jpeg", 
-             main="ret_Ad_exp_Fet.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(ret_Fet_exp_Ad, "/Users/amandaprice/Dropbox/sorted_figures/new/ret_Fet_exp_Ad.50.jpeg", 
-             main="ret_Fet_exp_Ad.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-venn.diagram(interacting, "/Users/amandaprice/Dropbox/sorted_figures/new/interacting.50.jpeg", 
-             main="interacting.50", col = "transparent", 
-             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
-             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
-                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
-             fontfamily = "Arial", fontface = "bold", 
-             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
-             cat.fontfamily = "Arial", margin=0.2)
-
-both_retained = data.frame(c(20,469), c(59,9666))
-fisher.test(both_retained)
-#data:  both_retained
-#p-value = 5.193e-10
+#test whether genes with >50% intron retention in any sample are preferentially significantly DEG in the pattern listed
+both_exported = data.frame(c(0,3+59), c(769,8486))
+fisher.test(both_exported)
+#p-value = 0.008925
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  3.947864 11.886203
-#sample estimates:
-#  odds ratio 
-#6.983946
-both_exported = data.frame(c(0,906), c(79,9229))
-#fisher.test(both_exported)
-#data:  both_exported
-#p-value = 0.001091
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.0000000 0.4880419
+#  0.0000000 0.6782648
 #sample estimates:
 #  odds ratio 
 #0
-Fet_retained =  data.frame(c(6,139), c(73,9996))
-#fisher.test(Fet_retained)
-#data:  Fet_retained
-#p-value = 0.0008756
+both_retained = data.frame(c(16,3+43), c(474,8781))
+fisher.test(both_retained)
+#data:  both_retained
+#p-value = 7.755e-08
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  2.064977 13.814472
+#  3.377414 11.692614
 #sample estimates:
 #  odds ratio 
-#5.908085
-Ad_retained =  data.frame(c(28,1641), c(51,8494))
+#6.440472
+Ad_exported =  data.frame(c(6,3+53), c(607,8648))
+fisher.test(Ad_exported)
+#data:  Ad_exported
+#p-value = 0.2999
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.5352187 3.5553318
+#sample estimates:
+#  odds ratio 
+#1.526377
+Ad_retained =  data.frame(c(1+27,2+32), c(1648,7607))
 fisher.test(Ad_retained)
 #data:  Ad_retained
-#p-value = 3.928e-05
+#p-value = 6.878e-07
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.719687 4.606926
+#  2.213186 6.476791
 #sample estimates:
 #  odds ratio 
-#2.841634
-ret_Ad_exp_Fet = data.frame(c(0,11), c(79,10124))
-#fisher.test(ret_Ad_exp_Fet)
+#3.800572
+Fet_exported =  data.frame(c(0,3+59), c(83,9172))
+fisher.test(Fet_exported)
+#data:  Fet_exported
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.000000 6.922506
+#sample estimates:
+#  odds ratio 
+#0
+Fet_retained =  data.frame(c(1,3+58), c(113,9142))
+fisher.test(Fet_retained)
+#data:  Fet_retained
+#p-value = 0.535
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.03275724 7.82218589
+#sample estimates:
+#  odds ratio 
+#1.326225
+ret_Ad_exp_Fet = data.frame(c(0,3+59), c(10,9245))
+fisher.test(ret_Ad_exp_Fet)
 #data:  ret_Ad_exp_Fet
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.0000 52.0122
+#  0.0000 68.0569
 #sample estimates:
 #  odds ratio 
 #0
-ret_Fet_exp_Ad = data.frame(c(0,4), c(79,10131))
+ret_Fet_exp_Ad = data.frame(c(0,3+59), c(1,9254))
 fisher.test(ret_Fet_exp_Ad)
 #data:  ret_Fet_exp_Ad
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.0000 196.9234
+#  0.00 5336.36
 #sample estimates:
 #  odds ratio 
 #0
-interacting = data.frame(c(13,916), c(66,9219))
+interacting = data.frame(c(9,3+50), c(858,8397))
 fisher.test(interacting)
-##data:  interacting
-#p-value = 0.02981
+#data:  interacting
+#p-value = 0.182
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.999046 3.644737
+#  0.7180923 3.4137314
 #sample estimates:
 #  odds ratio 
-#1.982242
+#1.661775
 
 # Intron retention between retained and exported genes
-ret = sigGenes[["both_retained"]]
-exp = sigGenes[["both_exported"]]
-t.test(ret$IRratio, exp$IRratio, alternative = "greater")
-#data:  ret$IRratio and exp$IRratio
-#t = 13.297, df = 521.58, p-value < 2.2e-16
+t.test(sigIR[["both_retained"]][,"IRratio"], sigIR[["both_exported"]][,"IRratio"], alternative = "greater")
+#data:  sigIR[["both_retained"]][, "IRratio"] and sigIR[["both_exported"]][, "IRratio"]
+#t = 28.516, df = 4190, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.07837013        Inf
+#  0.03505721        Inf
 #sample estimates:
-#  mean of x mean of y 
-#0.1166033 0.0271476
+#  mean of x   mean of y 
+#0.045755728 0.008552073
+t.test(sigIR[["Ad_retained"]][,"IRratio"], sigIR[["Ad_exported"]][,"IRratio"], alternative = "greater")
+#data:  sigIR[["Ad_retained"]][, "IRratio"] and sigIR[["Ad_exported"]][, "IRratio"]
+#t = 17.033, df = 13952, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is greater than 0
+#95 percent confidence interval:
+#  0.01298768        Inf
+#sample estimates:
+#  mean of x  mean of y 
+#0.03554051 0.02116449
+t.test(sigIR[["Fet_retained"]][,"IRratio"], sigIR[["Fet_exported"]][,"IRratio"], alternative = "greater")
+#data:  sigIR[["Fet_retained"]][, "IRratio"] and sigIR[["Fet_exported"]][, "IRratio"]
+#t = 5.2315, df = 1434.5, p-value = 9.653e-08
+#alternative hypothesis: true difference in means is greater than 0
+#95 percent confidence interval:
+#  0.008375712         Inf
+#sample estimates:
+#  mean of x  mean of y 
+#0.03302164 0.02080116
 
 # What does the distribution of IR Ratios by Sig group look like?
-gr = c("Both Retained", "Both Exported", "Retained in Fetal",
-       "Retained in Adult", "Retained in Adult/\nExported in Fetal",
-       "Retained in Fetal/\nExported in Adult", "Interaction")
-pdf("/Users/amandaprice/Dropbox/sorted_figures/new/IR_sig_group_density.pdf")
-for (i in 1:7){
+gr = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
+       "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
+       "Retained in Prenatal/\nExported in Adult", "Interaction")
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density.pdf")
+for (i in 1:length(sigIR)){
 x = ggplot(sigIR[[i]], aes(x=IRratio)) +
   geom_density(aes(group=Group, colour=Group)) +
   ylab("") + 
@@ -248,7 +215,142 @@ print(x)
 }
 dev.off() 
 
- 
+## look at these comparisons in genes DE by fraction in individual groups
+# Get the IR ratio for Fraction genes
+FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres),
+                Arres = data.frame(Arres),Frres = data.frame(Frres), 
+                Fpres.down = data.frame(Fpres.down))
+FracList = Map(cbind, FracList, lapply(FracList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
+SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
+elementNROWS(SigFracList)
+Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
+SigFracList = Map(cbind, SigFracList, Sign = Sign)
+SigFracList = lapply(SigFracList, function(x) split(x, x$Sign))
+SigList = unlist(SigFracList, recursive = F) 
+lapply(SigList, head)
+sigFracIRratio = lapply(SigList, function(x) max[which(max$genes %in% x$ensemblID),])
+elementNROWS(sigFracIRratio)
+
+# genes >50% retained in at least one sample
+perc = lapply(sigFracIRratio, function(x) list(sig.more=as.character(unique(x[which(x$IRratio>=0.50),colnames(x)=="genes"])),
+                                      sig.less=as.character(unique(x[which(x$IRratio<0.50),colnames(x)=="genes"])),
+                                      all.more=as.character(unique(max[which(max$IRratio>=0.50),colnames(max)=="genes"])),
+                                      all.less=as.character(unique(max[which(max$IRratio<0.50),colnames(max)=="genes"]))))
+names = c("AP_Cytosolic","AP_Nuclear","FP_Cytosolic","FP_Nuclear","AR_Cytosolic","AR_Nuclear",
+          "FR_Cytosolic","FR_Nuclear","FP_Downsampled_Cytosolic","FP_Downsampled_Nuclear")
+for (i in 1:length(perc)){
+  venn.diagram(perc[[i]], paste0("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/",names[i], ".50.percent.IRratio.jpeg"), 
+               main=names[i], col = "transparent", 
+               fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+               label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white", 
+                             "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+               fontfamily = "Arial", fontface = "bold", 
+               cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+               cat.fontfamily = "Arial", margin=0.2)
+} # Saved as pdfs together as 50.percent.IRratio.overlap_DEG_byGroup_fraction.pdf
+
+#test whether genes with >50% intron retention in any sample are preferentially significantly DEG in the pattern listed
+AP_Cytosolic = data.frame(c(1,3+58), c(522,8733))
+fisher.test(AP_Cytosolic)
+#data:  AP_Cytosolic
+#p-value = 0.2628
+AP_Nuclear = data.frame(c(1+21,2+38), c(396,8859))
+fisher.test(AP_Nuclear)
+#data:  AP_Nuclear
+#p-value = 8.333e-15
+FP_Cytosolic =  data.frame(c(0,3+59), c(0,9255))
+fisher.test(FP_Cytosolic)
+#data:  FP_Cytosolic
+#p-value = 1
+FP_Nuclear =  data.frame(c(5,3+54), c(15,9240))
+fisher.test(FP_Nuclear)
+#data:  FP_Nuclear
+#p-value = 1.59e-07
+FP_Downsampled_Cytosolic =  data.frame(c(0,3+59), c(0,9255))
+fisher.test(FP_Downsampled_Cytosolic)
+#data:  FP_Downsampled_Cytosolic
+#p-value = 1
+FP_Downsampled_Nuclear =  data.frame(c(5,3+54), c(17,9238))
+fisher.test(FP_Downsampled_Nuclear)
+#data:  FP_Downsampled_Nuclear
+#p-value = 2.673e-07
+AR_Cytosolic =  data.frame(c(1,3+58), c(563,8692))
+fisher.test(AR_Cytosolic)
+#data:  AR_Cytosolic
+#p-value = 0.1827
+AR_Nuclear =  data.frame(c(6,3+53), c(183,9072))
+fisher.test(AR_Nuclear)
+#data:  AR_Nuclear
+#p-value = 0.001541
+FR_Cytosolic = data.frame(c(0,3+59), c(0,9255))
+fisher.test(FR_Cytosolic)
+#data:  FR_Cytosolic
+#p-value = 1
+FR_Nuclear = data.frame(c(0,3+59), c(7,9248))
+fisher.test(FR_Nuclear)
+#data:  FR_Nuclear
+#p-value = 1
+
+# Intron retention between retained and exported genes
+t.test(sigFracIRratio[["Apres.UpNuc"]][,"IRratio"], sigFracIRratio[["Apres.DownNuc"]][,"IRratio"], alternative = "greater")
+#data:  sigFracIRratio[["Apres.UpNuc"]][, "IRratio"] and sigFracIRratio[["Apres.DownNuc"]][, "IRratio"]
+#t = 28.712, df = 3634, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is greater than 0
+#95 percent confidence interval:
+#  0.04987853        Inf
+#sample estimates:
+#  mean of x   mean of y 
+#0.061425353 0.008514881
+t.test(sigFracIRratio[["Arres.UpNuc"]][,"IRratio"], sigFracIRratio[["Arres.DownNuc"]][,"IRratio"], alternative = "greater")
+#data:  sigFracIRratio[["Arres.UpNuc"]][, "IRratio"] and sigFracIRratio[["Arres.DownNuc"]][, "IRratio"]
+#t = 14.163, df = 1406.2, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is greater than 0
+#95 percent confidence interval:
+#  0.0281229       Inf
+#sample estimates:
+#  mean of x  mean of y 
+#0.04186320 0.01004225
+
+# What does the distribution of IR Ratios by Sig group look like?
+gr = c("Adult:PolyA:Cytosolic","Adult:PolyA:Nuclear","Prenatal:PolyA:Cytosolic","Prenatal:PolyA:Nuclear","Adult:RiboZero:Cytosolic","Adult:RiboZero:Nuclear",
+               "Prenatal:RiboZero:Cytosolic","Prenatal:RiboZero:Nuclear","Prenatal:PolyA:Cytosolic\n(Downsampled)","Prenatal:PolyA:Nuclear\n(Downsampled)")
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_DEG_byFraction.pdf")
+for (i in 1:length(sigFracIRratio)){
+  x = ggplot(sigFracIRratio[[i]], aes(x=IRratio)) +
+    geom_density(aes(group=Group, colour=Group)) +
+    ylab("") + 
+    xlim(0,0.15) +
+    xlab("IR Ratio") +
+    ggtitle(paste0("Intron Retention: ", gr[i])) +
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    theme(legend.position = c(0.8, 0.55)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(x)
+}
+dev.off() 
+
+
+
+## look at these comparisons in genes DE by age in individual groups
+# Get the IR ratio for developmental genes
+AgeList = list(Cpres = data.frame(Cpres), Npres = data.frame(Npres),
+               Crres = data.frame(Crres),Nrres = data.frame(Nrres), 
+               Cpres.down = data.frame(Cpres.down))
+AgeList = Map(cbind, AgeList, lapply(AgeList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
+SigAgeList = lapply(AgeList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
+elementNROWS(SigAgeList)
+Sign = lapply(SigAgeList, function(x) ifelse(x$log2FoldChange > 0,"UpPrenatal", "DownPrenatal"))
+SigAgeList = Map(cbind, SigAgeList, Sign = Sign)
+SigAgeList = lapply(SigAgeList, function(x) split(x, x$Sign))
+SigList = unlist(SigAgeList, recursive = F) 
+lapply(SigList, head)
+sigAgeIRratio = lapply(SigList, function(x) max[which(max$genes %in% x$ensemblID),])
+elementNROWS(sigAgeIRratio)
+
+
 
 
 
