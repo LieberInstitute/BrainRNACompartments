@@ -73,15 +73,15 @@ data = data.frame(geneID = rownames(Ires.down), baseMean = Ires.down$baseMean,
                   Prenatal.SE = Fres.down$lfcSE, 
                   Prenatal.padj = Fres.down$padj,
                   Adult.LFC = Ares$log2FoldChange, 
-                  Adult.SE = Ares$lfcSE, Adult.padj = Ares$padj, 
+                  Adult.SE = Ares$lfcSE, Adult.padj = Ares$padj,
+                  ensID = gene[match(rownames(Ires.down),as.character(rownames(gene))),"ensemblID"],
                   Symbol = gene[match(rownames(Ires.down),as.character(rownames(gene))),"Symbol"],
                   EntrezID = gene[match(as.character(rownames(Ires.down)),gene$gencodeID),"EntrezID"],
                   Type = gene[match(as.character(rownames(Ires.down)),gene$gencodeID),"gene_type"])
 sig = lapply(sig, function(x) data[which(data$geneID%in%rownames(x)),])
 sig.1 = lapply(sig, function(x) x[which(abs(x$Prenatal.LFC)>=1 | abs(x$Adult.LFC)>=1),])
-save(Ires.down,Fres.down,Ares,sig,sig.1, 
+save(Ires.down,Fres.down,Ares,sig,sig.1,geneMap, 
      file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-
 
 # Annotate genes
 freq = lapply(sig, function(x) count(x$Type))

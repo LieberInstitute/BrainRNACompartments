@@ -64,15 +64,21 @@ sig = list(both_retained = Ires[which(rownames(Ires)%in%AdPos & rownames(Ires)%i
 elementNROWS(sig)
 gene = geneMap[which(rownames(geneMap)%in%rownames(Ires)),]
 gene = geneMap[order(rownames(geneMap)),]
-data = data.frame(geneID = rownames(Ires), baseMean = Ires$baseMean, Prenatal.LFC = Fres$log2FoldChange, 
-                  Prenatal.SE = Fres$lfcSE, Prenatal.padj = Fres$padj,Adult.LFC = Ares$log2FoldChange, 
-                  Adult.SE = Ares$lfcSE, Adult.padj = Ares$padj, 
+data = data.frame(geneID = rownames(Ires), 
+                  baseMean = Ires$baseMean, 
+                  Prenatal.LFC = Fres$log2FoldChange, 
+                  Prenatal.SE = Fres$lfcSE, 
+                  Prenatal.padj = Fres$padj,
+                  Adult.LFC = Ares$log2FoldChange, 
+                  Adult.SE = Ares$lfcSE, 
+                  Adult.padj = Ares$padj,
+                  ensID = gene[match(rownames(Ires),as.character(rownames(gene))),"ensemblID"],
                   Symbol = gene[match(rownames(Ires),as.character(rownames(gene))),"Symbol"],
                   EntrezID = gene[match(as.character(rownames(Ires)),gene$gencodeID),"EntrezID"],
                   Type = gene[match(as.character(rownames(Ires)),gene$gencodeID),"gene_type"])
 sig = lapply(sig, function(x) data[which(data$geneID%in%rownames(x)),])
 sig.1 = lapply(sig, function(x) x[which(abs(x$Prenatal.LFC)>=1 | abs(x$Adult.LFC)>=1),])
-save(Ires,Fres,Ares,sig,sig.1, 
+save(Ires,Fres,Ares,sig,sig.1,geneMap, 
      file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.rda")
 
 # Annotate genes
