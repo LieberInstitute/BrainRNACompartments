@@ -1,115 +1,60 @@
+library(GenomicRanges)
+library(data.table)
+
 library(ggplot2)
 library(reshape2)
 library(VennDiagram)
-library(data.table)
-library("GenomicRanges")
 
-load("./Dropbox/sorted_figures/new/retained.byAge.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Load IRFinder Results
 names = scan("/Users/amanda/Dropbox/NucVsCytosol/names.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
 path = "/Users/amanda/Dropbox/sorted_figures/IRfinder/"
-IRresP = IRresR = list()
+IRres = list()
 for (i in 1:length(shortenedNames)){
-  IRresP[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
-  IRresR[[i]] = read.table(paste0(path,"Ribozero/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
-}
-names(IRresP) = paste0(shortenedNames, "_polyA")
-names(IRresR) = paste0(shortenedNames, "_RiboZero")
-IRres = c(IRresP, IRresR)
+  IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)}
+names(IRres) = shortenedNames
 
 # Filter introns
-IRfiltered = lapply(IRresP, function(x) x[which(x$Warnings=="-"),])
-string = lapply(IRfiltered, function(x) as.character(x$GeneIntronDetails))
-string = lapply(string, function(x) strsplit(x, "/", fixed = TRUE))
-x = lapply(string, function(x) unlist(x, recursive = FALSE))
-y = lapply(x, function(x) grep("ENSG", x))
-c = lapply(x, function(x) seq.int(from = 3, to = length(x), by =3))
-comments = genes = list()
+IRfiltered = lapply(IRres, function(x) x[which(x$Warnings=="-"),])
+clean = lapply(IRfiltered, function(x) grep("clean", x$GeneIntronDetails, fixed=T))
+IRfiltered2 = list()
+for (i in 1:length(IRfiltered)){
+  cl = clean[[i]]
+  irf = IRfiltered[[i]]
+  IRfiltered2[[i]] = irf[cl,]}
+names(IRfiltered2) = names(IRfiltered)
+string = lapply(IRfiltered2, function(x) strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE))
+string = lapply(string, function(x) unlist(x, recursive = FALSE))
+y = lapply(string, function(x) grep("ENSG", x))
+genes = list()
 for (i in 1:length(string)){
-  tmp = x[[i]]
-  genes[[i]] = tmp[y[[i]]]
-  comments[[i]] = tmp[c[[i]]]
-}
-names(genes) = names(comments) = names(x)
-IRfiltered = Map(cbind, IRfiltered, ensID = genes, comments = comments)
-IRfiltered = lapply(IRfiltered, function(x) x[which(x$comments=="clean"),])
-ir = lapply(IRfiltered, function(x) data.table(x, key="ensID"))
-ir = lapply(ir,function(x) data.frame(x[, list(IRratio=max(IRratio)), by="ensID"]))
-#code not working
-IR = list()
-for (i in 1:23){
-  tmp = IRfiltered[[i]]
-  tmp2 = ir[[i]]
-  tmp3 = IR[[i]] 
-  for j in (1:nrow(tmp2)){
-    tmp3 = data.frame(tmp2[j,], Chr = tmp[which(tmp2$IRratio==tmp$IRratio),colnames(tmp=="Chr")],
-                      Start = tmp[which(tmp2$IRratio==tmp$IRratio),colnames(tmp=="Start")],
-                      End = tmp[which(tmp2$IRratio==tmp$IRratio),colnames(tmp=="End")]) 
-  }}
+  tmp = string[[i]]
+  genes[[i]] = tmp[y[[i]]]}
+names(genes) = names(string)
+intronID = lapply(IRfiltered2, function(x) paste0(x$Chr,":",x$Start,"-",x$End))
+IRfiltered2 = Map(cbind, IRfiltered2, genes = genes, intronID = intronID)
+head(IRfiltered2[[1]]) # all introns passing QC per sample
+irbyGene = lapply(IRfiltered2, function(x) data.table(x, key="genes"))
+irbyGene = lapply(irbyGene,function(x) data.frame(x[, list(IRratio=max(IRratio)), by="genes"])) # maximum IR for each gene with at least one intron passing QC
 
-#Number of introns passing filtering steps (not overlapping anything, enough coverage, etc.)
-elementNROWS(ir)
+#Number of genes with introns passing filtering steps (not overlapping anything, enough coverage, etc.)
+elementNROWS(irbyGene)
 #Number of Genes in sig gene set
 elementNROWS(sig)
 
-all = do.call(rbind, ir)
-all$SampleID = gsub("\\..*","", rownames(all))
-all$Fraction = all$Age = "NA"
-all[grep("C", all$SampleID), colnames(all)=="Fraction"] = "Cytosol"
-all[grep("N", all$SampleID), colnames(all)=="Fraction"] = "Nucleus"
-all[c(grep("1113", all$SampleID),grep("2046", all$SampleID),grep("2074", all$SampleID)),
-    colnames(all)=="Age"] = "Adult"
-all[c(grep("5339", all$SampleID),grep("5340", all$SampleID),grep("5341", all$SampleID)),
-    colnames(all)=="Age"] = "Fetal"
-all$Group = paste(all$Age, all$Fraction, sep=":")
-
-sigIR.bySample = list()
-for (i in 1:length(sig)){
-  tmp = sig[[i]]
-  sigIR.bySample[[i]] = lapply(ir, function(x) x[which(x$ensID %in% tmp$EnsID),])}
-names(sigIR.bySample) = names(sig)
-
-both_retained = sigIR.bySample[["both_retained"]]
-both_exported = sigIR.bySample[["both_exported"]]
-Fet_retained = sigIR.bySample[["Fet_retained"]]
-Ad_retained = sigIR.bySample[["Ad_retained"]]
-ret_Ad_exp_Fet = sigIR.bySample[["ret_Ad_exp_Fet"]]
-ret_Fet_exp_Ad = sigIR.bySample[["ret_Fet_exp_Ad"]]
-interacting = sigIR.bySample[["interacting"]]
-sigIR = list(both_retained = do.call(rbind, both_retained),
-             both_exported = do.call(rbind, both_exported),
-             Fet_retained = do.call(rbind, Fet_retained),
-             Ad_retained = do.call(rbind, Ad_retained),
-             ret_Ad_exp_Fet = do.call(rbind, ret_Ad_exp_Fet),
-             ret_Fet_exp_Ad = do.call(rbind, ret_Fet_exp_Ad),
-             interacting = do.call(rbind, interacting))
-both_retained = sigIR[["both_retained"]]
-both_exported = sigIR[["both_exported"]]
-Fet_retained = sigIR[["Fet_retained"]]
-Ad_retained = sigIR[["Ad_retained"]]
-ret_Ad_exp_Fet = sigIR[["ret_Ad_exp_Fet"]]
-ret_Fet_exp_Ad = sigIR[["ret_Fet_exp_Ad"]]
-interacting = sigIR[["interacting"]]
-
-for (i in 1:length(sigIR)){
-  tmp = sigIR[[i]]
-  tmp$SampleID = gsub("\\..*","", rownames(tmp))
-  tmp$Fraction = tmp$Age = "NA"
-  tmp[grep("C", tmp$SampleID), colnames(tmp)=="Fraction"] = "Cytosol"
-  tmp[grep("N", tmp$SampleID), colnames(tmp)=="Fraction"] = "Nucleus"
-  tmp[c(grep("1113", tmp$SampleID),grep("2046", tmp$SampleID),grep("2074", tmp$SampleID)),
-      colnames(tmp)=="Age"] = "Adult"
-  tmp[c(grep("5339", tmp$SampleID),grep("5340", tmp$SampleID),grep("5341", tmp$SampleID)),
-      colnames(tmp)=="Age"] = "Fetal"
-  tmp$Group = paste(tmp$Age, tmp$Fraction, sep=":")
-  sigIR[[i]] = tmp
-}
-sigGenes = lapply(sigIR, function(x) data.table(x, key="ensID"))
-sigGenes = lapply(sigGenes,function(x) data.frame(x[, list(IRratio=max(IRratio)), by="ensID"]))
-allGenes = data.table(all, key="ensID")
-allGenes = data.frame(allGenes[, list(IRratio=max(IRratio)), by="ensID"])
+#Get IR info for genes significantly regulated by fraction 
+max = do.call(rbind, irbyGene)
+max$SampleID = gsub("\\..*","", rownames(max))
+max$Fraction = max$Age = "NA"
+max[grep("C", max$SampleID), colnames(max)=="Fraction"] = "Cytosol"
+max[grep("N", max$SampleID), colnames(max)=="Fraction"] = "Nucleus"
+max[c(grep("1113", max$SampleID),grep("20", max$SampleID)), colnames(max)=="Age"] = "Adult"
+max[grep("53", max$SampleID), colnames(max)=="Age"] = "Prenatal"
+max$Group = paste(max$Age, max$Fraction, sep=":")
+sigIR = lapply(sig, function(x) max[which(max$genes %in% x$ensID),])
+lapply(sigIR, function(x) length(unique(x$genes)))
 
 # genes >50% retained in at least one sample
 sigIR.50 = lapply(sigGenes, function(x) x[which(x$IRratio>=.50),colnames(x)=="ensID"])
@@ -597,6 +542,3 @@ for (i in 1:length(IRAge2)){
   print(g)
 }
 dev.off()
-
-
-# Are the retained introns the last introns?
