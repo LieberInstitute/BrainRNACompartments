@@ -473,3 +473,99 @@ for (i in 1:length(sigAgeIRratio)){
   print(x)
 }
 dev.off()
+
+
+# Plot LFC by Fraction and IR
+FracByAge = list(Ares = data.frame(Ares), Fres.down = data.frame(Fres.down),Ires.down = data.frame(Ires.down))
+FracByAge = Map(cbind, FracByAge,lapply(FracByAge, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
+                Comparison = list("Adult", "Prenatal", "Interaction"))
+r = lapply(irbyGene, function(x) x[which(as.character(x$genes) %in% as.character(FracByAge[["Ares"]][,"ensemblID"])),])
+xA = lapply(r, function(x) FracByAge[["Ares"]][which(FracByAge[["Ares"]][,"ensemblID"] %in% x$genes),])
+xF = lapply(r, function(x) FracByAge[["Fres.down"]][which(FracByAge[["Fres.down"]][,"ensemblID"] %in% x$genes),])
+xA = lapply(xA, function(x) x[order(x$ensemblID),])
+xF = lapply(xF, function(x) x[order(x$ensemblID),])
+r = lapply(r, function(x) x[order(x$genes),])
+xA = Map(cbind, xA, r)
+xF = Map(cbind, xF, r)
+xA = do.call(rbind, xA)
+xF = do.call(rbind, xF)
+
+xA$SampleID = gsub("\\..*","", rownames(xA))
+xA$Fraction = xA$Age = xA$Group = xF$Fraction = xF$Age = xF$Group = "NA"
+xA[grep("C", xA$SampleID), colnames(xA)=="Fraction"] = "Cytosol"
+xA[grep("N", xA$SampleID), colnames(xA)=="Fraction"] = "Nucleus"
+xA[c(grep("1113", xA$SampleID),grep("20", xA$SampleID)),"Age"] = "Adult"
+xA[grep("53", xA$SampleID),"Age"] = "Prenatal"
+xA$Group = paste(xA$Age, xA$Fraction, sep=":")
+xF$SampleID = gsub("\\..*","", rownames(xF))
+xF[grep("C", xF$SampleID), colnames(xF)=="Fraction"] = "Cytosol"
+xF[grep("N", xF$SampleID), colnames(xF)=="Fraction"] = "Nucleus"
+xF[c(grep("1113", xF$SampleID),grep("20", xF$SampleID)),"Age"] = "Adult"
+xF[grep("53", xF$SampleID),"Age"] = "Prenatal"
+xF$Group = paste(xF$Age, xF$Fraction, sep=":")
+
+FracByAgeIR = rbind(xA,xF)
+FracByAgeIR$FDR = ifelse(FracByAgeIR$padj<=0.05, "FDR<0.05", "FDR>0.05")
+FracByAgeIR$IR = factor(ifelse(FracByAgeIR$IRratio>=0.5, ">0.5", "<0.5"))
+FracByAgeIR = FracByAgeIR[which(FracByAgeIR$padj!="NA"),]
+dim(FracByAgeIR[which(FracByAgeIR$genes!=FracByAgeIR$ensemblID),])
+
+ggplot(FracByAgeIR, aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_violin() +
+  facet_grid(. ~ Comparison) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  ggtitle("RNA Localization by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) # saved as RNA_localization_byIRratio.pdf
+
+# Plot LFC by Age and IR
+AgebyFrac = list(Cres.down = data.frame(Cres.down), Nres = data.frame(Nres))
+AgebyFrac = Map(cbind, AgebyFrac, lapply(AgebyFrac, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
+                Comparison = list("Cytosol", "Nucleus"))
+r = lapply(irbyGene, function(x) x[which((as.character(x$genes) %in% as.character(AgebyFrac[["Cres.down"]][,"ensemblID"])) &
+                                           (as.character(x$genes) %in% as.character(AgebyFrac[["Nres"]][,"ensemblID"]))),])
+xC = lapply(r, function(x) AgebyFrac[["Cres.down"]][which(AgebyFrac[["Cres.down"]][,"ensemblID"] %in% x$genes),])
+xN = lapply(r, function(x) AgebyFrac[["Nres"]][which(AgebyFrac[["Nres"]][,"ensemblID"] %in% x$genes),])
+xC = lapply(xC, function(x) x[order(x$ensemblID),])
+xN = lapply(xN, function(x) x[order(x$ensemblID),])
+r = lapply(r, function(x) x[order(x$genes),])
+xC = Map(cbind, xC, r)
+xN = Map(cbind, xN, r)
+xC = do.call(rbind, xC)
+xN = do.call(rbind, xN)
+
+xC$SampleID = gsub("\\..*","", rownames(xC))
+xC$Fraction = xC$Age = xC$Group = xN$Fraction = xN$Age = xN$Group = "NA"
+xC[grep("C", xC$SampleID), colnames(xC)=="Fraction"] = "Cytosol"
+xC[grep("N", xC$SampleID), colnames(xC)=="Fraction"] = "Nucleus"
+xC[c(grep("1113", xC$SampleID),grep("20", xC$SampleID)),"Age"] = "Adult"
+xC[grep("53", xC$SampleID),"Age"] = "Prenatal"
+xC$Group = paste(xC$Age, xC$Fraction, sep=":")
+xN$SampleID = gsub("\\..*","", rownames(xN))
+xN[grep("C", xN$SampleID), colnames(xN)=="Fraction"] = "Cytosol"
+xN[grep("N", xN$SampleID), colnames(xN)=="Fraction"] = "Nucleus"
+xN[c(grep("1113", xN$SampleID),grep("20", xN$SampleID)),"Age"] = "Adult"
+xN[grep("53", xN$SampleID),"Age"] = "Prenatal"
+xN$Group = paste(xN$Age, xN$Fraction, sep=":")
+
+AgebyFracIR = rbind(xC,xN)
+AgebyFracIR$FDR = ifelse(AgebyFracIR$padj<=0.05, "FDR<0.05", "FDR>0.05")
+AgebyFracIR$IR = factor(ifelse(AgebyFracIR$IRratio>=0.5, ">0.5", "<0.5"))
+AgebyFracIR = AgebyFracIR[which(AgebyFracIR$padj!="NA"),]
+dim(AgebyFracIR[which(AgebyFracIR$genes!=AgebyFracIR$ensemblID),])
+
+ggplot(AgebyFracIR, aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_violin() +
+  facet_grid(. ~ Comparison) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  ggtitle("Developmental Expression\nTrajectory by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) # Save as Devel_expression_trajectory_byIRratio

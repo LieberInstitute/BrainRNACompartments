@@ -1,12 +1,15 @@
 library(data.table)
+library(GenomicRanges)
+library(ggplot2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
-### Differential IR by group
+### Differences by intron
+## Differential IR by group
 # read in results files
 path = "./Dropbox/sorted_figures/IRfinder/"
-comps = c("Adult_PolyA_Zone","Fetal_PolyA_Zone","Cytosol_PolyA_Age",
-          "Nuclear_PolyA_Age","PolyA_Zone","PolyA_Age")
+comps = c("Adult_PolyA_Zone","Fetal_PolyA_Zone","Cytosol_PolyA_Age","Nuclear_PolyA_Age","PolyA_Zone","PolyA_Age")
 IRcomp = rat.1 = nonconst.66warn = nonconst.nowarn = nonconst = list()
 for (i in 1:length(comps)){
   IRcomp[[i]] = read.table(paste0(path, comps[i], ".tab"), header = TRUE, comment.char="#")
@@ -24,8 +27,7 @@ elementNROWS(rat.1)
 elementNROWS(nonconst.nowarn)
 elementNROWS(nonconst.66warn)
 
-string = lapply(dIR, function(x) lapply(x, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),
-                                                                       "/", fixed = TRUE),recursive = FALSE)))
+string = lapply(dIR, function(x) lapply(x, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),"/", fixed = TRUE),recursive = FALSE)))
 genes = lapply(string, function(x) lapply(x, function(y) y[grep("ENSG", y)]))
 comments = lapply(string, function(x) lapply(x, function(y) as.character(y[seq.int(from = 3, to=length(y), by=3)])))
 IR.diff = lapply(dIR, function(x) lapply(x, function(y) y$A.IRratio - y$B.IRratio))
@@ -35,14 +37,13 @@ for (i in 1:length(dIR)){
   IR[[i]] = Map(cbind, dIR[[i]], ensID = genes[[i]], comments = comments[[i]], IR.diff = IR.diff[[i]], Sign = Sign[[i]])
 }
 names(IR) = names(dIR)
-dIR = IR
-IRclean = lapply(dIR, function(x) lapply(x, function(y) 
+IRclean = lapply(IR, function(x) lapply(x, function(y) 
   y[which(y$A.warnings!="LowCover" & y$A.warnings!="LowSplicing" & 
             y$B.warnings!="NonUniformIntronCover" & y$B.warnings!="LowCover" & 
             y$B.warnings!="LowSplicing" & y$B.warnings!="NonUniformIntronCover" &
             y$comments=="clean"),]))
 
-
+### begin already gone through results from IR_analysis.R ###
 # Explore the results
 lapply(IRclean, function(x) elementNROWS(x))
 #IRcomp
@@ -489,3 +490,129 @@ fisher.test(data.frame(c(165,186), c(430,433))) #nucleus
 #sample estimates:
 #  odds ratio 
 #0.8933697
+
+fracDevel = lapply(sigIR, function(x) total[which(total$ensID %in% x$ensID),])
+pdf("/Users/amandaprice/Dropbox/sorted_figures/new/FracDevel_plots.pdf", width=8, height=8)
+names = c("Both Nuclear","Both Cytosolic", "Nuclear in Fetal Only",
+          "Nuclear in Adult Only", "Nuclear in Adult/Cytosolic in Fetal",
+          "Nuclear in Fetal/Cytosolic in Adult", "Interaction Effect")
+for (i in 1:length(fracDevel)){
+  g = ggplot(fracDevel[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
+
+# IR regulated genes 
+DirList = lapply(IRclean, function(x) split(x, x$Sign))
+IRlist = list("Adult:Nucleus"=DirList[["Adult_PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
+              "Adult:Cytosol"=DirList[["Adult_PolyA_Zone"]][["MoreIRInCyt.Adult"]],
+              "Fetal:Nucleus"=DirList[["Fetal_PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
+              "Fetal:Cytosol"=DirList[["Fetal_PolyA_Zone"]][["MoreIRInCyt.Adult"]],
+              "Cytosol:Fetal"=DirList[["Cytosol_PolyA_Age"]][["MoreIRInNuc.Fetal"]],
+              "Cytosol:Adult"=DirList[["Cytosol_PolyA_Age"]][["MoreIRInCyt.Adult"]],
+              "Nucleus:Fetal"=DirList[["Nuclear_PolyA_Age"]][["MoreIRInNuc.Fetal"]],
+              "Nucleus:Adult"=DirList[["Nuclear_PolyA_Age"]][["MoreIRInCyt.Adult"]],
+              "Nuclear-Enriched"=DirList[["PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
+              "Fetal-Enriched"=DirList[["PolyA_Age"]][["MoreIRInNuc.Fetal"]],
+              "Adult-Enriched"=DirList[["PolyA_Age"]][["MoreIRInCyt.Adult"]])
+
+totalF = rbind(xA,xF)
+totalF$FDR = ifelse(totalF$padj<=0.05, "FDR<0.05", "FDR>0.05")
+totalF$IR = factor(ifelse(totalF$IRratio>=0.5, ">0.5", "<0.5"))
+totalF = totalF[which(totalF$padj!="NA"),]
+combined.IRlist = list(nuc.A.F = rbind(IRlist[["Adult:Nucleus"]], IRlist[["Fetal:Nucleus"]]),
+                       cyt.A.F = rbind(IRlist[["Adult:Cytosol"]], IRlist[["Fetal:Cytosol"]]),
+                       adult.C.N = rbind(IRlist[["Cytosol:Adult"]], IRlist[["Nucleus:Adult"]]),
+                       fetal.C.N = rbind(IRlist[["Cytosol:Fetal"]], IRlist[["Nucleus:Fetal"]]))
+IRfrac = lapply(IRlist, function(x) totalF[which(totalF$EnsID %in% x$ensID),])
+IRfrac2 = lapply(combined.IRlist, function(x) totalF[which(totalF$EnsID %in% x$ensID),])
+
+pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byFrac_plots.pdf", width=8, height=8)
+names = names(IRfrac)
+for (i in 1:length(IRfrac)){
+  g = ggplot(IRfrac[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("RNA Localization by IR Ratio:\n",names[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
+pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byFrac_combined.pdf", width=8, height=8)
+names = names(IRfrac2)
+for (i in 1:length(IRfrac2)){
+  g = ggplot(IRfrac2[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("RNA Localization by IR Ratio:\n",names[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
+
+
+# Make the same plots for Age differences
+totalA = rbind(xC,xN)
+totalA$FDR = ifelse(totalA$padj<=0.05, "FDR<0.05", "FDR>0.05")
+totalA$IR = factor(ifelse(totalA$IRratio>=0.5, ">0.5", "<0.5"))
+totalA = totalA[which(totalA$padj!="NA"),]
+IRAge = lapply(IRlist, function(x) totalA[which(totalA$ensID %in% x$ensID),])
+IRAge2 = lapply(combined.IRlist, function(x) totalA[which(totalA$EnsID %in% x$ensID),])
+
+pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byAge_plots.pdf", width=8, height=8)
+names = names(IRlist)
+for (i in 1:length(IRAge)){
+  g = ggplot(IRAge[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
+pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byAge_combined.pdf", width=8, height=8)
+names = names(IRAge2)
+for (i in 1:length(IRAge2)){
+  g = ggplot(IRAge2[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
+
