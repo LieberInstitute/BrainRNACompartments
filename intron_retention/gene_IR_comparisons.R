@@ -3,6 +3,7 @@ library(data.table)
 library(VennDiagram)
 library(ggplot2)
 
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Load IRFinder Results
@@ -569,3 +570,24 @@ ggplot(AgebyFracIR, aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent")) # Save as Devel_expression_trajectory_byIRratio
+
+fracDevel = lapply(sig, function(x) AgebyFracIR[which(AgebyFracIR$genes %in% x$ensID),])
+gr = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
+       "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
+       "Retained in Prenatal/\nExported in Adult", "Interaction")
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/RetainedbyAge_LFCxFDRxIR.pdf", width=8, height=8)
+for (i in 1:length(fracDevel)){
+  g = ggplot(fracDevel[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() +
+    facet_grid(. ~ Comparison) +
+    ylab("Log2 Fold Change") + 
+    xlab("IR Ratio") +
+    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",gr[i])) + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  print(g)
+}
+dev.off()
