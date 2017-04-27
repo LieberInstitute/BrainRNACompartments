@@ -1,5 +1,5 @@
-library(data.table)
 library(GenomicRanges)
+library(data.table)
 library(ggplot2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
@@ -145,6 +145,8 @@ lapply(IRclean, function(x) elementNROWS(lapply(lapply(x, function(y) y[which(y$
 
 #moving forward with the nonconstitutively spliced results because they capture more introns, 
 #and coverage issues are filtered after differential retention calculation
+nonconst = IRclean[["nonconst"]]
+elementNROWS(lapply(nonconst, function(x) x[which(x$p.diff<=0.05),]))
 
 # Comparison of significantly vs nonsignificantly retained introns by zone/age
 fisher.test(data.frame(c(312,2),c(775,8))) 
@@ -184,57 +186,11 @@ fisher.test(data.frame(c(165,186),c(430,433)))
 #  odds ratio 
 #0.8933697
 
-## Do DEG by fraction contain introns with higher IR ratios than non-DEG by fraction?
-# Get the IR ratio for Fraction genes
+# Get the DEG pval and LFC sign by Fraction for differentially retained introns
 FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres),
                 Arres = data.frame(Arres),Frres = data.frame(Frres), 
-                Fpres.down = data.frame(Fpres.down))
+                Fpres.down = data.frame(Fpres.down), Ares = data.frame(Ares), Fres.down = data.frame(Fres.down))
 FracList = Map(cbind, FracList, lapply(FracList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
-SigFracList = lapply(FracList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementNROWS(SigFracList)
-Sign = lapply(SigFracList, function(x) ifelse(x$log2FoldChange > 0,"UpNuc", "DownNuc"))
-SigFracList = Map(cbind, SigFracList, Sign = Sign)
-SigFracList = lapply(SigFracList, function(x) split(x, x$Sign))
-SigList = unlist(SigFracList, recursive = F) 
-lapply(SigList, head)
-allgenes = as.character(rownames(FracList[[1]]))
-sigFracIRratio = list(list(), list(), list(),list(),list(), list(),list(), list(),list(), list()) 
-for (i in 1:length(SigList)){
-  for (j in 1:length(IRfiltered2)){
-    filt = IRfiltered2[[j]][,c(22,23,20)]
-    sigFracIRratio[[i]][[j]] = filt[which(as.character(SigList[[i]][,"ensemblID"]) %in% as.character(filt$genes)),]
-  }}
-names(sigFracIRratio) = names(SigList)
-for (i in 1:length(sigFracIRratio)){names(sigFracIRratio[[i]]) = names(IRfiltered2)}
-lapply(sigFracIRratio, elementNROWS)
-sigFracIRratio = lapply(sigFracIRratio, function(x) lapply(x, function(y) data.table(y, key="genes")))
-sigFracIRratio = lapply(sigFracIRratio, function(x) lapply(x, function(y) data.frame(y[, list(IRratio=max(IRratio)), by="genes"]))) # limit to intron with highest IR ratio per gene per sample
-sigFracIRratio = lapply(sigFracIRratio, function(x) do.call(rbind,x))
-elementNROWS(sigFracIRratio)
-
-# Compare the intron with the greatest retention per gene per sample in different sets of DEGs
-t.test(sigFracIRratio[["Apres.DownNuc"]][,"IRratio"], sigFracIRratio[["Apres.UpNuc"]][,"IRratio"], alternative = "less")
-#data:  sigFracIRratio[["Apres.DownNuc"]][, "IRratio"] and sigFracIRratio[["Apres.UpNuc"]][, "IRratio"]
-#t = -0.77008, df = 2768, p-value = 0.2207
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf 0.00141993
-#sample estimates:
-#  mean of x  mean of y 
-#0.01539956 0.01664877 
-t.test(sigFracIRratio[["Arres.DownNuc"]][,"IRratio"], sigFracIRratio[["Arres.UpNuc"]][,"IRratio"], alternative = "two.sided")
-#data:  sigFracIRratio[["Arres.DownNuc"]][, "IRratio"] and sigFracIRratio[["Arres.UpNuc"]][, "IRratio"]
-#t = 3.6311, df = 1971.5, p-value = 0.0002894
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.002722987 0.009118719
-#sample estimates:
-#  mean of x  mean of y 
-#0.01730208 0.01138122  
-
-# Get the DEG Fraction p-value and LFC sign for differentially retained introns
-nonconst = IRclean[["nonconst"]]
-elementNROWS(lapply(nonconst, function(x) x[which(x$p.diff<=0.05),]))
 nonconst = Map(cbind, nonconst, 
                AP.sig = lapply(nonconst, function(x) FracList[["Apres"]][match(x$ensID, FracList[["Apres"]][,"ensemblID"]),"padj"]),
                AP.LFC = lapply(nonconst, function(x) FracList[["Apres"]][match(x$ensID, FracList[["Apres"]][,"ensemblID"]),"log2FoldChange"]),
@@ -244,12 +200,14 @@ nonconst = Map(cbind, nonconst,
                AR.LFC = lapply(nonconst, function(x) FracList[["Arres"]][match(x$ensID, FracList[["Arres"]][,"ensemblID"]),"log2FoldChange"]),
                FR.sig = lapply(nonconst, function(x) FracList[["Frres"]][match(x$ensID, FracList[["Frres"]][,"ensemblID"]),"padj"]),
                FR.LFC = lapply(nonconst, function(x) FracList[["Frres"]][match(x$ensID, FracList[["Frres"]][,"ensemblID"]),"log2FoldChange"]),
-               FP.down.sig = lapply(nonconst, function(x) FracList[["Fpres.down"]][match(x$ensID, FracList[["Fpres.down"]][,"ensemblID"]),"padj"]),
-               FP.down.LFC = lapply(nonconst, function(x) FracList[["Fpres.down"]][match(x$ensID, FracList[["Fpres.down"]][,"ensemblID"]),"log2FoldChange"]))
+               A.sig = lapply(nonconst, function(x) FracList[["Ares"]][match(x$ensID, FracList[["Ares"]][,"ensemblID"]),"padj"]),
+               A.LFC = lapply(nonconst, function(x) FracList[["Ares"]][match(x$ensID, FracList[["Ares"]][,"ensemblID"]),"log2FoldChange"]),
+               F.down.sig = lapply(nonconst, function(x) FracList[["Fres.down"]][match(x$ensID, FracList[["Fres.down"]][,"ensemblID"]),"padj"]),
+               F.down.LFC = lapply(nonconst, function(x) FracList[["Fres.down"]][match(x$ensID, FracList[["Fres.down"]][,"ensemblID"]),"log2FoldChange"]))
 elementNROWS(nonconst)
 lapply(nonconst, head)
 
-# Are significantly dIR genes more likely to be significantly DEG by fraction?
+# Are genes with significantly differentially retained introns more likely to be significantly DEG by fraction?
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]<=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]>=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]<=0.05),])
@@ -258,7 +216,15 @@ dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]>=0.05),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]<=0.05),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]>=0.05),])
-fisher.test(data.frame(c(164,148), c(286,489))) #adult
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]<=0.05),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]>=0.05),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]<=0.05),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]>=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]<=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]>=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]<=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]>=0.05),])
+fisher.test(data.frame(c(164,148), c(286,489))) #adult polya
 #data:  data.frame(c(164, 148), c(286, 489))
 #p-value = 2.539e-06
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -267,7 +233,25 @@ fisher.test(data.frame(c(164,148), c(286,489))) #adult
 #sample estimates:
 #  odds ratio 
 #1.893514
-fisher.test(data.frame(c(42,167), c(47,717))) #prenatal
+fisher.test(data.frame(c(42,167), c(47,717))) #prenatal polya
+#data:  data.frame(c(42, 167), c(47, 717))
+#p-value = 1.507e-08
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  2.379715 6.151949
+#sample estimates:
+#  odds ratio 
+#3.829787
+fisher.test(data.frame(c(194,117), c(368,408))) #adult both libraries
+#data:  data.frame(c(194, 117), c(368, 408))
+#p-value = 8.927e-06
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.392601 2.430641
+#sample estimates:
+#  odds ratio 
+#1.837345
+fisher.test(data.frame(c(42,167), c(47,717))) #prenatal both libraries
 #data:  data.frame(c(42, 167), c(47, 717))
 #p-value = 1.507e-08
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -277,25 +261,33 @@ fisher.test(data.frame(c(42,167), c(47,717))) #prenatal
 #  odds ratio 
 #3.829787
 
-# Of dIR Fraction genes, does the LFC go in the same direction?
+# Are genes with significantly differentially retained introns more likely to have LFC in one direction by fraction?
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]>0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]<0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]>0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]<0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]>0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]<0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]>0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]<0),])
-fisher.test(data.frame(c(143,69), c(447,337))) #prenatal
-#data:  data.frame(c(143, 69), c(447, 337))
-#p-value = 0.007306
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]<0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]<0),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]>0),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]<0),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]>0),])
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]<0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]<0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]<0),])
+fisher.test(data.frame(c(147,65), c(447,335))) #prenatal polya
+#data:  data.frame(c(147, 65), c(447, 335))
+#p-value = 0.001547
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.122700 2.186824
+#  1.212726 2.384151
 #sample estimates:
 #  odds ratio 
-#1.561769
-fisher.test(data.frame(c(151,162), c(439,341))) #adult
+#1.694006
+fisher.test(data.frame(c(151,162), c(439,341))) #adult polya
 #data:  data.frame(c(151, 162), c(439, 341))
 #p-value = 0.01873
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -304,16 +296,34 @@ fisher.test(data.frame(c(151,162), c(439,341))) #adult
 #sample estimates:
 #  odds ratio 
 #0.7242496
+fisher.test(data.frame(c(149,164), c(453,327))) #adult in both libraries
+#data:  data.frame(c(149, 164), c(453, 327))
+#p-value = 0.001954
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.4994930 0.8611575
+#sample estimates:
+#  odds ratio 
+#0.6561047
+fisher.test(data.frame(c(134,78), c(488,295))) #prenatal in both libraries
+#data:  data.frame(c(134, 78), c(488, 295))
+#p-value = 0.873
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7504722 1.4433322
+#sample estimates:
+#  odds ratio 
+#1.038481
 
-# Of dIR Fraction genes, does the direction of dIR more in nucleus?
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),])
+# Are genes with significantly differentially retained introns more likely to have a higher IR ratio in nuclear RNA?
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #312
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #2
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #775
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #8
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #212
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #1
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #763
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #25
 fisher.test(data.frame(c(312,2), c(775,8))) #adult
 #data:  data.frame(c(312, 2), c(775, 8))
 #p-value = 0.7332
@@ -333,65 +343,11 @@ fisher.test(data.frame(c(212,1), c(763,25))) #prenatal
 #  odds ratio 
 #6.938855
 
-
-## Do DEG by age contain introns with higher IR ratios than non-DEG by age?
-# Get the IR ratio for developmental genes
-AgeList = list(Cpres = data.frame(Cpres), Npres = data.frame(Npres),
-               Crres = data.frame(Crres),Nrres = data.frame(Nrres), 
-               Cpres.down = data.frame(Cpres.down))
-AgeList = Map(cbind, AgeList, lapply(AgeList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
-SigAgeList = lapply(AgeList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementNROWS(SigAgeList)
-Sign = lapply(SigAgeList, function(x) ifelse(x$log2FoldChange > 0,"UpPrenatal", "DownPrenatal"))
-SigAgeList = Map(cbind, SigAgeList, Sign = Sign)
-SigAgeList = lapply(SigAgeList, function(x) split(x, x$Sign))
-SigList = unlist(SigAgeList, recursive = F) 
-lapply(SigList, head)
-allgenes = as.character(rownames(AgeList[[1]]))
-sigAgeIRratio = list(list(), list(), list(),list(),list(), list(),list(), list(),list(), list()) 
-for (i in 1:length(SigList)){
-  for (j in 1:length(IRfiltered2)){
-    filt = IRfiltered2[[j]][,c(22,23,20)]
-    sigAgeIRratio[[i]][[j]] = filt[which(as.character(SigList[[i]][,"ensemblID"]) %in% as.character(filt$genes)),]
-  }}
-names(sigAgeIRratio) = names(SigList)
-for (i in 1:length(sigAgeIRratio)){names(sigAgeIRratio[[i]]) = names(IRfiltered2)}
-lapply(sigAgeIRratio, elementNROWS)
-sigAgeIRratio = lapply(sigAgeIRratio, function(x) lapply(x, function(y) data.table(y, key="genes")))
-sigAgeIRratio = lapply(sigAgeIRratio, function(x) lapply(x, function(y) data.frame(y[, list(IRratio=max(IRratio)), by="genes"]))) # limit to intron with highest IR ratio per gene per sample
-sigAgeIRratio = lapply(sigAgeIRratio, function(x) do.call(rbind,x))
-elementNROWS(sigAgeIRratio)
-
-# Compare the intron with the greatest retention per gene per sample in different sets of DEGs
-t.test(sigAgeIRratio[["Cpres.DownPrenatal"]][,"IRratio"], sigAgeIRratio[["Cpres.UpPrenatal"]][,"IRratio"], alternative = "less")
-#data:  sigAgeIRratio[["Cpres.DownPrenatal"]][, "IRratio"] and sigAgeIRratio[["Cpres.UpPrenatal"]][, "IRratio"]
-#t = -4.6249, df = 11983, p-value = 1.893e-06
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -0.001788791
-#sample estimates:
-#  mean of x  mean of y 
-#0.01217757 0.01495380 
-t.test(sigAgeIRratio[["Npres.DownPrenatal"]][,"IRratio"], sigAgeIRratio[["Npres.UpPrenatal"]][,"IRratio"], alternative = "less")
-#data:  sigAgeIRratio[["Npres.DownPrenatal"]][, "IRratio"] and sigAgeIRratio[["Npres.UpPrenatal"]][, "IRratio"]
-#t = -5.3515, df = 10065, p-value = 4.457e-08
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -0.002540159
-#sample estimates:
-#  mean of x  mean of y 
-#0.01248776 0.01615528
-t.test(sigAgeIRratio[["Cpres.down.DownPrenatal"]][,"IRratio"], sigAgeIRratio[["Cpres.down.UpPrenatal"]][,"IRratio"], alternative = "less")
-#data:  sigAgeIRratio[["Cpres.down.DownPrenatal"]][, "IRratio"] and sigAgeIRratio[["Cpres.down.UpPrenatal"]][, "IRratio"]
-#t = -5.3569, df = 10730, p-value = 4.319e-08
-#alternative hypothesis: true difference in means is less than 0
-#95 percent confidence interval:
-#  -Inf -0.002534245
-#sample estimates:
-#  mean of x  mean of y 
-#0.01280146 0.01645878
-
 # Get the DEG Age p-value and LFC sign for differentially retained introns
+AgeList = list(Cpres = data.frame(Cpres), Npres = data.frame(Npres),
+                Crres = data.frame(Crres), Nrres = data.frame(Nrres), 
+                Cpres.down = data.frame(Cpres.down), Nres = data.frame(Nres), Cres.down = data.frame(Cres.down))
+AgeList = Map(cbind, AgeList, lapply(AgeList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
 nonconst = Map(cbind, nonconst, 
                CP.sig = lapply(nonconst, function(x) AgeList[["Cpres"]][match(x$ensID, AgeList[["Cpres"]][,"ensemblID"]),"padj"]),
                CP.LFC = lapply(nonconst, function(x) AgeList[["Cpres"]][match(x$ensID, AgeList[["Cpres"]][,"ensemblID"]),"log2FoldChange"]),
@@ -402,11 +358,15 @@ nonconst = Map(cbind, nonconst,
                NR.sig = lapply(nonconst, function(x) AgeList[["Nrres"]][match(x$ensID, AgeList[["Nrres"]][,"ensemblID"]),"padj"]),
                NR.LFC = lapply(nonconst, function(x) AgeList[["Nrres"]][match(x$ensID, AgeList[["Nrres"]][,"ensemblID"]),"log2FoldChange"]),
                CP.down.sig = lapply(nonconst, function(x) AgeList[["Cpres.down"]][match(x$ensID, AgeList[["Cpres.down"]][,"ensemblID"]),"padj"]),
-               CP.down.LFC = lapply(nonconst, function(x) AgeList[["Cpres.down"]][match(x$ensID, AgeList[["Cpres.down"]][,"ensemblID"]),"log2FoldChange"]))
+               CP.down.LFC = lapply(nonconst, function(x) AgeList[["Cpres.down"]][match(x$ensID, AgeList[["Cpres.down"]][,"ensemblID"]),"log2FoldChange"]),
+               N.sig = lapply(nonconst, function(x) AgeList[["Nres"]][match(x$ensID, AgeList[["Nres"]][,"ensemblID"]),"padj"]),
+               N.LFC = lapply(nonconst, function(x) AgeList[["Nres"]][match(x$ensID, AgeList[["Nres"]][,"ensemblID"]),"log2FoldChange"]),
+               C.down.sig = lapply(nonconst, function(x) AgeList[["Cres.down"]][match(x$ensID, AgeList[["Cres.down"]][,"ensemblID"]),"padj"]),
+               C.down.LFC = lapply(nonconst, function(x) AgeList[["Cres.down"]][match(x$ensID, AgeList[["Cres.down"]][,"ensemblID"]),"log2FoldChange"]))
 elementNROWS(nonconst)
 lapply(nonconst, head)
 
-# Are significantly dIR genes more likely to be significantly DEG by age?
+# Are genes with significantly differentially retained introns more likely to be significantly DEG by age?
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.sig"]<=0.05),])
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.sig"]>=0.05),])
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.sig"]<=0.05),])
@@ -415,8 +375,15 @@ dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.di
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.sig"]>=0.05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.sig"]<=0.05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.sig"]>=0.05),])
-fisher.test(data.frame(c(118,50), c(302,207))) #cytosol
-#data:  data.frame(c(164, 148), c(286, 489))
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.sig"]<=0.05),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.sig"]>=0.05),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.sig"]<=0.05),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.sig"]>=0.05),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]<=0.05),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]>=0.05),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]<=0.05),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]>=0.05),])
+fisher.test(data.frame(c(118,50), c(302,207))) #cytosol polya
 #data:  data.frame(c(118, 50), c(302, 207))
 #p-value = 0.0132
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -425,7 +392,7 @@ fisher.test(data.frame(c(118,50), c(302,207))) #cytosol
 #sample estimates:
 #  odds ratio 
 #1.61649
-fisher.test(data.frame(c(235,112), c(513,339))) #nucleus
+fisher.test(data.frame(c(235,112), c(513,339))) #nucleus polya
 #data:  data.frame(c(235, 112), c(513, 339))
 #p-value = 0.01509
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -434,8 +401,26 @@ fisher.test(data.frame(c(235,112), c(513,339))) #nucleus
 #sample estimates:
 #  odds ratio 
 #1.386161
+fisher.test(data.frame(c(127,40), c(356,153))) #cytosol in both libraries
+#data:  data.frame(c(127, 40), c(356, 153))
+#p-value = 0.1393
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.8994604 2.0982478
+#sample estimates:
+#  odds ratio 
+#1.363929
+fisher.test(data.frame(c(244,103), c(559,293))) #nucleus in both libraries
+#data:  data.frame(c(244, 103), c(559, 293))
+#p-value = 0.1199
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.9405281 1.6451632
+#sample estimates:
+#  odds ratio 
+#1.241454
 
-# Of dIR Age genes, does the LFC go in the same direction?
+# Are genes with significantly differentially retained introns more likely to have LFC in one direction by age?
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.LFC"]<0),])
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.LFC"]>0),])
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.LFC"]<0),])
@@ -444,7 +429,15 @@ dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.di
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.LFC"]>0),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.LFC"]<05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"NP.LFC"]>0),])
-fisher.test(data.frame(c(109,59), c(248,261))) #cytosol
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.LFC"]<0),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.LFC"]>0),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.LFC"]<0),])
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"C.down.LFC"]>0),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]<0),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]>0),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]<05),])
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]>0),])
+fisher.test(data.frame(c(109,59), c(248,261))) #cytosol polya
 #data:  data.frame(c(109, 59), c(248, 261))
 #p-value = 0.0003479
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -453,7 +446,7 @@ fisher.test(data.frame(c(109,59), c(248,261))) #cytosol
 #sample estimates:
 #  odds ratio 
 #1.942424
-fisher.test(data.frame(c(200,148), c(853,392))) #nucleus
+fisher.test(data.frame(c(200,148), c(853,392))) #nucleus polya
 #data:  data.frame(c(200, 148), c(853, 392))
 #p-value = 0.0001536
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -462,16 +455,34 @@ fisher.test(data.frame(c(200,148), c(853,392))) #nucleus
 #sample estimates:
 #  odds ratio 
 #0.6211912
+fisher.test(data.frame(c(105,63), c(262,247))) #cytosol in both libraries
+#data:  data.frame(c(105, 63), c(262, 247))
+#p-value = 0.01577
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.083506 2.287870
+#sample estimates:
+#  odds ratio 
+#1.570188
+fisher.test(data.frame(c(206,142), c(853,354))) #nucleus in both libraries
+#data:  data.frame(c(206, 142), c(853, 354))
+#p-value = 6.697e-05
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.4670682 0.7776257
+#sample estimates:
+#  odds ratio 
+#0.6022291
 
-# Of dIR Age genes, does the direction of dIR more in adult?
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),])
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),])
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),])
+# Are genes with significantly differentially retained introns more likely to have a higher IR ratio in prenatal samples?
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #140
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #31
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #436
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #82
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #165
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #186
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #430
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #433
 fisher.test(data.frame(c(140,31), c(436,82))) #cytosol
 #data:  data.frame(c(140, 31), c(436, 82))
 #p-value = 0.4768
@@ -490,6 +501,8 @@ fisher.test(data.frame(c(165,186), c(430,433))) #nucleus
 #sample estimates:
 #  odds ratio 
 #0.8933697
+
+### pick up here ###
 
 fracDevel = lapply(sigIR, function(x) total[which(total$ensID %in% x$ensID),])
 pdf("/Users/amandaprice/Dropbox/sorted_figures/new/FracDevel_plots.pdf", width=8, height=8)
