@@ -502,77 +502,33 @@ fisher.test(data.frame(c(165,186), c(430,433))) #nucleus
 #  odds ratio 
 #0.8933697
 
-### pick up here ###
-
-fracDevel = lapply(sigIR, function(x) total[which(total$ensID %in% x$ensID),])
-pdf("/Users/amandaprice/Dropbox/sorted_figures/new/FracDevel_plots.pdf", width=8, height=8)
-names = c("Both Nuclear","Both Cytosolic", "Nuclear in Fetal Only",
-          "Nuclear in Adult Only", "Nuclear in Adult/Cytosolic in Fetal",
-          "Nuclear in Fetal/Cytosolic in Adult", "Interaction Effect")
-for (i in 1:length(fracDevel)){
-  g = ggplot(fracDevel[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
-    geom_violin() +
-    facet_grid(. ~ Comparison) +
-    ylab("Log2 Fold Change") + 
-    xlab("IR Ratio") +
-    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
-  print(g)
-}
-dev.off()
-
 # IR regulated genes 
-DirList = lapply(IRclean, function(x) split(x, x$Sign))
-IRlist = list("Adult:Nucleus"=DirList[["Adult_PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
-              "Adult:Cytosol"=DirList[["Adult_PolyA_Zone"]][["MoreIRInCyt.Adult"]],
-              "Fetal:Nucleus"=DirList[["Fetal_PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
-              "Fetal:Cytosol"=DirList[["Fetal_PolyA_Zone"]][["MoreIRInCyt.Adult"]],
-              "Cytosol:Fetal"=DirList[["Cytosol_PolyA_Age"]][["MoreIRInNuc.Fetal"]],
-              "Cytosol:Adult"=DirList[["Cytosol_PolyA_Age"]][["MoreIRInCyt.Adult"]],
-              "Nucleus:Fetal"=DirList[["Nuclear_PolyA_Age"]][["MoreIRInNuc.Fetal"]],
-              "Nucleus:Adult"=DirList[["Nuclear_PolyA_Age"]][["MoreIRInCyt.Adult"]],
-              "Nuclear-Enriched"=DirList[["PolyA_Zone"]][["MoreIRInNuc.Fetal"]],
-              "Fetal-Enriched"=DirList[["PolyA_Age"]][["MoreIRInNuc.Fetal"]],
-              "Adult-Enriched"=DirList[["PolyA_Age"]][["MoreIRInCyt.Adult"]])
+DirList = lapply(nonconst, function(x) split(x, x$Sign))
+IRlist = unlist(DirList, recursive = F)
+names(IRlist) = names = c("Adult:Cytosol-Enriched","Adult:Nuclear-Enriched","Prenatal:Cytosol-Enriched","Prenatal:Nuclear-Enriched",
+                  "Cytosol:Adult-Enriched","Cytosol:Prenatal-Enriched","Nucleus:Adult-Enriched","Nucleus:Prenatal-Enriched",
+                  "Cytosol-Enriched","Nuclear-Enriched","Adult-Enriched","Prenatal-Enriched")
+degs = list(Ares = as.data.frame(Ares), Fres.down = as.data.frame(Fres.down),Cres.down = as.data.frame(Cres.down), Nres = as.data.frame(Nres))
+degs = lapply(degs, function(x) x[,1:6])
+degs = Map(cbind, degs, Comparison = list("Adult","Prenatal","Cytosol","Nucleus"), Collapsed.Comparison = list("Fraction","Fraction","Age","Age"), 
+           Sign = lapply(degs, function(x) ifelse(x$log2FoldChange>0, "Pos","Neg")),
+           FDR = lapply(degs, function(x) ifelse(x$padj<=0.05, "FDR<0.05", "FDR>0.05")),
+           ensID = lapply(degs, function(x) geneMap[match(as.character(rownames(x)),as.character(rownames(geneMap))),"ensemblID"]),
+           Symbol = lapply(degs, function(x) geneMap[match(as.character(rownames(x)),as.character(rownames(geneMap))),"Symbol"]),
+           EntrezID = lapply(degs, function(x) geneMap[match(as.character(rownames(x)),geneMap$gencodeID),"EntrezID"]),
+           Type = lapply(degs, function(x) geneMap[match(as.character(rownames(x)),geneMap$gencodeID),"gene_type"]))
+degs = do.call(rbind, degs)
+degs = degs[which(degs$padj!="NA"),]
+IRlist = lapply(IRlist, function(x) x[which(x$p.diff <=0.05),])
+IRlist = lapply(IRlist, function(x) degs[which(degs$ensID %in% x$ensID),])
+elementNROWS(IRlist)
 
-totalF = rbind(xA,xF)
-totalF$FDR = ifelse(totalF$padj<=0.05, "FDR<0.05", "FDR>0.05")
-totalF$IR = factor(ifelse(totalF$IRratio>=0.5, ">0.5", "<0.5"))
-totalF = totalF[which(totalF$padj!="NA"),]
-combined.IRlist = list(nuc.A.F = rbind(IRlist[["Adult:Nucleus"]], IRlist[["Fetal:Nucleus"]]),
-                       cyt.A.F = rbind(IRlist[["Adult:Cytosol"]], IRlist[["Fetal:Cytosol"]]),
-                       adult.C.N = rbind(IRlist[["Cytosol:Adult"]], IRlist[["Nucleus:Adult"]]),
-                       fetal.C.N = rbind(IRlist[["Cytosol:Fetal"]], IRlist[["Nucleus:Fetal"]]))
-IRfrac = lapply(IRlist, function(x) totalF[which(totalF$EnsID %in% x$ensID),])
-IRfrac2 = lapply(combined.IRlist, function(x) totalF[which(totalF$EnsID %in% x$ensID),])
+# Plot DEG by fraction LFC and FDR for genes that contain introns that are differentially retained
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byFrac_plots.pdf", width=8, height=8)
-names = names(IRfrac)
-for (i in 1:length(IRfrac)){
-  g = ggplot(IRfrac[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byFraction.pdf", width=8, height=8)
+for (i in 1:length(IRlist)){
+  g = ggplot(IRlist[[i]][which(IRlist[[i]][,"Collapsed.Comparison"]=="Fraction"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
     geom_violin() +
-    facet_grid(. ~ Comparison) +
-    ylab("Log2 Fold Change") + 
-    xlab("IR Ratio") +
-    ggtitle(paste0("RNA Localization by IR Ratio:\n",names[i])) + 
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
-  print(g)
-}
-dev.off()
-pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byFrac_combined.pdf", width=8, height=8)
-names = names(IRfrac2)
-for (i in 1:length(IRfrac2)){
-  g = ggplot(IRfrac2[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
-    geom_violin() +
-    facet_grid(. ~ Comparison) +
     ylab("Log2 Fold Change") + 
     xlab("IR Ratio") +
     ggtitle(paste0("RNA Localization by IR Ratio:\n",names[i])) + 
@@ -585,21 +541,12 @@ for (i in 1:length(IRfrac2)){
 }
 dev.off()
 
+# Plot DEG by age LFC and FDR for genes that contain introns that are differentially retained
 
-# Make the same plots for Age differences
-totalA = rbind(xC,xN)
-totalA$FDR = ifelse(totalA$padj<=0.05, "FDR<0.05", "FDR>0.05")
-totalA$IR = factor(ifelse(totalA$IRratio>=0.5, ">0.5", "<0.5"))
-totalA = totalA[which(totalA$padj!="NA"),]
-IRAge = lapply(IRlist, function(x) totalA[which(totalA$ensID %in% x$ensID),])
-IRAge2 = lapply(combined.IRlist, function(x) totalA[which(totalA$EnsID %in% x$ensID),])
-
-pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byAge_plots.pdf", width=8, height=8)
-names = names(IRlist)
-for (i in 1:length(IRAge)){
-  g = ggplot(IRAge[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byAge.pdf", width=8, height=8)
+for (i in 1:length(IRlist)){
+  g = ggplot(IRlist[[i]][which(IRlist[[i]][,"Collapsed.Comparison"]=="Age"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
     geom_violin() +
-    facet_grid(. ~ Comparison) +
     ylab("Log2 Fold Change") + 
     xlab("IR Ratio") +
     ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
@@ -611,21 +558,211 @@ for (i in 1:length(IRAge)){
   print(g)
 }
 dev.off()
-pdf("/Users/amanda/Dropbox/sorted_figures/new/IRgenes_byAge_combined.pdf", width=8, height=8)
-names = names(IRAge2)
-for (i in 1:length(IRAge2)){
-  g = ggplot(IRAge2[[i]], aes(x=IR, y=log2FoldChange, fill=FDR), color=FDR) + 
-    geom_violin() +
-    facet_grid(. ~ Comparison) +
-    ylab("Log2 Fold Change") + 
-    xlab("IR Ratio") +
-    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
-  print(g)
-}
-dev.off()
+
+## Are the Fraction LFC values greater in genes containing a retained intron differentially?
+
+t.test(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"], 
+       IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"], alternative = "two.sided")
+#data:  Adult:Cytosol-Enriched and Adult:Nuclear-Enriched
+#t = 2.5258, df = 1.0291, p-value = 0.2343
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -3.340238  5.142398
+#sample estimates:
+#  mean of x   mean of y 
+#0.82133680 -0.07974323 
+t.test(IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"], 
+       IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"], alternative = "two.sided")
+#data:  Prenatal:Cytosol-Enriched and Prenatal:Nuclear-Enriched
+#not enough 'x' observations
+t.test(c(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
+         IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"]), 
+       c(IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
+         IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"]), alternative = "two.sided")
+#data:  Combined  Cytosol-Enriched and Nuclear-Enriched
+#t = 1.3287, df = 2.0234, p-value = 0.314
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.093380  2.086214
+#sample estimates:
+#  mean of x  mean of y 
+#0.50996684 0.01354981
+t.test(IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"], 
+       IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"], alternative = "two.sided")
+#data: Cytosol:Adult-Enriched and Cytosol:Prenatal-Enriched
+#t = 5.8578, df = 39.413, p-value = 7.874e-07
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  0.9365837 1.9240148
+#sample estimates:
+#  mean of x  mean of y 
+#0.6834974 -0.7468019
+t.test(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"], 
+       IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"], alternative = "two.sided")
+#data:  Nucleus:Adult-Enriched and Nucleus:Prenatal-Enriched
+#t = 9.7837, df = 270.56, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  0.9818406 1.4765372
+#sample estimates:
+#  mean of x  mean of y 
+#0.2691135 -0.9600754
+t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
+         IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"]), 
+       c(IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
+         IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"]), alternative = "two.sided")
+#data:  Combined Adult-Enriched and Combined Prenatal-Enriched
+#t = 11.608, df = 457.07, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  0.986928 1.389202
+#sample estimates:
+#  mean of x  mean of y 
+#0.3267855 -0.8612796 
+
+## Are the Fraction pvalues values more significant in genes containing a retained intron preferentially?
+
+t.test(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"padj"], 
+       IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"], alternative = "two.sided")
+#data:  Adult:Cytosol-Enriched and Adult:Nuclear-Enriched
+#t = -10.085, df = 265.99, p-value < 2.2e-16
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -0.2104949 -0.1417319
+#sample estimates:
+#  mean of x   mean of y 
+#0.001126789 0.177240174 
+t.test(IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"padj"], 
+       IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"], alternative = "two.sided")
+#data:  Prenatal:Cytosol-Enriched and Prenatal:Nuclear-Enriched
+#not enough 'x' observations
+t.test(c(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"padj"],
+         IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"padj"]), 
+       c(IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"],
+         IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"]), alternative = "two.sided")
+#data:  Combined  Cytosol-Enriched and Nuclear-Enriched
+#t = 0.16058, df = 2.0111, p-value = 0.8871
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.117272  1.204380
+#sample estimates:
+#  mean of x mean of y 
+#0.2719766 0.2284224
+t.test(IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"], 
+       IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"], alternative = "two.sided")
+#data: Cytosol:Adult-Enriched and Cytosol:Prenatal-Enriched
+#t = 0.37388, df = 36.487, p-value = 0.7107
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -0.08262087  0.11998935
+#sample estimates:
+#  mean of x  mean of y 
+#0.11864635 0.09996211 
+t.test(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"], 
+       IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"], alternative = "two.sided")
+#data:  Nucleus:Adult-Enriched and Nucleus:Prenatal-Enriched
+#t = 2.3936, df = 310.23, p-value = 0.01728
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  0.01360126 0.13926969
+#sample estimates:
+#  mean of x mean of y 
+#0.1881114 0.1116759
+t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
+         IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"]), 
+       c(IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
+         IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"]), alternative = "two.sided")
+#data:  Combined Adult-Enriched and Combined Prenatal-Enriched
+#t = 2.7719, df = 357.99, p-value = 0.005865
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  0.02097326 0.12341456
+#sample estimates:
+#  mean of x mean of y 
+#0.1784436 0.1062497
+
+## Are dIR intron by age more likely to be dIR intron by fraction?
+nonconst = Map(cbind, IRclean[["nonconst"]], intronID = lapply(IRclean[["nonconst"]], function(x) paste0(x$Chr, ":", x$Start, "-", x$"End")))
+sigIR.intron = lapply(nonconst, function(x) as.character(x[which(x$p.diff<=0.05),"intronID"])) 
+nonsigIR.intron = lapply(nonconst, function(x) as.character(x[which(x$p.diff>0.05),"intronID"]))
+sigIR.intron.combined = list("Significantly IR\nBy Fraction" = c(sigIR.intron[["Adult_PolyA_Zone"]], sigIR.intron[["Fetal_PolyA_Zone"]]),
+                             "Significantly IR\nBy Age" = c(sigIR.intron[["Cytosol_PolyA_Age"]], sigIR.intron[["Nuclear_PolyA_Age"]]))
+nonsigIR.intron.combined = list("Non-Significantly IR\nBy Fraction" = c(nonsigIR.intron[["Adult_PolyA_Zone"]], nonsigIR.intron[["Fetal_PolyA_Zone"]]),
+                             "Non-Significantly IR\nBy Age" = c(nonsigIR.intron[["Cytosol_PolyA_Age"]], nonsigIR.intron[["Nuclear_PolyA_Age"]]))
+
+venn.diagram(c(sigIR.intron[c(1,3)], nonsigIR.intron[c(1,3)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_FractionbyAge_adult_cytosol.jpeg", 
+             main="dIR_FractionbyAge_adult_cytosol", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron[c(1,4)], nonsigIR.intron[c(1,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_FractionbyAge_adult_nucleus.jpeg", 
+             main="dIR_FractionbyAge_adult_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron[c(1:2)], nonsigIR.intron[c(1:2)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_Fraction_adult_fetal.jpeg", 
+             main="dIR_Fraction_adult_fetal", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron[c(2,3)], nonsigIR.intron[c(2,3)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_FractionbyAge_prenatal_cytosol.jpeg", 
+             main="dIR_FractionbyAge_prenatal_cytosol", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron[c(2,4)], nonsigIR.intron[c(2,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_FractionbyAge_prenatal_nucleus.jpeg", 
+             main="dIR_FractionbyAge_prenatal_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron[c(3,4)], nonsigIR.intron[c(3,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_Age_cytosol_nucleus.jpeg", 
+             main="dIR_Age_cytosol_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.intron.combined, nonsigIR.intron.combined), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_FractionbyAge_combined.jpeg", 
+             main="dIR_FractionbyAge_combined", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+
+fisher.test(data.frame(c(312,2),c(775,8))) 
+
+
+
+## Are genes that have a dIR intron by age more likely to have a dIR intron by fraction?
+sigIR.gene = lapply(nonconst, function(x) unique(as.character(x[which(x$p.diff<=0.05),"ensID"]))) 
+nonsigIR.gene = lapply(nonconst, function(x) unique(as.character(x[which(x$p.diff>0.05),"ensID"])))
+sigIR.gene.combined = list("Significantly IR\nBy Fraction" = c(sigIR.gene[["Adult_PolyA_Zone"]], sigIR.gene[["Fetal_PolyA_Zone"]]),
+                             "Significantly IR\nBy Age" = c(sigIR.gene[["Cytosol_PolyA_Age"]], sigIR.gene[["Nuclear_PolyA_Age"]]))
+nonsigIR.gene.combined = list("Non-Significantly IR\nBy Fraction" = c(nonsigIR.gene[["Adult_PolyA_Zone"]], nonsigIR.gene[["Fetal_PolyA_Zone"]]),
+                                "Non-Significantly IR\nBy Age" = c(nonsigIR.gene[["Cytosol_PolyA_Age"]], nonsigIR.gene[["Nuclear_PolyA_Age"]]))
 
