@@ -681,7 +681,7 @@ t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriche
 #  mean of x mean of y 
 #0.1784436 0.1062497
 
-## Are dIR intron by age more likely to be dIR intron by fraction?
+## Are dIR introns by age more likely to be dIR introns by fraction?
 nonconst = Map(cbind, IRclean[["nonconst"]], intronID = lapply(IRclean[["nonconst"]], function(x) paste0(x$Chr, ":", x$Start, "-", x$"End")))
 sigIR.intron = lapply(nonconst, function(x) as.character(x[which(x$p.diff<=0.05),"intronID"])) 
 nonsigIR.intron = lapply(nonconst, function(x) as.character(x[which(x$p.diff>0.05),"intronID"]))
@@ -754,15 +754,401 @@ venn.diagram(c(sigIR.intron.combined, nonsigIR.intron.combined),
              cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
              cat.fontfamily = "Arial", margin=0.2)
 
-fisher.test(data.frame(c(312,2),c(775,8))) 
+fisher.test(data.frame(c(1+4+10+85,5+15+78+285),c(6+20+51+322,322+927+1088))) 
+#data: dIR_FractionbyAge_combined.jpeg  
+#  p-value = 0.001026
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.184734 1.961597
+#sample estimates:
+#  odds ratio 
+#1.529056
+fisher.test(data.frame(c(35,11+125),c(19+260,52+447+720)))
+#data: dIR_FractionbyAge_adult_cytosol.jpeg
+#p-value = 0.5371
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7354046 1.6826860
+#sample estimates:
+#  odds ratio 
+#1.12436
+fisher.test(data.frame(c(5,19+147),c(6+202,26+486+743)))
+#data: dIR_FractionbyAge_prenatal_cytosol.jpeg
+#p-value = 3.313e-06
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.05758012 0.44079056
+#sample estimates:
+#  odds ratio 
+#0.1818474
+fisher.test(data.frame(c(31,34+286),c(21+262,111+731+638)))
+#data: dIR_FractionbyAge_adult_nucleus.jpeg
+#p-value = 0.0003822
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.3313704 0.7524600
+#sample estimates:
+#  odds ratio 
+#0.5067602
+fisher.test(data.frame(c(41,49+261),c(19+153,170+674+569)))
+#data: dIR_FractionbyAge_prenatal_nucleus.jpeg
+#p-value = 0.6382
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7367658 1.5731319
+#sample estimates:
+#  odds ratio 
+#1.086481
+fisher.test(data.frame(c(28,14+171),c(23+263,41+724+728)))
+#data: dIR_Fraction_adult_fetal.jpeg
+#p-value = 0.3194
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.5009596 1.2076840
+#sample estimates:
+#  odds ratio 
+#0.790188
+fisher.test(data.frame(c(39,20+292),c(5+127,50+808+448)))
+#data: dIR_Age_cytosol_nucleus.jpeg
+#p-value = 0.2665
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.8242523 1.8220293
+#sample estimates:
+#  odds ratio 
+#1.236588
 
+# What about only the introns reported in both comparisons?
+fisher.test(data.frame(c(1+4+10+85,5+78),c(6+51,322))) 
+#data: dIR_FractionbyAge_combined.jpeg  
+#p-value < 2.2e-16
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  4.449856 10.415955
+#sample estimates:
+#  odds ratio 
+#6.777491
+fisher.test(data.frame(c(35,11),c(19,52)))
+#data: dIR_FractionbyAge_adult_cytosol.jpeg
+#p-value = 1.851e-07
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  3.431975 22.659230
+#sample estimates:
+#  odds ratio 
+#8.51932
+fisher.test(data.frame(c(5,19),c(6,26)))
+#data: dIR_FractionbyAge_prenatal_cytosol.jpeg
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.2367084 5.2428228
+#sample estimates:
+#  odds ratio 
+#1.137662
+fisher.test(data.frame(c(31,34),c(21,111)))
+#data: dIR_FractionbyAge_adult_nucleus.jpeg
+#p-value = 4.731e-06
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  2.327024 10.006823
+#sample estimates:
+#  odds ratio 
+#4.77432
+fisher.test(data.frame(c(41,49),c(19,170)))
+#data: dIR_FractionbyAge_prenatal_nucleus.jpeg
+#p-value = 7.144e-11
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  3.820863 14.858858
+#sample estimates:
+#  odds ratio 
+#7.419343
+fisher.test(data.frame(c(28,14),c(23,41)))
+#data: dIR_Fraction_adult_fetal.jpeg
+#p-value = 0.00277
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.459885 8.825248
+#sample estimates:
+#  odds ratio 
+#3.519946
+fisher.test(data.frame(c(39,20),c(5,50)))
+#data: dIR_Age_cytosol_nucleus.jpeg
+#p-value = 1.683e-10
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  6.250532 70.547304
+#sample estimates:
+#  odds ratio 
+#18.87679
 
 
 ## Are genes that have a dIR intron by age more likely to have a dIR intron by fraction?
-sigIR.gene = lapply(nonconst, function(x) unique(as.character(x[which(x$p.diff<=0.05),"ensID"]))) 
+sigIR.gene = lapply(nonconst, function(x) unique(as.character(x[which(x$p.diff<=0.05),"ensID"])))
+names(sigIR.gene) = paste0(names(sigIR.gene),"\nsig")
 nonsigIR.gene = lapply(nonconst, function(x) unique(as.character(x[which(x$p.diff>0.05),"ensID"])))
-sigIR.gene.combined = list("Significantly IR\nBy Fraction" = c(sigIR.gene[["Adult_PolyA_Zone"]], sigIR.gene[["Fetal_PolyA_Zone"]]),
-                             "Significantly IR\nBy Age" = c(sigIR.gene[["Cytosol_PolyA_Age"]], sigIR.gene[["Nuclear_PolyA_Age"]]))
-nonsigIR.gene.combined = list("Non-Significantly IR\nBy Fraction" = c(nonsigIR.gene[["Adult_PolyA_Zone"]], nonsigIR.gene[["Fetal_PolyA_Zone"]]),
-                                "Non-Significantly IR\nBy Age" = c(nonsigIR.gene[["Cytosol_PolyA_Age"]], nonsigIR.gene[["Nuclear_PolyA_Age"]]))
+names(nonsigIR.gene) = paste0(names(nonsigIR.gene),"\nnonsig")
+sigIR.gene.combined = list("Significantly IR\nBy Fraction" = c(sigIR.gene[["Adult_PolyA_Zone\nsig"]], sigIR.gene[["Fetal_PolyA_Zone\nsig"]]),
+                             "Significantly IR\nBy Age" = c(sigIR.gene[["Cytosol_PolyA_Age\nsig"]], sigIR.gene[["Nuclear_PolyA_Age\nsig"]]))
+nonsigIR.gene.combined = list("Non-Significantly IR\nBy Fraction" = c(nonsigIR.gene[["Adult_PolyA_Zone\nnonsig"]], nonsigIR.gene[["Fetal_PolyA_Zone\nnonsig"]]),
+                                "Non-Significantly IR\nBy Age" = c(nonsigIR.gene[["Cytosol_PolyA_Age\nnonsig"]], nonsigIR.gene[["Nuclear_PolyA_Age\nnonsig"]]))
 
+venn.diagram(c(sigIR.gene[c(1,3)], nonsigIR.gene[c(1,3)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_FractionbyAge_adult_cytosol.jpeg", 
+             main="dIR_FractionbyAge_adult_cytosol", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene[c(1,4)], nonsigIR.gene[c(1,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_FractionbyAge_adult_nucleus.jpeg", 
+             main="dIR_FractionbyAge_adult_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene[c(1:2)], nonsigIR.gene[c(1:2)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_Fraction_adult_fetal.jpeg", 
+             main="dIR_Fraction_adult_fetal", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene[c(2,3)], nonsigIR.gene[c(2,3)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_FractionbyAge_prenatal_cytosol.jpeg", 
+             main="dIR_FractionbyAge_prenatal_cytosol", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene[c(2,4)], nonsigIR.gene[c(2,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_FractionbyAge_prenatal_nucleus.jpeg", 
+             main="dIR_FractionbyAge_prenatal_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene[c(3,4)], nonsigIR.gene[c(3,4)]), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_Age_cytosol_nucleus.jpeg", 
+             main="dIR_Age_cytosol_nucleus", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+venn.diagram(c(sigIR.gene.combined, nonsigIR.gene.combined), 
+             "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_gene_FractionbyAge_combined.jpeg", 
+             main="dIR_FractionbyAge_combined", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold",
+             cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", margin=0.2)
+
+fisher.test(data.frame(c(21+17+29+53,35+74+46+142),c(51+39+50+153,368+663+529))) 
+#data: dIR_gene_FractionbyAge_combined.jpeg  
+#p-value = 3.879e-09
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.665630 2.767285
+#sample estimates:
+#  odds ratio 
+#2.150367
+fisher.test(data.frame(c(5+3+4+25,19+4+12+85),c(13+30+28+163,101+299+521)))
+#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
+#p-value = 0.3448
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7933247 1.8224939
+#sample estimates:
+#  odds ratio 
+#1.213404
+fisher.test(data.frame(c(0+1+1+11,24+8+15+97),c(6+13+24+124,64+360+578)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
+#p-value = 0.04613
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.2751708 0.9850721
+#sample estimates:
+#  odds ratio 
+#0.5418933
+fisher.test(data.frame(c(6+2+10+36,46+15+34+164),c(13+29+21+154,153+504+431)))
+#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
+#p-value = 0.8005
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7384812 1.4615272
+#sample estimates:
+#  odds ratio 
+#1.045328
+fisher.test(data.frame(c(6+4+8+32,8+22+9+91),c(29+18+53+163,182+487+421)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
+#p-value = 0.01352
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.095534 2.291578
+#sample estimates:
+#  odds ratio 
+#1.593495
+fisher.test(data.frame(c(3+2+8+25,27+7+19+89),c(16+34+23+160,95+529+516)))
+#data: dIR_gene_Fraction_adult_fetal.jpeg
+#p-value = 0.1748
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.8659325 1.9426236
+#sample estimates:
+#  odds ratio 
+#1.309072
+fisher.test(data.frame(c(4+7+6+36,32+7+39+182),c(10+3+11+80,103+583+301)))
+#data: dIR_gene_Age_cytosol_nucleus.jpeg
+#p-value = 0.0004928
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.323990 2.800034
+#sample estimates:
+#  odds ratio 
+#1.933604
+
+# What about only the genes reported in both comparisons?
+fisher.test(data.frame(c(21+17+29+53,35+74+46+142),c(51+39+50+153,368+663+529))) 
+#data: dIR_gene_FractionbyAge_combined.jpeg  
+#p-value = 3.879e-09
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.665630 2.767285
+#sample estimates:
+#  odds ratio 
+#2.150367
+fisher.test(data.frame(c(5+3+4+25,19+4+12+85),c(13+30+28+163,101+299+521)))
+#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
+#p-value = 0.3448
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7933247 1.8224939
+#sample estimates:
+#  odds ratio 
+#1.213404
+fisher.test(data.frame(c(0+1+1+11,24+8+15+97),c(6+13+24+124,64+360+578)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
+#p-value = 0.04613
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.2751708 0.9850721
+#sample estimates:
+#  odds ratio 
+#0.5418933
+fisher.test(data.frame(c(6+2+10+36,46+15+34+164),c(13+29+21+154,153+504+431)))
+#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
+#p-value = 0.8005
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.7384812 1.4615272
+#sample estimates:
+#  odds ratio 
+#1.045328
+fisher.test(data.frame(c(6+4+8+32,8+22+9+91),c(29+18+53+163,182+487+421)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
+#p-value = 0.01352
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.095534 2.291578
+#sample estimates:
+#  odds ratio 
+#1.593495
+fisher.test(data.frame(c(3+2+8+25,27+7+19+89),c(16+34+23+160,95+529+516)))
+#data: dIR_gene_Fraction_adult_fetal.jpeg
+#p-value = 0.1748
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.8659325 1.9426236
+#sample estimates:
+#  odds ratio 
+#1.309072
+fisher.test(data.frame(c(4+7+6+36,32+7),c(10+3,103)))
+#data: dIR_gene_Age_cytosol_nucleus.jpeg
+#p-value = 7.898e-13
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  5.059531 23.696676
+#sample estimates:
+#  odds ratio 
+#10.6203
+
+# What about only the genes reported in both comparisons?
+fisher.test(data.frame(c(21+17+29+53,35+74),c(51+39,368))) 
+#data: dIR_gene_FractionbyAge_combined.jpeg  
+#p-value < 2.2e-16
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  3.133920 6.463821
+#sample estimates:
+#  odds ratio 
+#4.490156
+fisher.test(data.frame(c(5+3+4+25,19+4),c(13+30,101)))
+#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
+#p-value = 3.532e-05
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.919544 7.474978
+#sample estimates:
+#  odds ratio 
+#3.751376
+fisher.test(data.frame(c(0+1+1+11,24+8),c(6+13,64)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
+#p-value = 0.523
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.5457205 3.3482308
+#sample estimates:
+#  odds ratio 
+#1.364944
+fisher.test(data.frame(c(6+2+10+36,46+15),c(13+29,153)))
+#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
+#p-value = 4.187e-06
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.894974 5.487542
+#sample estimates:
+#  odds ratio 
+#3.21149
+fisher.test(data.frame(c(6+4+8+32,8+22),c(18+53,182)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
+#p-value = 5.295e-08
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  2.436011 7.527893
+#sample estimates:
+#  odds ratio 
+#4.250734
+fisher.test(data.frame(c(3+2+8+25,27+7),c(16+34,95)))
+#data: dIR_gene_Fraction_adult_fetal.jpeg
+#p-value = 0.1748
+#p-value = 0.01247
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.146241 3.931282
+#sample estimates:
+#  odds ratio 
+#2.115891
+fisher.test(data.frame(c(4+7+6+36,32+7),c(10+3,103)))
+#data: dIR_gene_Age_cytosol_nucleus.jpeg
+#p-value = 7.898e-13
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  5.059531 23.696676
+#sample estimates:
+#  odds ratio 
+#10.6203
