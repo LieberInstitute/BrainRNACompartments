@@ -49,26 +49,3 @@ for (i in 1:length(names)){
   print(g)
 }
 dev.off()
-
-# Calculate the correlation coefficients between junction log2(count+1) between ribozero and polyA
-jCountsP = as.data.frame(jCountsP)
-jCountsR = as.data.frame(jCountsR)
-jCounts = as.data.frame(jCounts)
-pdf("./Dropbox/sorted_figures/new/github_controlled/QC_section/figures/junctionCounts_by_library.pdf", width=8, height=8)
-cor = cov = counts = list()
-for (i in 1:length(names)){
-  cor[[i]] = cor(log2(jCounts[,paste0(names[i],"_polyA")]+1), log2(jCounts[,paste0(names[i],"_RiboZero")]+1))
-  cov[[i]] = cov(log2(jCounts[,paste0(names[i],"_polyA")]+1), log2(jCounts[,paste0(names[i],"_RiboZero")])+1)
-  counts[[i]] = log2(jCounts[,grep(names[i], colnames(jCounts))]+1)
-  g = ggplot(counts[[i]], aes(x=counts[[i]][,1], y=counts[[i]][,2])) + 
-    geom_point(alpha=1/4) +
-    geom_smooth(method=lm) +
-    ylab("RiboZero") + 
-    xlab("PolyA") +
-    ggtitle(paste0("Exon-Level log2(count+1): ",names[i], "\ncor = ",round(cor[[i]],digits =3),"\ncov = ",round(cov[[i]],digits =3))) + 
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="")
-  print(g)
-}
-dev.off()
