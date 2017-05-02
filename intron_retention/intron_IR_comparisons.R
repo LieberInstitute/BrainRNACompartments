@@ -39,7 +39,7 @@ for (i in 1:length(dIR)){
 names(IR) = names(dIR)
 IRclean = lapply(IR, function(x) lapply(x, function(y) 
   y[which(y$A.warnings!="LowCover" & y$A.warnings!="LowSplicing" & 
-            y$B.warnings!="NonUniformIntronCover" & y$B.warnings!="LowCover" & 
+            y$A.warnings!="NonUniformIntronCover" & y$B.warnings!="LowCover" & 
             y$B.warnings!="LowSplicing" & y$B.warnings!="NonUniformIntronCover" &
             y$comments=="clean"),]))
 
