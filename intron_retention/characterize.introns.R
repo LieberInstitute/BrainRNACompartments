@@ -1,6 +1,7 @@
 library(GenomicRanges)
 library(ggplot2)
 
+### Prepare Intron Lists
 # Load IRFinder Results
 names = scan("/Users/amanda/Dropbox/NucVsCytosol/names.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
@@ -10,14 +11,12 @@ for (i in 1:length(shortenedNames)){
   IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)}
 names(IRres) = shortenedNames
 lapply(IRres, head)
-
 # Filter introns
 allIntrons = IRres[[1]]
 allIntrons = allIntrons[grep("clean", allIntrons$GeneIntronDetails, fixed=T),]
 string = unlist(strsplit(as.character(allIntrons$GeneIntronDetails), "/", fixed = TRUE), recursive = FALSE)
 allIntrons = data.frame(allIntrons[,c(1:4,6)], genes = string[grep("ENSG", string)],
                         intronID = paste0("chr",allIntrons$Chr,":",allIntrons$Start,"-",allIntrons$End))
-
 # read in Differential IR results files
 path = "./Dropbox/sorted_figures/IRfinder/"
 comps = c("Adult_PolyA_Zone","Fetal_PolyA_Zone","Cytosol_PolyA_Age","Nuclear_PolyA_Age","PolyA_Zone","PolyA_Age")
@@ -50,21 +49,43 @@ introns[["Introns (Age)"]] = introns[["Introns (Age)"]][unique(introns[["Introns
 
 # get repeat and conservation information from the UCSC table browser
 elementNROWS(dIRclean)
-coord = do.call(rbind, lapply(dIRclean, function(x) x[,1:3]))
+coord = do.call(rbind, lapply(dIRclean, function(x) x[,c(1:3,6)]))
 coord = coord[!duplicated(coord), ]
 coord$Chr = paste0("chr",coord$Chr)
 coord$ID = paste0(coord$Chr,":",coord$Start,"-",coord$End)
 dim(coord) # 2234    3
-write.table(coord[1:1000,], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.1000.txt",
+write.table(coord[1:1000,1:3], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.1000.txt",
             quote = F, sep = "\t", row.names = F, col.names = F) # The table browser can handle up to 1000 entries at a time
-write.table(coord[1001:2000,], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.2000.txt",
+write.table(coord[1001:2000,1:3], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.2000.txt",
             quote = F, sep = "\t", row.names = F, col.names = F)
-write.table(coord[2001:2234,], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.2234.txt",
+write.table(coord[2001:2234,1:3], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.2234.txt",
             quote = F, sep = "\t", row.names = F, col.names = F)
   # Go to the table browser, and under regions click "define regions" and upload the first 1000 regions in the list written above. Click submit.
   # To get GERP scores for hg19, go to the "Comparative Genomics" group and "GERP" track. Change the filter 10 million lines. Label the output "repeatmasker.introns.1000.txt" and click "Get Output." 
   # To get repeat information for hg19, change the group to "Repeats" and the "RepeatMasker" track. Label the output "repeatmasker.introns.1000.txt" and click "Get Output."
   # Repeat for the remaining 1,234 introns
+
+# For RNA Binding protein analysis, write coordinates in a way recognized by RBPMap
+rnacoord = do.call(rbind, lapply(dIRclean, function(x) x[,c(1:3,6)]))
+rnacoord = rnacoord[!duplicated(rnacoord), ]
+rnacoord$Chr = paste0("chr",rnacoord$Chr)
+rnacoord$length = abs(rnacoord$End - rnacoord$Start)
+splitlonger1 = splitlonger2 = rnacoord[which(rnacoord$length>10000 & rnacoord$length<20000),]
+splitlonger1$End = splitlonger1$End - ceiling(splitlonger1$length/2) 
+splitlonger2$Start = splitlonger2$Start + ceiling(splitlonger2$length/2)
+longer1 = longer2 = longer3 = rnacoord[which(rnacoord$length>20000),]
+longer1$End = longer1$End - 2*ceiling(longer1$length/3) 
+longer2$Start = longer2$End
+longer2$End = longer2$End - ceiling(longer2$length/3)
+longer3$Start = longer3$End - ceiling(longer3$length/3)
+rnacoord = rbind(rnacoord, splitlonger1, splitlonger2, longer1, longer2, longer3)
+rnacoord$length = abs(rnacoord$End - rnacoord$Start)
+rnacoord = rnacoord[which(rnacoord$length<=10000),]
+rnacoord$ID = paste0(rnacoord$Chr,":",rnacoord$Start,"-",rnacoord$End,":",rnacoord$Direction)
+dim(rnacoord) # 2254 introns
+write.table(rnacoord[,"ID"], file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/intron.coordinates.RBPmap.format.txt",
+            quote = F, sep = "\t", row.names = F, col.names = F)
+
 
 ### Check length distribution of differentially retained introns
 introns = Map(cbind, introns, length = lapply(introns, function(x) abs(x$End - x$Start)))
@@ -210,6 +231,7 @@ t.test(c(length[length$Comparison=="Cytosol:Adult-Increased","length"],length[le
 #  mean of x mean of y 
 #907.2046 1648.2232
 
+
 ### Check evolutionary conservation via GERP score
 gerp1000 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/GERP.introns.1000.txt", comment.char = "t", 
                       col.names = c("chromosome", "Start", "End", "Score"))
@@ -219,7 +241,7 @@ gerp2234 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_ret
                       col.names = c("chromosome", "Start", "End", "Score"))
 gerp = rbind(gerp1000,gerp2000,gerp2234)
 gerp = makeGRangesFromDataFrame(gerp, keep.extra.columns=TRUE)
-coord = makeGRangesFromDataFrame(coord, keep.extra.columns=T)
+coord = makeGRangesFromDataFrame(coord, strand.field="Direction", keep.extra.columns=T)
 hits = as.data.frame(findOverlaps(coord, gerp))
 cons = list()
 for (i in 1:length(coord)){
@@ -337,15 +359,50 @@ t.test(c(gerp[gerp$Comparison=="Cytosol:Adult-Increased","mean.GERP"],gerp[gerp$
 
     # More info about GERP can be found at http://mendel.stanford.edu/SidowLab/downloads/gerp/
 
-### Repeat masker: look for repeats
 
-  http://www.repeatmasker.org/webrepeatmaskerhelp.html
+### Check repetitive elements present in introns
+rpmsk1000 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/repeatmasker.introns.1000.txt", header=T)
+rpmsk2000 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/repeatmasker.introns.2000.txt", header=T)
+rpmsk2234 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/repeatmasker.introns.2234.txt", header=T)
+rpmsk = rbind(rpmsk1000,rpmsk2000,rpmsk2234)
+    # Track info can be found at http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=rep&hgta_track=rmsk&hgta_table=rmsk&hgta_doSchema=describe+table+schema
+simrp1000 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/simplerepeats.introns.1000.txt", header=T)
+simrp2000 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/simplerepeats.introns.2000.txt", header=T)
+simrp2234 = read.table("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/simplerepeats.introns.2234.txt", header=T)
+simrp = rbind(simrp1000,simrp2000,simrp2234)
+    # track info can be found at http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=215014537&c=chrX&g=simpleRepeat
+rpmsk = rpmsk[,which(colnames(rpmsk)!="strand")]
+rpmsk = makeGRangesFromDataFrame(rpmsk, seqnames.field="genoName",start.field="genoStart",end.field="genoEnd",keep.extra.columns=TRUE)
+simrp = makeGRangesFromDataFrame(simrp, seqnames.field="chrom",start.field="chromStart",end.field="chromEnd",keep.extra.columns=TRUE)
+hits = as.data.frame(findOverlaps(coord, rpmsk))
+simhits = as.data.frame(findOverlaps(coord, simrp))
+rps = srps = list()
+for (i in 1:length(coord)){
+  rps[[i]] = as.data.frame(rpmsk[hits[which(hits$queryHits==i),"subjectHits"]][,2:13])
+  srps[[i]] = as.data.frame(simrp[simhits[which(simhits$queryHits==i),"subjectHits"]][,2:13])
+  if (nrow(rps[[i]])>0){ rps[[i]][,"intronID"] = coord[i]$ID }
+  if (nrow(srps[[i]])>0){srps[[i]][,"intronID"] = coord[i]$ID }
+}
+names(rps) = names(srps) = coord$ID
+rps = do.call(rbind, rps)
+head(rps)
+srps = do.call(rbind,srps)
+head(srps)
 
-# Check RNA binding protein motifs
+
+
+
+
+
+
+
+
+
+### Check RNA binding protein motifs present in introns
 
 http://rbpmap.technion.ac.il/
   
-# Intron position in transcript
+### Check intron position in the transcript
 
 ensembl = useMart("ENSEMBL_MART_ENSEMBL", # VERSION 75, hg19
                   dataset="hsapiens_gene_ensembl",
