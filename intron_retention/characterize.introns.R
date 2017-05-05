@@ -385,10 +385,134 @@ for (i in 1:length(coord)){
 }
 names(rps) = names(srps) = coord$ID
 rps = do.call(rbind, rps)
-head(rps)
 srps = do.call(rbind,srps)
-head(srps)
 
+repeatintrons = Map(cbind, introns, lapply(introns, function(x) rps[match(x$intronID, rps$intronID),]))
+lapply(repeatintrons, head)
+for (i in 1:length(repeatintrons)){
+  if(nrow(repeatintrons[[i]])>0){
+  repeatintrons[[i]][is.na(repeatintrons[[i]][,"repName"]),"repName"] = "No Repeats"
+  repeatintrons[[i]][is.na(repeatintrons[[i]][,"repClass"]),"repClass"] = "No Repeats"
+  repeatintrons[[i]][is.na(repeatintrons[[i]][,"repFamily"]),"repFamily"] = "No Repeats"
+}}
+repeatintrons = do.call(rbind, repeatintrons[2:11])
+head(repeatintrons)
+repeatintrons$Samples = repeatintrons$Dir = "NA"
+repeatintrons[grep("Adult:", repeatintrons$Comparison), "Samples"] = "In Adult"
+repeatintrons[grep("Prenatal:", repeatintrons$Comparison), "Samples"] = "In Prenatal"
+repeatintrons[grep("Nucleus:", repeatintrons$Comparison), "Samples"] = "In Nucleus"
+repeatintrons[grep("Cytosol:", repeatintrons$Comparison), "Samples"] = "In Cytosol"
+repeatintrons[grep("Adult-", repeatintrons$Comparison), "Dir"] = "Increasing\nRetention"
+repeatintrons[grep("Prenatal-", repeatintrons$Comparison), "Dir"] = "Decreasing\nRetention"
+repeatintrons[grep("Nucleus-", repeatintrons$Comparison), "Dir"] = "Nuclear\nRetention"
+repeatintrons[grep("Cytosol-", repeatintrons$Comparison), "Dir"] = "Cytosolic\nRetention"
+
+levels(repeatintrons$Comparison) = c("Introns (Fraction)","Introns (Age)","Adult:Cytosol-Increased","Prenatal:Cytosol-Increased",
+                                     "Adult:Nucleus-Increased","Prenatal:Nucleus-Increased","Cytosol:Adult-Increased",
+                                     "Nucleus:Adult-Increased","Cytosol:Prenatal-Increased","Nucleus:Prenatal-Increased")
+
+# Plot density distribution of intron lengths using all "clean" introns as background
+ggplot(gerp[which(gerp$Samples=="In Adult" | gerp$Samples=="In Prenatal"),],
+       aes(x=Dir, y=mean.GERP, fill=Samples), color=Samples) + geom_boxplot() +
+  xlab("") + 
+  ylab("Mean GERP") +
+  ggtitle("Mean Base Conservation (GERP) in Introns\nDifferentially Retained By Fraction") +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(gerp[which(gerp$Samples=="In Cytosol" | gerp$Samples=="In Nucleus"),],
+       aes(x=Dir, y=mean.GERP, fill=Samples), color=Samples) + geom_boxplot() +
+  xlab("") + 
+  ylab("Mean GERP") +
+  ggtitle("Mean Base Conservation (GERP) in Introns\nDifferentially Retained Over Development") +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+
+ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Adult:Cytosol-Increased" | 
+                      length$Comparison=="Adult:Nucleus-Increased" |
+                      length$Comparison=="Prenatal:Cytosol-Increased" | length$Comparison=="Prenatal:Nucleus-Increased"),],
+       aes(x=length/1000)) + geom_density(aes(group=Comparison, colour=Comparison)) +
+  ylab("") + 
+  xlab("Intron Length (Kb)") +
+  ggtitle("Intron Length By Group") +
+  xlim(0,10) +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  theme(legend.position = c(0.8, 0.55)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Cytosol:Adult-Increased" | 
+                      length$Comparison=="Cytosol:Prenatal-Increased" |
+                      length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
+       aes(x=length/1000)) + geom_density(aes(group=Comparison, colour=Comparison)) +
+  ylab("") + 
+  xlab("Intron Length (Kb)") +
+  ggtitle("Intron Length By Group") +
+  xlim(0,10) +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  theme(legend.position = c(0.8, 0.55)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+
+# Plot density distribution of intron lengths using all introns reported in dIR output as background
+ggplot(length[which(length$Comparison=="Introns (Fraction)" | length$Comparison=="Adult:Cytosol-Increased" | 
+                      length$Comparison=="Adult:Nucleus-Increased" |
+                      length$Comparison=="Prenatal:Cytosol-Increased" | length$Comparison=="Prenatal:Nucleus-Increased"),],
+       aes(x=length/1000)) + geom_density(aes(group=Comparison, colour=Comparison)) +
+  ylab("") + 
+  xlab("Intron Length (Kb)") +
+  ggtitle("Intron Length By Group") +
+  xlim(0,10) +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  theme(legend.position = c(0.8, 0.55)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(length[which(length$Comparison=="Introns (Age)" | length$Comparison=="Cytosol:Adult-Increased" | 
+                      length$Comparison=="Cytosol:Prenatal-Increased" |
+                      length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
+       aes(x=length/1000)) + geom_density(aes(group=Comparison, colour=Comparison)) +
+  ylab("") + 
+  xlab("Intron Length (Kb)") +
+  ggtitle("Intron Length By Group") +
+  xlim(0,10) +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  theme(legend.position = c(0.8, 0.55)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+
+# Measure length differences in groups of introns
+t.test(c(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Cytosol-Increased","length"]),
+       c(length[length$Comparison=="Adult:Nucleus-Increased","length"],length[length$Comparison=="Prenatal:Nucleus-Increased","length"]))
+#data: pooled cytosolic vs pooled nuclear introns
+t.test(length[length$Comparison=="Prenatal:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Nucleus-Increased","length"])
+#data: Prenatal cytosolic vs Prenatal nuclear introns
+t.test(c(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Cytosol-Increased","length"],
+         length[length$Comparison=="Adult:Nucleus-Increased","length"],length[length$Comparison=="Prenatal:Nucleus-Increased","length"]),
+       length[length$Comparison=="Introns (Fraction)","length"])
+#data: pooled significantly differentially retained introns by fraction vs all introns reported in comparison
+t.test(c(length[length$Comparison=="Cytosol:Adult-Increased","length"],length[length$Comparison=="Nucleus:Adult-Increased","length"]),
+       c(length[length$Comparison=="Cytosol:Prenatal-Increased","length"],length[length$Comparison=="Nucleus:Prenatal-Increased","length"]))
+#data: pooled adult vs pooled prenatal introns
+t.test(length[length$Comparison=="Cytosol:Adult-Increased","length"],length[length$Comparison=="Cytosol:Prenatal-Increased","length"])
+#data: Cytosol:adult vs Cytosol:prenatal introns
+t.test(length[length$Comparison=="Nucleus:Adult-Increased","length"],length[length$Comparison=="Nucleus:Prenatal-Increased","length"])
+#data: Nucleus:adult vs Nucleus:prenatal introns
+t.test(c(length[length$Comparison=="Cytosol:Adult-Increased","length"],length[length$Comparison=="Nucleus:Adult-Increased","length"],
+         length[length$Comparison=="Cytosol:Prenatal-Increased","length"],length[length$Comparison=="Nucleus:Prenatal-Increased","length"]),
+       length[length$Comparison=="Introns (Age)","length"])
+#data: pooled significantly differentially retained introns by age vs all introns reported in comparison
 
 
 
