@@ -76,7 +76,12 @@ write.table(rnacoord[,"ID"], file="./Dropbox/sorted_figures/new/github_controlle
 
 ### Check RNA binding protein motifs present in introns
 
-http://rbpmap.technion.ac.il/
+
+
+
+
+
+  # more information can be found at http://rbpmap.technion.ac.il/
   
 
 ###############################################################
