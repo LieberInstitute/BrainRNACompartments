@@ -1,3 +1,5 @@
-filename=/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/RBPMap/RBPMap_results_hg19.txt
+cd /dcl01/lieber/ajaffe/Amanda/NucVsCyt/RBPMap
 
-awk -vRS='\n\\*\\*+' '{print > "file" NR ".txt"}' $filename
+filename=/dcl01/lieber/ajaffe/Amanda/NucVsCyt/RBPMap/RBPMap_results_hg19.txt
+
+awk '/^*/{i++};{print > (i".txt")}' $filename
