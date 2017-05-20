@@ -1,6 +1,8 @@
 library(GenomicRanges)
 library(ggplot2)
 
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+
 ### read in Differential IR results files
 path = "./Dropbox/sorted_figures/IRfinder/"
 comps = c("Adult_PolyA_Zone","Fetal_PolyA_Zone","Cytosol_PolyA_Age","Nuclear_PolyA_Age","PolyA_Zone","PolyA_Age")
