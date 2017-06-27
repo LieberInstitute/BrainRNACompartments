@@ -1,11 +1,12 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf470
 {\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Consolas;
-\f3\fnil\fcharset0 Menlo-Bold;\f4\fnil\fcharset0 Consolas-Bold;}
+\f3\fnil\fcharset0 Menlo-Bold;\f4\fmodern\fcharset0 Courier;\f5\fnil\fcharset0 Consolas-Bold;
+}
 {\colortbl;\red255\green255\blue255;\red49\green49\blue49;\red47\green189\blue29;\red222\green53\blue46;
-\red255\green255\blue255;\red49\green49\blue49;\red251\green251\blue251;\red64\green11\blue217;\red159\green160\blue28;
-\red135\green138\blue4;\red180\green36\blue25;\red46\green174\blue187;\red178\green178\blue178;\red133\green0\blue2;
-\red200\green20\blue201;\red193\green101\blue28;\red224\green228\blue9;\red223\green223\blue223;\red220\green0\blue5;
-\red19\green150\blue163;\red161\green0\blue163;}
+\red251\green251\blue251;\red64\green11\blue217;\red159\green160\blue28;\red135\green138\blue4;\red180\green36\blue25;
+\red46\green174\blue187;\red178\green178\blue178;\red133\green0\blue2;\red200\green20\blue201;\red193\green101\blue28;
+\red224\green228\blue9;\red223\green223\blue223;\red220\green0\blue5;\red19\green150\blue163;\red161\green0\blue163;
+}
 \margl1440\margr1440\vieww25400\viewh11860\viewkind0
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
@@ -46,25 +47,25 @@ python -m unittest discover misopy\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 ~/biotools/\cf3 gtfToGenePred \cf0 /dcl01/lieber/ajaffe/Emily/RNAseq-pipeline/Annotation/GENCODE/GRCh37_hg19/\cf3 gencode.v25lift37.annotation.gtf \cf0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/annotation/hg19/
-\f2\fs24 \cf4 \cb5 \expnd0\expndtw0\kerning0
-\CocoaLigature1 \outl0\strokewidth0 \strokec4 knownGene.txt\
+\f2\fs24 \cf4 \expnd0\expndtw0\kerning0
+\CocoaLigature1 knownGene.txt\
 \
 \pard\pardeftab720\sl280\partightenfactor0
-\cf6 \strokec6 gff_make_annotation 
-\f0\fs22 \cf0 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \outl0\strokewidth0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/annotation/hg19/
-\f2\fs24 \cf6 \cb5 \expnd0\expndtw0\kerning0
-\CocoaLigature1 \outl0\strokewidth0 \strokec6  
-\f0\fs22 \cf0 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \outl0\strokewidth0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/annotation/hg19
-\f2\fs24 \cf6 \cb5 \expnd0\expndtw0\kerning0
-\CocoaLigature1 \outl0\strokewidth0 \strokec6 /gff3 --flanking-rule commonshortest --genome-label 
-\f0\fs22 \cf3 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \outl0\strokewidth0 gencode.v25lift37
-\f2\fs24 \cf6 \cb5 \expnd0\expndtw0\kerning0
-\CocoaLigature1 \outl0\strokewidth0 \strokec6 \
+\cf2 gff_make_annotation 
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/annotation/hg19/
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+\CocoaLigature1  
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/annotation/hg19
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /gff3 --flanking-rule commonshortest --genome-label 
+\f0\fs22 \cf3 \kerning1\expnd0\expndtw0 \CocoaLigature0 gencode.v25lift37
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+\CocoaLigature1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf4 \strokec4 \
+\cf4 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f1\b \cf0 \cb1 \outl0\strokewidth0 \
+\f1\b \cf0 \
 \pard\pardeftab720\sl360\partightenfactor0
 \cf0 \
 # index GFF annotation files
@@ -114,7 +115,7 @@ index_gff --index
 \
 \pard\pardeftab720\sl380\partightenfactor0
 
-\f1\b \cf0 \cb7 # Getting a set of long constitutive exons
+\f1\b \cf0 \cb5 # Getting a set of long constitutive exons
 \f2\b0 \cf2 \cb1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
@@ -129,38 +130,43 @@ index_gff --index
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-12 insertLength.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-12 insertLength.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/pipeline_output/polyA/HISAT2_out/\cf15 $\{ID\}\cf0 _accepted_hits.sorted.bam\
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/pipeline_output/polyA/HISAT2_out/\cf13 $\{ID\}\cf0 _accepted_hits.sorted.bam\
 \
-pe_utils \cf15 --compute-insert-len\cf0  \cf15 $BAM\cf0  exons/hg19.ensGene.min_1000.const_exons.gff \cf15 --output-dir\cf0  insert-dist/\
+pe_utils \cf13 --compute-insert-len\cf0  \cf13 $BAM\cf0  exons/hg19.ensGene.min_1000.const_exons.gff \cf13 --output-dir\cf0  insert-dist/\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\pardeftab720\sl380\partightenfactor0
 
-\f1\b \cf0 \cb7 # Pull out the mean and SD per sample
-\f2\b0 \cf2 \cb1 \
+\f1\b \cf0 \cb5 # Pull out the mean and SD per sample\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 < /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt parallel -P1 grep "mean" \{\}.bam.insert_len ">" \{\}.line.txt\
+\f2\b0 \cf2 \cb1 \
+
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 < /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt parallel -P1 grep "mean" \{\}_accepted_hits.sorted.bam.insert_len ">" \{\}.line.txt\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 grep "mean" Br5339C1_downsamp_accepted_hits.sorted.bam.insert_len > Br5339C1_downsamp.line.txt\
+grep "mean" Br5340C1_downsamp_accepted_hits.sorted.bam.insert_len > Br5340C1_downsamp.line.txt\
 \
 R\
 setwd("/dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/insert-dist")\
 names = scan("/dcl01/lieber/ajaffe/Amanda/NucVsCyt/fullnames.txt", what="character")\
+names = c(names[1:12], "Br5339C1_downsamp", "Br5340C1_downsamp")\
 all = list()\
 for (i in 1:length(names))\{\
 all[[i]] = scan(paste0("/dcl01/lieber/ajaffe/Amanda/NucVsCyt/MISO_out/insert-dist/", names[i],".line.txt"), what="character")\}\
@@ -172,8 +178,18 @@ m = unlist(strsplit(mean, "=", fixed=T))\
 s = unlist(strsplit(sd, "=", fixed=T))\
 mean = m[grep("mean",m, fixed=T, invert = T)]\
 sd = s[grep("sdev",s, fixed=T, invert = T)]\
-write.table(mean, file="./means.txt", quote = F, col.names = F, row.names = F)\
-write.table(sd, file="./sd.txt", quote = F, col.names = F, row.names = F)\
+mean = data.frame(mean)\
+rownames(mean) = gsub("12", "", rownames(mean))\
+sd = data.frame(sd)\
+rownames(sd) = gsub("22", "", rownames(sd))\
+write.table(mean, file="./means.txt", quote = F, col.names = F, row.names = T, 
+\f4\fs26\fsmilli13333 \expnd0\expndtw0\kerning0
+\CocoaLigature1 sep = 
+\f0\fs22 \kerning1\expnd0\expndtw0 \CocoaLigature0 "\\t")\
+write.table(sd, file="./sd.txt", quote = F, col.names = F, row.names = T, 
+\f4\fs26\fsmilli13333 \expnd0\expndtw0\kerning0
+\CocoaLigature1 sep = 
+\f0\fs22 \kerning1\expnd0\expndtw0 \CocoaLigature0 "\\t")\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -181,18 +197,18 @@ write.table(sd, file="./sd.txt", quote = F, col.names = F, row.names = F)\
 \
 \pard\pardeftab720\sl380\partightenfactor0
 
-\f1\b \cf0 \cb7 # Run MISO on 5 types of alternative exon use\
+\f1\b \cf0 \cb5 # Run MISO on 5 types of alternative exon use\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\b0\fs22 \cf16 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\
+\f0\b0\fs22 \cf14 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf0 miso \cf15 --run\cf0  annotation/hg19/indexed_RI /dcl01/lieber/ajaffe/Amanda/NucVsCyt/pipeline_output/polyA/HISAT2_out/Br1113C1_polyA_accepted_hits.sorted.bam event-\cf12 type\cf0 =RI \cf15 --output-dir\cf0  run_output/RI \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end \cf8 204 62.3\cf0  --prefilter
-\f1\b\fs24 \cb7 \expnd0\expndtw0\kerning0
+\cf0 miso \cf13 --run\cf0  annotation/hg19/indexed_RI /dcl01/lieber/ajaffe/Amanda/NucVsCyt/pipeline_output/polyA/HISAT2_out/Br1113C1_polyA_accepted_hits.sorted.bam event-\cf10 type\cf0 =RI \cf13 --output-dir\cf0  run_output/RI \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end \cf6 204 62.3\cf0  --prefilter
+\f1\b\fs24 \cb5 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\pardeftab720\sl380\partightenfactor0
 \cf0 \
@@ -200,62 +216,62 @@ module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\
 \f2\b0 \cf2 \cb1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_RI.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_RI.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf16 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf14 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
-\cf12 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
-\cf12 ID\cf0 =\cf18 \cb19 $(\cf15 \cb1 awk \cf16 "\cf14 \cb17 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf16 "\cf15  $FILELIST\cf18 \cb19 )\cf0 \cb1 \
-\cf12 MEA\cf20 \cb17 N\cf0 \cb1 =\cf18 \cb19 $(\cf15 \cb1 awk \cf16 "\cf14 \cb17 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf16 "\cf15  $meanList\cf18 \cb19 )\cf0 \cb1 \
-\cf12 SD\cf0 =\cf18 \cb19 $(\cf15 \cb1 awk \cf16 "\cf14 \cb17 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf16 "\cf15  $sdList\cf18 \cb19 )\cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb17 N\cb1 ucVsCyt/Sorted_BAMS/\cf15 $\{ID\}\cf0 .bam\
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
+\cf10 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
+\cf10 ID\cf0 =\cf16 \cb17 $(\cf13 \cb1 awk \cf14 "\cf12 \cb15 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf14 "\cf13  $FILELIST\cf16 \cb17 )\cf0 \cb1 \
+\cf10 MEA\cf18 \cb15 N\cf0 \cb1 =\cf16 \cb17 $(\cf13 \cb1 awk \cf14 "\cf12 \cb15 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf14 "\cf13  $meanList\cf16 \cb17 )\cf0 \cb1 \
+\cf10 SD\cf0 =\cf16 \cb17 $(\cf13 \cb1 awk \cf14 "\cf12 \cb15 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf14 "\cf13  $sdList\cf16 \cb17 )\cf0 \cb1 \
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb15 N\cb1 ucVsCyt/Sorted_BAMS/\cf13 $\{ID\}\cf0 .bam\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf16 echo\cf11  \cf15 $\{ID\}\cf0 \
-miso \cf15 --run\cf0  annotation/hg19/indexed_RI \cf15 $BAM\cf0  event-\cf12 type\cf0 =RI \cf15 --output-dir\cf0  run_output/RI \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end\cf0  \cf15 $\{\cf12 MEA\cf20 \cb17 N\cf15 \cb1 \}\cf0  \cf15 $\{SD\}\cf0 \
+\cf14 echo\cf9  \cf13 $\{ID\}\cf0 \
+miso \cf13 --run\cf0  annotation/hg19/indexed_RI \cf13 $BAM\cf0  event-\cf10 type\cf0 =RI \cf13 --output-dir\cf0  run_output/RI \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end\cf0  \cf13 $\{\cf10 MEA\cf18 \cb15 N\cf13 \cb1 \}\cf0  \cf13 $\{SD\}\cf0 \
 \pard\pardeftab720\sl360\partightenfactor0
 
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_SE.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_SE.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
-\cf12 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
+\cf10 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 MEA\cf0 \cb10 N\cb1 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $meanList
-\f3\b \cf13 \cb14 )
+\cf10 MEA\cf0 \cb8 N\cb1 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $meanList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 SD\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $sdList
-\f3\b \cf13 \cb14 )
+\cf10 SD\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $sdList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/Sorted_BAMS/\cf15 $\{ID\}\cf0 .bam\
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/Sorted_BAMS/\cf13 $\{ID\}\cf0 .bam\
 \
-\cf9 echo\cf11  \cf15 $\{ID\}\cf0 \
-miso \cf15 --run\cf0  annotation/hg19/indexed_SE \cf15 $BAM\cf0  event-\cf12 type\cf0 =SE \cf15 --output-dir\cf0  run_output/SE \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end\cf0  \cf15 $\{MEA\cf0 \cb10 N\cf15 \cb1 \}\cf0  \cf15 $\{SD\}\
+\cf7 echo\cf9  \cf13 $\{ID\}\cf0 \
+miso \cf13 --run\cf0  annotation/hg19/indexed_SE \cf13 $BAM\cf0  event-\cf10 type\cf0 =SE \cf13 --output-dir\cf0  run_output/SE \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end\cf0  \cf13 $\{MEA\cf0 \cb8 N\cf13 \cb1 \}\cf0  \cf13 $\{SD\}\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
@@ -263,130 +279,130 @@ miso \cf15 --run\cf0  annotation/hg19/indexed_SE \cf15 $BAM\cf0  event-\cf12 typ
 \CocoaLigature1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_MXE.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_MXE.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
-\cf12 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
+\cf10 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 MEA\cf0 \cb10 N\cb1 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $meanList
-\f3\b \cf13 \cb14 )
+\cf10 MEA\cf0 \cb8 N\cb1 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $meanList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 SD\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $sdList
-\f3\b \cf13 \cb14 )
+\cf10 SD\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $sdList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/Sorted_BAMS/\cf15 $\{ID\}\cf0 .bam\
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/Sorted_BAMS/\cf13 $\{ID\}\cf0 .bam\
 \
-\cf9 echo\cf11  \cf15 $\{ID\}\cf0 \
-miso \cf15 --run\cf0  annotation/hg19/indexed_MXE \cf15 $BAM\cf0  event-\cf12 type\cf0 =MXE \cf15 --output-dir\cf0  run_output/MXE \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end\cf0  \cf15 $\{MEA\cf0 \cb10 N\cf15 \cb1 \}\cf0  \cf15 $\cf21 \cb20 \{\cf15 \cb1 SD\cf21 \cb20 \}
+\cf7 echo\cf9  \cf13 $\{ID\}\cf0 \
+miso \cf13 --run\cf0  annotation/hg19/indexed_MXE \cf13 $BAM\cf0  event-\cf10 type\cf0 =MXE \cf13 --output-dir\cf0  run_output/MXE \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end\cf0  \cf13 $\{MEA\cf0 \cb8 N\cf13 \cb1 \}\cf0  \cf13 $\cf19 \cb18 \{\cf13 \cb1 SD\cf19 \cb18 \}
 \f2\fs24 \cf2 \cb1 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_A5SS.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
-\cf12 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
+\cf10 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 MEA\cf0 \cb10 N\cb1 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $meanList
-\f3\b \cf13 \cb14 )
+\cf10 MEA\cf0 \cb8 N\cb1 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $meanList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 SD\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $sdList
-\f3\b \cf13 \cb14 )
+\cf10 SD\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $sdList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/Sorted_BAMS/\cf15 $\{ID\}\cf0 .bam\
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/Sorted_BAMS/\cf13 $\{ID\}\cf0 .bam\
 \
-\cf9 echo\cf11  \cf15 $\{ID\}\cf0 \
-miso \cf15 --run\cf0  annotation/hg19/indexed_A5SS \cf15 $BAM\cf0  event-\cf12 type\cf0 =A5SS \cf15 --output-dir\cf0  run_output/A5SS \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end\cf0  \cf15 $\{MEA\cf0 \cb10 N\cf15 \cb1 \}\cf0  \cf15 $\{SD\}\
+\cf7 echo\cf9  \cf13 $\{ID\}\cf0 \
+miso \cf13 --run\cf0  annotation/hg19/indexed_A5SS \cf13 $BAM\cf0  event-\cf10 type\cf0 =A5SS \cf13 --output-dir\cf0  run_output/A5SS \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end\cf0  \cf13 $\{MEA\cf0 \cb8 N\cf13 \cb1 \}\cf0  \cf13 $\{SD\}\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_A3SS.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 run_miso_A3SS.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
-\cf12 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 meanList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/means.txt\
+\cf10 sdList\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/insert-dist/sd.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 MEA\cf0 \cb10 N\cb1 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $meanList
-\f3\b \cf13 \cb14 )
+\cf10 MEA\cf0 \cb8 N\cb1 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $meanList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 SD\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $sdList
-\f3\b \cf13 \cb14 )
+\cf10 SD\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $sdList
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
-\cf12 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/Sorted_BAMS/\cf15 $\{ID\}\cf0 .bam\
+\cf10 BAM\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/Sorted_BAMS/\cf13 $\{ID\}\cf0 .bam\
 \
-\cf9 echo\cf11  \cf15 $\{ID\}\cf0 \
-miso \cf15 --run\cf0  annotation/hg19/indexed_A3SS \cf15 $BAM\cf0  event-\cf12 type\cf0 =A3SS \cf15 --output-dir\cf0  run_output/A3SS \cf15 --read-len\cf0  \cf11 100\cf0  \cf15 --paired-end\cf0  \cf15 $\{MEA\cf0 \cb10 N\cf15 \cb1 \}\cf0  \cf15 $\{SD\}\cf0 \
+\cf7 echo\cf9  \cf13 $\{ID\}\cf0 \
+miso \cf13 --run\cf0  annotation/hg19/indexed_A3SS \cf13 $BAM\cf0  event-\cf10 type\cf0 =A3SS \cf13 --output-dir\cf0  run_output/A3SS \cf13 --read-len\cf0  \cf9 100\cf0  \cf13 --paired-end\cf0  \cf13 $\{MEA\cf0 \cb8 N\cf13 \cb1 \}\cf0  \cf13 $\{SD\}\cf0 \
 \pard\pardeftab720\sl360\partightenfactor0
 
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
-\f4\b \cf2 # Summarize the results
+\f5\b \cf2 # Summarize the results
 \f2\b0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_MXE.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_MXE.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
@@ -403,19 +419,19 @@ summarize_miso --summarize-samples
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_SE.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_SE.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
@@ -432,19 +448,19 @@ summarize_miso --summarize-samples
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_RI.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_RI.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
@@ -452,7 +468,7 @@ module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
 \CocoaLigature1 \
 echo $\{ID\}\
 summarize_miso --summarize-samples 
-\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf8 RI\cf0 /
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf6 RI\cf0 /
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1  
 \f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 summarized/
@@ -461,19 +477,19 @@ summarize_miso --summarize-samples
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_A5SS.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_A5SS.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
@@ -481,7 +497,7 @@ module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
 \CocoaLigature1 \
 echo $\{ID\}\
 summarize_miso --summarize-samples 
-\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf8 A5SS\cf0 /
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf6 A5SS\cf0 /
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1  
 \f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 summarized/
@@ -490,19 +506,19 @@ summarize_miso --summarize-samples
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\f0\fs22 \cf8 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_A3SS.sh\cf0 \
+\f0\fs22 \cf6 \kerning1\expnd0\expndtw0 \CocoaLigature0 # qsub -tc 245 -l mf=5G,h_vmem=5G,h_stack=256M -m e -M amanda.joy.price@gmail.com -t 1-23 summarize_A3SS.sh\cf0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf9 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/MISO_out/\
-module load python/\cf11 2\cf0 .\cf11 7\cf0 .\cf11 9\cf0 \
-module load samtools/\cf11 1\cf0 .\cf11 1\cf0 \
-module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
+\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/MISO_out/\
+module load python/\cf9 2\cf0 .\cf9 7\cf0 .\cf9 9\cf0 \
+module load samtools/\cf9 1\cf0 .\cf9 1\cf0 \
+module load bedtools/\cf9 2\cf0 .\cf9 24\cf0 .\cf9 0\cf0 \
 \
-\cf12 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb10 N\cb1 ucVsCyt/fullnames.txt\
-\cf12 ID\cf0 =
-\f3\b \cf13 \cb14 $(
-\f0\b0 \cf15 \cb1 awk \cf9 "\cf0 \cb10 N\cf11 \cb1 R==\cf15 $SGE_TASK_ID\cf9 "\cf15  $FILELIST
-\f3\b \cf13 \cb14 )
+\cf10 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/\cb8 N\cb1 ucVsCyt/fullnames.txt\
+\cf10 ID\cf0 =
+\f3\b \cf11 \cb12 $(
+\f0\b0 \cf13 \cb1 awk \cf7 "\cf0 \cb8 N\cf9 \cb1 R==\cf13 $SGE_TASK_ID\cf7 "\cf13  $FILELIST
+\f3\b \cf11 \cb12 )
 \f0\b0 \cf0 \cb1 \
 \pard\pardeftab720\sl360\partightenfactor0
 
@@ -510,7 +526,7 @@ module load bedtools/\cf11 2\cf0 .\cf11 24\cf0 .\cf11 0\cf0 \
 \CocoaLigature1 \
 echo $\{ID\}\
 summarize_miso --summarize-samples 
-\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf8 A3SS\cf0 /
+\f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 run_output/\cf6 A3SS\cf0 /
 \f2\fs24 \cf2 \expnd0\expndtw0\kerning0
 \CocoaLigature1  
 \f0\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 summarized/
