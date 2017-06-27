@@ -1,6 +1,7 @@
 library(GenomicRanges)
 library(ggplot2)
 library(plyr)
+library(data.table)
 
 ### Prepare Intron Lists
 
@@ -75,6 +76,58 @@ write.table(rnacoord[,"ID"], file="./Dropbox/sorted_figures/new/github_controlle
 ###############################################################
 
 ### Check RNA binding protein motifs present in introns
+
+# After running the code in split_RBPMap_results_byAsterisk.txt on server 4, scan in names and create data.frame of RNA binding proteins
+
+setwd("cd /media/DATA/Amanda/RBPMap/intronRBPbyprotein")
+ids = scan("../introns.txt", what = "character")
+proteinIDs = proteins = list()
+for (i in 1:length(ids)){
+  proteinIDs[[i]] = scan(paste0(ids[i], "_ids.txt"), what="character")
+}
+proteinIDs = unlist(proteinIDs)
+split = strsplit(proteinIDs, "_", fixed = T)
+
+for (i in grep("No", proteinIDs, invert = T)){
+  proteins[[i]] = read.table(proteinIDs[i], header = T, skip = 1)
+  proteins[[i]][,"ID"] = proteinIDs[i]
+  proteins[[i]][,"chromosome"] = split[[i]][1]
+  proteins[[i]][,"interval"] = split[[i]][2]
+  proteins[[i]][,"strand"] = split[[i]][3]
+  proteins[[i]][,"proteinID"] = gsub("().txt","", split[[i]][6], fixed = T)
+  proteins[[i]][,"intronID"] = paste0(split[[i]][1],":",split[[i]][2])
+}
+names(proteins) = proteinIDs
+allrbp = do.call(rbind, proteins)
+
+rbp = as.data.table(allrbp)
+rbp = rbp[rbp[,.I[P.value == min(P.value)], by=ID]$V1]
+rbp = rbp[rbp[,.I[Sequence_Position == min(Sequence_Position)], by=ID]$V1]
+split.nos = strsplit(proteinIDs[grep("No", proteinIDs)], "_", fixed = T)
+rbp = rbind(rbp, data.frame("Sequence_Position" = NA,"Genomic_Coordinate" = NA,"Motif" = NA,"K.mer" = NA,"Z.score" = NA,"P.value" = NA,
+                            "ID" = proteinIDs[grep("No", proteinIDs)],
+                            "chromosome" = unlist(lapply(split.nos, function(x) x[1])),
+                            "interval" = unlist(lapply(split.nos, function(x) x[2])),          
+                            "strand" = unlist(lapply(split.nos, function(x) x[3])),
+                            "proteinID" = gsub(".txt","", unlist(lapply(split.nos, function(x) x[6])), fixed = T),
+                            "intronID" = paste0(unlist(lapply(split.nos, function(x) x[1])),":",unlist(lapply(split.nos, function(x) x[2])))))
+save(proteinIDs, proteins, allrbp, rbp, file="/media/DATA/Amanda/RBPMap/intronRBPbyprotein/RBP_objects.rda")
+
+# load RBP results locally, and compare binding motifs by intron localization
+load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/RBPMap/RBP_objects.rda")
+
+### Do differentially retained introns by fraction have more RBP sites?
+# Map RBP table to differentially retained intron list
+rbpIntrons = lapply(introns, function(x) cbind(x, ))
+
+### Do differentially retained introns by age have more RBP sites?
+
+
+### What is the distribution of RBPs by different groups of introns?
+length(unique(rbp$proteinID)) # 95 represented in entire list
+
+### Any RBPs stick out?
+
 
 
 

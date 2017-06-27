@@ -1,0 +1,68 @@
+# For whatever reason, this only works on server 4 (and not on the biostat cluster or my LIBD workstation)
+# in the directory /media/DATA/Amanda/RBPMap, run 'sh parser.sh'
+
+cd /media/DATA/Amanda/RBPMap
+
+filename=/media/DATA/Amanda/RBPMap/RBPMap_results_hg19.txt
+
+awk '/^*/{i++};{print > (i".txt")}' $filename
+
+
+# Rename the results for the intron ID
+
+awk 'FNR==3 {print FILENAME, $0}' *.txt >output.txt
+< output.txt parallel -P1 --colsep ' ' mv {1} {2}.txt
+
+R
+x = read.table("output.txt")
+x = as.character(x$V2)
+write.table(x, file="intronIDS.txt", col.names = F, row.names = F, quote = F)
+quit()
+
+# Separate each intron’s file by protein
+
+cd /media/DATA/Amanda/RBPMap/RBPbyIntron
+< ../intronIDS.txt parallel -P1 "sed -i -e 's/Protein: /Protein:/g' {}.txt"
+< ../intronIDS.txt parallel -P1 "sed -i -e 's/Sequence Position/Sequence_Position/g' {}.txt"
+< ../intronIDS.txt parallel -P1 "sed -i -e 's/Genomic Coordinate/Genomic_Coordinate/g' {}.txt"
+< ../intronIDS.txt parallel -P1 "sed -i -e 's/:/_/g' {}.txt"
+< ../intronIDS.txt parallel -P1 "sed -i -e 's/\(Hs\/Mm\)//g' {}.txt"
+
+cd /media/DATA/Amanda/RBPMap/intronRBPbyprotein
+< ../intronIDS.txt parallel -P1 awk -v RS= \'\{print\ \>\ \(\"{}_\"\ NR\ \".txt\"\)}\'\ ../RBPbyIntron/{}.txt
+
+# Update names of results to include protein name
+
+awk 'FNR==1 {print FILENAME, $0}' *1.txt > protein_output1.txt
+awk 'FNR==1 {print FILENAME, $0}' *2.txt > protein_output2.txt
+awk 'FNR==1 {print FILENAME, $0}' *3.txt > protein_output3.txt
+awk 'FNR==1 {print FILENAME, $0}' *4.txt > protein_output4.txt
+awk 'FNR==1 {print FILENAME, $0}' *5.txt > protein_output5.txt
+awk 'FNR==1 {print FILENAME, $0}' *6.txt > protein_output6.txt
+awk 'FNR==1 {print FILENAME, $0}' *7.txt > protein_output7.txt
+awk 'FNR==1 {print FILENAME, $0}' *8.txt > protein_output8.txt
+awk 'FNR==1 {print FILENAME, $0}' *9.txt > protein_output9.txt
+awk 'FNR==1 {print FILENAME, $0}' *0.txt > protein_output0.txt
+
+cat protein_output1.txt protein_output2.txt protein_output3.txt protein_output4.txt protein_output5.txt protein_output6.txt protein_output7.txt protein_output8.txt protein_output9.txt protein_output0.txt > protein_output.txt
+sed -i -e 's/.txt//g' protein_output.txt
+< protein_output.txt parallel -P1 --colsep ' ' mv {1}.txt {1}_{2}.txt
+
+# Make a list of all names
+
+ls | grep -v Protein | grep -v No | xargs rm
+
+R
+setwd("/media/DATA/Amanda/RBPMap")
+introns = read.table("output.txt", col.names = F)
+write.table(introns$V2, file="introns.txt", col.names = F, row.names = F, quote = F)
+quit()
+
+# sh makeIDS.sh
+
+filename='/media/DATA/Amanda/RBPMap/introns.txt'
+
+while read p; do 
+    ls ${p}_*.txt > ${p}_ids.txt
+done < $filename
+
