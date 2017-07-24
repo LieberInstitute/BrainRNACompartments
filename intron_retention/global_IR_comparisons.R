@@ -2,9 +2,9 @@ library(ggplot2)
 library(reshape2)
 
 # Load IRFinder Results
-names = scan("/Users/amanda/Dropbox/NucVsCytosol/names.txt", what = "character")
+names = scan("./Dropbox/NucVsCytosol/names.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
-path = "/Users/amanda/Dropbox/sorted_figures/IRfinder/"
+path = "./Dropbox/sorted_figures/IRfinder/"
 IRres = list()
 for (i in 1:length(shortenedNames)){
   IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
@@ -57,6 +57,7 @@ ggplot(introns, aes(x=Group, y=num.introns)) +
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# introns_passingQC.pdf
 
 ggplot(introns, aes(x=Group, y=num.genes)) + 
   geom_boxplot() + geom_jitter() +
@@ -66,6 +67,7 @@ ggplot(introns, aes(x=Group, y=num.genes)) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") + ylim(0,8000)
+# unique_genes_introns_passingQC.pdf
 
 ggplot(introns, aes(x=Group, y=MeanIntronDepth)) + 
   geom_boxplot() + geom_jitter() +
@@ -75,6 +77,7 @@ ggplot(introns, aes(x=Group, y=MeanIntronDepth)) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") + ylim(0,.35)
+# meanIntronDepth_introns_passingQC.pdf
 
 allintrons = Reduce(intersect, intronID)
 length(allintrons) # 3621 of the introns pass QC in all four groups
@@ -105,6 +108,7 @@ ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) 
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# IRratio_byGroup.pdf
 
 # Just in shared introns
 ratio.overlaps = IRratios[which(IRratios$intronID %in% allintrons),]
@@ -119,6 +123,7 @@ ggplot(ratio.overlaps, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Gr
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# IRratio_byGroup_QC_introns_only.pdf
 
 
 # How many introns are retained at different thresholds?
@@ -162,6 +167,7 @@ ggplot(PercentIRs, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# percent_introns_byIRRatio.pdf
 
 ggplot(PercentIRs[which(PercentIRs$variable != "Constitutively\nSpliced" & PercentIRs$variable != ">0%"),],
        aes(x=variable, y=value, fill=Group), color=Group) + 
@@ -175,6 +181,7 @@ ggplot(PercentIRs[which(PercentIRs$variable != "Constitutively\nSpliced" & Perce
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# percent_introns_byIRRatio_greaterthan5perc.pdf
 
 # In only the introns in all four groups
 overlaps = lapply(IRfiltered2, function(x) x[which(x$intronID %in% allintrons),])
@@ -217,6 +224,7 @@ ggplot(PercentIRsOverlap, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# percent_introns_byIRRatio_QC_intronsOnly.pdf
 
 ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSpliced" & 
                                  PercentIRsOverlap$variable != ">0%"),],
@@ -231,6 +239,7 @@ ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSp
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# percent_introns_byIRRatio_greaterthan5perc_QC_introns.pdf
 
 # Is IR increased in the nucleus?
 # Main effect: All filtered introns

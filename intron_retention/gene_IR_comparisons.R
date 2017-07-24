@@ -7,9 +7,9 @@ load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_tra
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Load IRFinder Results
-names = scan("/Users/amanda/Dropbox/NucVsCytosol/names.txt", what = "character")
+names = scan("./Dropbox/NucVsCytosol/names.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
-path = "/Users/amanda/Dropbox/sorted_figures/IRfinder/"
+path = "./Dropbox/sorted_figures/IRfinder/"
 IRres = list()
 for (i in 1:length(shortenedNames)){
   IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)}
