@@ -1,9 +1,9 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf470
 {\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;\f2\fswiss\fcharset0 ArialMT;
-\f3\fnil\fcharset0 Menlo-Bold;\f4\fnil\fcharset0 Consolas;}
-{\colortbl;\red255\green255\blue255;\red26\green26\blue26;\red234\green234\blue234;\red180\green36\blue25;
-\red64\green11\blue217;\red252\green33\blue24;\red159\green160\blue28;\red46\green174\blue187;\red200\green20\blue201;
-\red178\green178\blue178;\red133\green0\blue2;}
+\f3\fnil\fcharset0 Consolas;\f4\fnil\fcharset0 Menlo-Bold;}
+{\colortbl;\red255\green255\blue255;\red26\green26\blue26;\red193\green101\blue28;\red46\green174\blue187;
+\red200\green20\blue201;\red234\green234\blue234;\red180\green36\blue25;\red64\green11\blue217;\red252\green33\blue24;
+\red159\green160\blue28;\red178\green178\blue178;\red133\green0\blue2;}
 \margl1440\margr1440\vieww26260\viewh15080\viewkind0
 \deftab720
 \pard\pardeftab720\partightenfactor0
@@ -79,24 +79,40 @@ For human:\
 \CocoaLigature1 REF/extra-input-files/Human_hg19_nonPolyA_ROI.bed \\\
     ftp://ftp.ensembl.org/pub/release-75/gtf/homo_sapiens/Homo_sapiens.GRCh37.75.gtf.gz\
 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\b For mouse:
+\f1\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 cd /users/aprice26/biotools/IRFinder-1.1.1/\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf3 export\cf4  PATH=\cf5 $PATH\cf0 :/users/aprice26/biotools/STAR-2.5.2a/bin/Linux_x86_64\
+rm -r REF/Human-hg38-release81
+\f3\fs24 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+bin/IRFinder -m BuildRef -r REF/Human-hg38-release81 \\\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf0     -e REF/extra-input-files/RNA.SpikeIn.ERCC.fasta.gz \\\
+    -R REF/extra-input-files/Human_hg38_nonPolyA_ROI.bed \\\
+    ftp://ftp.ensembl.org/pub/release-81/gtf/homo_sapiens/Homo_sapiens.GRCh38.81.gtf.gz
+\f2 \cb1 \
+\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b \cf0 For mouse:
 \b0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder \cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder \cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 -m BuildRef -r \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt\expnd0\expndtw0\kerning0
-\CocoaLigature1 /\cb3 Mouse-mm10-release81 \\\
+\CocoaLigature1 /\cb6 Mouse-mm10-release81 \\\
 \pard\pardeftab720\sl280\partightenfactor0
-\cf0     -e \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\cb3 \expnd0\expndtw0\kerning0
+\cf0     -e \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 REF/extra-input-files/
-\f3\b\fs22 \cf4 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 RNA.SpikeIn.ERCC.fasta.gz
-\f2\b0\fs24 \cf0 \cb3 \expnd0\expndtw0\kerning0
+\f4\b\fs22 \cf7 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 RNA.SpikeIn.ERCC.fasta.gz
+\f2\b0\fs24 \cf0 \cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1  \\\
-    -R \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\cb3 \expnd0\expndtw0\kerning0
+    -R \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 REF/extra-input-files/Mouse_mm10_nonPolyA_ROI.bed \\\
     ftp://ftp.ensembl.org/pub/release-81/gtf/mus_musculus/Mus_musculus.GRCm38.81.gtf.gz
-\f4 \
+\f3 \
 \pard\pardeftab720\sl280\partightenfactor0
 
 \f2 \cf0 \cb1 \
@@ -123,31 +139,31 @@ mkdir
 \CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d /dcl01/lieber/ajaffe/Amanda/NucVsCyt/
 \f1\fs22 IRfinder_redo/
 \f2\fs24 PolyA/Br1113C1 -r 
-\b \cf5 Human-hg19-release75 
-\b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br1113C1/Br1113C1_*_\cf6 L001_\cf0 R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/
-\f3\b\fs22 \cf5 Sample_Br1113C1
+\b \cf8 Human-hg19-release75 
+\b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br1113C1/Br1113C1_*_\cf9 L001_\cf0 R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/
+\f4\b\fs22 \cf8 Sample_Br1113C1
 \f2\b0\fs24 \cf0 /
-\f3\b\fs22 \cf5 Br1113C1
-\f2\b0\fs24 \cf0 _*_\cf6 L001_\cf0 R2_001.fastq.gz\
+\f4\b\fs22 \cf8 Br1113C1
+\f2\b0\fs24 \cf0 _*_\cf9 L001_\cf0 R2_001.fastq.gz\
 \
 mkdir 
 \f1\fs22 Dougherty_data/IRFinder/
-\f3\b \cf4 SRR2511683
+\f4\b \cf7 SRR2511683
 \f2\fs24 \cf0 \
 
 \b0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
 \CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d /dcl01/lieber/ajaffe/Amanda/NucVsCyt/
 \f1\fs22 Dougherty_data/IRFinder/
-\f3\b \cf4 SRR2511683
+\f4\b \cf7 SRR2511683
 \f2\b0\fs24 \cf0  -r 
-\f3\b\fs22 \cf5 Mouse-mm10-release81
+\f4\b\fs22 \cf8 Mouse-mm10-release81
 \f2\fs24  
 \b0 \cf0 /dcl01/lieber/ajaffe/Amanda/NucVsCyt/
 \f1\fs22 Dougherty_data/FASTQ/
-\f3\b \cf4 SRR2511683_1.fastq.gz
+\f4\b \cf7 SRR2511683_1.fastq.gz
 \f2\b0\fs24 \cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/
 \f1\fs22 Dougherty_data/FASTQ/
-\f3\b \cf4 SRR2511683_2.fastq.gz
+\f4\b \cf7 SRR2511683_2.fastq.gz
 \f2\fs24 \cf0 \
 \
 # Run IRFinder on Each Sample Individually\
@@ -163,8 +179,8 @@ module load samtools\
 \CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d 
 \f1\fs22 IRfinder_redo/
 \f2\fs24 PolyA/\{\} -r 
-\b \cf5 Human-hg19-release75 
-\b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\{\}/\{\}_*_\cf6 L001_\cf0 R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\{\}/\{\}_*_\cf6 L001_\cf0 R2_001.fastq.gz\
+\b \cf8 Human-hg19-release75 
+\b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\{\}/\{\}_*_\cf9 L001_\cf0 R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_\{\}/\{\}_*_\cf9 L001_\cf0 R2_001.fastq.gz\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 
 \b \cf0 \
@@ -172,32 +188,32 @@ module load samtools\
 
 \b0 \cf0 \CocoaLigature1 < \CocoaLigature0 samplenames.txt\CocoaLigature1  parallel -P2 \CocoaLigature0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
 \CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder -d IRfinder/Ribozero/\{\} -r 
-\b \cf5 Human-hg19-release75 
+\b \cf8 Human-hg19-release75 
 \b0 \cf0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\{\}/\{\}_*_R1_001.fastq.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_\{\}/\{\}_*_R2_001.fastq.gz
 \b \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
 
 \b0 \cf0 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 
-\f1\fs22 \cf5 # qsub -tc 245 -l mf=45G,h_vmem=45G,h_stack=256M  -m e -M amanda.joy.price@gmail.com -t 1-2 IRFinderPolyA_downsampled.sh\cf0 \
+\f1\fs22 \cf8 # qsub -tc 245 -l mf=45G,h_vmem=45G,h_stack=256M  -m e -M amanda.joy.price@gmail.com -t 1-2 IRFinderPolyA_downsampled.sh\cf0 \
 \
-\cf7 cd\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/\
+\cf10 cd\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/\
 module load bedtools\
 module load samtools\
 \
-\cf7 export\cf8  PATH\cf7 =\cf9 $PATH\cf0 :/users/aprice26/biotools/STAR\cf4 -2\cf0 .\cf4 5\cf0 .2a/bin/Linux_x86_64\
+\cf10 export\cf4  PATH\cf10 =\cf5 $PATH\cf0 :/users/aprice26/biotools/STAR\cf7 -2\cf0 .\cf7 5\cf0 .2a/bin/Linux_x86_64\
 \
-\cf8 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/scripts/downsample.txt\
-\cf8 ID\cf0 =
-\f3\b \cf10 \cb11 $(
-\f1\b0 \cf9 \cb1 awk \cf7 "\cf4 NR==\cf9 $SGE_TASK_ID\cf7 "\cf9  $FILELIST
-\f3\b \cf10 \cb11 )
+\cf4 FILELIST\cf0 =/dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/scripts/downsample.txt\
+\cf4 ID\cf0 =
+\f4\b \cf11 \cb12 $(
+\f1\b0 \cf5 \cb1 awk \cf10 "\cf7 NR==\cf5 $SGE_TASK_ID\cf10 "\cf5  $FILELIST
+\f4\b \cf11 \cb12 )
 \f1\b0 \cf0 \cb1 \
-\cf8 read1\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf9 $\{ID\}\cf0 _*_L0102_head12M_R1.fastq.gz\
-\cf8 read2\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf9 $\{ID\}\cf0 _*_L0102_head12M_R2.fastq.gz\
+\cf4 read1\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf5 $\{ID\}\cf0 _*_L0102_head12M_R1.fastq.gz\
+\cf4 read2\cf0 =/dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/downsampling/fastq_downsamplingWork/fastq_12Mreads_headFrom25M_forSamplesWith2Lanes/\cf5 $\{ID\}\cf0 _*_L0102_head12M_R2.fastq.gz\
 \
-/users/aprice26/biotools/IRFinder\cf4 -1\cf0 .\cf4 1\cf0 .\cf4 1\cf0 /bin/IRFinder \cf9 -d\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/PolyA/\cf9 $\{ID\}\cf0 _downsampled \cf9 -r\cf0  Human-hg19-release75 \cf9 $read1\cf0  \cf9 $read2\cf0 \
+/users/aprice26/biotools/IRFinder\cf7 -1\cf0 .\cf7 1\cf0 .\cf7 1\cf0 /bin/IRFinder \cf5 -d\cf0  /dcl01/lieber/ajaffe/Amanda/NucVsCyt/IRfinder_redo/PolyA/\cf5 $\{ID\}\cf0 _downsampled \cf5 -r\cf0  Human-hg19-release75 \cf5 $read1\cf0  \cf5 $read2\cf0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
 
 \f2\fs24 \cf0 \
@@ -211,26 +227,26 @@ module load samtools\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 \cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/APC_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/APC_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/APN_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046N\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074N\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/APN_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046N\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074N\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\
 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
@@ -262,26 +278,26 @@ module load samtools\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 \cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/FPC_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/FPC_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/FPN_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/FPN_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\
 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
@@ -312,8 +328,8 @@ module load samtools\
 \b0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/ARC_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br1113C1/Unsorted.bam IRfinder/Ribozero/Br2046C/Unsorted.bam IRfinder/Ribozero/Br2074C/Unsorted.bam)\
-\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/ARN_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br2046N/Unsorted.bam IRfinder/Ribozero/Br2074N/Unsorted.bam)\
+\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/ARC_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br1113C1/Unsorted.bam IRfinder/Ribozero/Br2046C/Unsorted.bam IRfinder/Ribozero/Br2074C/Unsorted.bam)\
+\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/ARN_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br2046N/Unsorted.bam IRfinder/Ribozero/Br2074N/Unsorted.bam)\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ri720\partightenfactor0
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
@@ -332,8 +348,8 @@ module load samtools\
 \b0 \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FRC_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339C1/Unsorted.bam IRfinder/Ribozero/Br5340C1/Unsorted.bam IRfinder/Ribozero/Br5341C1/Unsorted.bam)\
-\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FRN_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339N1/Unsorted.bam IRfinder/Ribozero/Br5340N1/Unsorted.bam IRfinder/Ribozero/Br5341N1/Unsorted.bam)\
+\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FRC_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339C1/Unsorted.bam IRfinder/Ribozero/Br5340C1/Unsorted.bam IRfinder/Ribozero/Br5341C1/Unsorted.bam)\
+\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FRN_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339N1/Unsorted.bam IRfinder/Ribozero/Br5340N1/Unsorted.bam IRfinder/Ribozero/Br5341N1/Unsorted.bam)\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ri720\partightenfactor0
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
@@ -355,7 +371,7 @@ module load samtools\
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
 \CocoaLigature1 bin/analysisWithLowReplicates.pl \\\
 \pard\pardeftab720\sl280\partightenfactor0
-\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\cf0   -A \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/APN_Pooled\cb1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/\kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1\expnd0\expndtw0\kerning0
 \CocoaLigature1 /IRFinder-IR-nondir.txt \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\expnd0\expndtw0\kerning0
@@ -443,38 +459,38 @@ module load samtools\
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 \cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/AP_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046N\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074N\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/AP_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046N\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074N\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/FP_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/FP_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\
 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
@@ -518,8 +534,8 @@ module load samtools\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\ri720\partightenfactor0
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/AR_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br1113C1/Unsorted.bam IRfinder/Ribozero/Br2046C/Unsorted.bam IRfinder/Ribozero/Br2074C/Unsorted.bam IRfinder/Ribozero/Br2046N/Unsorted.bam IRfinder/Ribozero/Br2074N/Unsorted.bam)\
-\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FR_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339C1/Unsorted.bam IRfinder/Ribozero/Br5340C1/Unsorted.bam IRfinder/Ribozero/Br5341C1/Unsorted.bam IRfinder/Ribozero/Br5339N1/Unsorted.bam IRfinder/Ribozero/Br5340N1/Unsorted.bam IRfinder/Ribozero/Br5341N1/Unsorted.bam)\
+\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/AR_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br1113C1/Unsorted.bam IRfinder/Ribozero/Br2046C/Unsorted.bam IRfinder/Ribozero/Br2074C/Unsorted.bam IRfinder/Ribozero/Br2046N/Unsorted.bam IRfinder/Ribozero/Br2074N/Unsorted.bam)\
+\CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/FR_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/Br5339C1/Unsorted.bam IRfinder/Ribozero/Br5340C1/Unsorted.bam IRfinder/Ribozero/Br5341C1/Unsorted.bam IRfinder/Ribozero/Br5339N1/Unsorted.bam IRfinder/Ribozero/Br5340N1/Unsorted.bam IRfinder/Ribozero/Br5341N1/Unsorted.bam)\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ri720\partightenfactor0
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
@@ -541,63 +557,63 @@ module load samtools\
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
 \cf0 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/CP_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/CP_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113C1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046C
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074C
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA
 \b /\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339C1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340C1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341C1
-\b0 \cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
-\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 PolyA/NP_Pooled -r \cf5 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\CocoaLigature1 bin/\kerning1\expnd0\expndtw0 \CocoaLigature0 IRFinder\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  -m BAM -d \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 PolyA/NP_Pooled -r \cf8 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Human-hg19-release75\cf0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1  <(samtools cat \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5339N1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5340N1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br5341N1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br1113N1
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2046N
-\b0 \cb3 \expnd0\expndtw0\kerning0
-\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
+\CocoaLigature1 /Unsorted.bam \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 IRfinder/\cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 PolyA/
 \b \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 Br2074N
-\b0 \cb3 \expnd0\expndtw0\kerning0
+\b0 \cb6 \expnd0\expndtw0\kerning0
 \CocoaLigature1 /Unsorted.bam)\
 \cb1 \kerning1\expnd0\expndtw0 \CocoaLigature0 \
 /users/aprice26/biotools/IRFinder-1.1.1/\expnd0\expndtw0\kerning0
@@ -664,7 +680,7 @@ module load samtools\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\ri720\partightenfactor0
 \cf0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
-\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/CR_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/
+\cf0 \CocoaLigature0 /users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/CR_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/
 \b Br1113C1
 \b0 /Unsorted.bam IRfinder/Ribozero/
 \b Br2046C
@@ -678,7 +694,7 @@ module load samtools\
 \b Br5341C1
 \b0 /Unsorted.bam)\
 \CocoaLigature0 \
-/users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/NR_Pooled -r \cf5 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/
+/users/\CocoaLigature1 aprice26/biotools/IRFinder-1.1.1/bin/IRFinder -m BAM -d IRfinder/Ribozero/NR_Pooled -r \cf8 Human-hg19-release75\cf0  <(samtools cat IRfinder/Ribozero/
 \b Br2046N
 \b0 /Unsorted.bam IRfinder/Ribozero/
 \b Br2074N
