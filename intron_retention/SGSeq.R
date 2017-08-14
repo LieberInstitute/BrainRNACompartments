@@ -4,6 +4,7 @@ library("SGSeq")
 library("ggplot2")
 library("DEXSeq")
 library(plyr)
+library(reshape2)
 
 load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
@@ -73,6 +74,92 @@ splicetype10 = list(SE = sgvc10[sapply(variantType(sgvc10), function(x) { any(gr
                     AFE = sgvc10[sapply(variantType(sgvc10), function(x) { any(grepl("AFE", x)) }), ],
                     ALE = sgvc10[sapply(variantType(sgvc10), function(x) { any(grepl("ALE", x)) }), ])
 
+# How many variants of each type are identified?
+varnames = lapply(splicetype, function(x) rowData(x))
+varnames = lapply(varnames, function(x) x$variantName)
+varnames = lapply(varnames, function(x) length(unique(as.character(x))))
+proportion = as.data.frame(unlist(varnames))
+proportion$variant = rownames(proportion)
+proportion = proportion[-grep("P",proportion$variant),]
+proportion$prop = proportion[,1] / sum(proportion[,1])
+colnames(proportion)[1] = "total"
+proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
+
+ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
+  geom_text(aes(label=perc), vjust=1.5, colour="white") +
+  labs(fill="") +
+  ylab("Count") + 
+  xlab("") +
+  ggtitle("Unique Splice Variants by Type") +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20))
+# total_unique_splice_variants.pdf
+
+# How many variants of each type are identified by fraction and age?
+varnames = lapply(splicetype, function(x) rowData(x))
+varnames = lapply(varnames, function(x) x$variantName)
+psi = lapply(splicetype, variantFreq)
+for (i in 1:length(psi)){
+ tmp = psi[[i]]
+ rownames(tmp) = varnames[[i]]
+ psi[[i]] = tmp
+}
+lapply(psi, head)
+
+psi = do.call(rbind, psi)
+psi = as.data.frame(psi)
+psi$suminAdNuc = rowSums(psi[,c("Br1113N1_polyA","Br2046N_polyA","Br2074N_polyA")])
+psi$suminAdCyt = rowSums(psi[,c("Br1113C1_polyA","Br2046C_polyA","Br2074C_polyA")])
+psi$suminFetNuc = rowSums(psi[,c("Br5339N1_polyA","Br5340N1_polyA","Br5341N1_polyA")])
+psi$suminFetCyt = rowSums(psi[,c("Br5341C1_polyA","Br5339C1_downsamp","Br5340C1_downsamp")])
+psi$variantID = rownames(psi)
+
+psiByGroup = list("Adult:Cytosol" = psi[which(psi$suminAdCyt!="NA" & psi$suminAdCyt>0),], 
+                  "Adult:Nucleus" = psi[which(psi$suminAdNuc!="NA" & psi$suminAdNuc>0),],
+                  "Prenatal:Cytosol" = psi[which(psi$suminFetCyt!="NA" & psi$suminFetCyt>0),], 
+                  "Prenatal:Nucleus" = psi[which(psi$suminFetNuc!="NA" & psi$suminFetNuc>0),])
+VariantsByGroup = lapply(psiByGroup, function(x) x$variantID)
+numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("SE",x)])))),
+                     S2E = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("S2E",x)])))),
+                     RI = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("RI",x)])))),
+                     MXE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("MXE",x)])))),
+                     A5SS = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("A5SS",x)])))),
+                     A3SS = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("A3SS",x)])))),
+                     AFE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("AFE",x)])))),
+                     ALE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("ALE",x)])))))
+numVars$Group = as.factor(rownames(numVars))
+numVars = melt(numVars)
+head(numVars)
+
+dodge <- position_dodge(width=0.9)
+ggplot(numVars, aes(x = variable, y = value, fill = Group)) +
+  stat_summary(position=position_dodge(),geom="bar") +
+  ylim(0,21000) +
+  labs(fill="") +
+  ylab("Count") + 
+  xlab("") +
+  ggtitle("Unique Splice Variants by Type") +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20))
+# total_unique_splice_variants_byGroup.pdf
+
+limits <- aes(ymax = log2FoldChange + lfcSE, ymin=log2FoldChange - lfcSE)
+lapply(zone.res, function(x) {ggplot(x[which(x$Gene!="XIST" & x$Gene!="FMR1"),], 
+                                     aes(x=Gene, y=log2FoldChange, fill=Library), color=Library) + 
+    stat_summary(position=position_dodge(),geom="bar") +
+    geom_errorbar(mapping = limits, position = dodge, width=0.25) +
+    ylim(-2,2) +
+    ylab("Log2 Fold Change (±SE)") + 
+    xlab("") +
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    theme(legend.position = c(.83, 0.3)) + 
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent", color = "transparent"))})
+
+
+
 # Compare PSI rate of different types of splicing events by fraction and age
 psi = lapply(splicetype, variantFreq)
 psi10 = lapply(splicetype10, variantFreq)
@@ -104,6 +191,7 @@ ggplot(psi_df, aes(x = Fraction, y = PSI, fill = Age)) + geom_boxplot() +
   ggtitle("PSI by Variant Type, Fraction and Age") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+# PSI_by_SpliceVariantType_Fraction_Age.pdf
 
 ggplot(psi_df10, aes(x = Fraction, y = PSI, fill = Age)) + geom_boxplot() +
   facet_grid(. ~ VariantType) +
@@ -113,7 +201,7 @@ ggplot(psi_df10, aes(x = Fraction, y = PSI, fill = Age)) + geom_boxplot() +
   ggtitle("PSI by Variant Type, Fraction and Age") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# PSI_by_SpliceVariantType_Fraction_Age.pdf
+# PSI_by_SpliceVariantType_Fraction_Age_10denom.pdf
 
 tfrac = tAge = list()
 for (i in 1:length(names(psi))){

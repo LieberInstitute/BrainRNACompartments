@@ -86,6 +86,7 @@ simrp = rbind(simrp1000,simrp2000,simrp2234)
 rpmsk = rpmsk[,which(colnames(rpmsk)!="strand")]
 rpmsk = makeGRangesFromDataFrame(rpmsk, seqnames.field="genoName",start.field="genoStart",end.field="genoEnd",keep.extra.columns=TRUE)
 simrp = makeGRangesFromDataFrame(simrp, seqnames.field="chrom",start.field="chromStart",end.field="chromEnd",keep.extra.columns=TRUE)
+coord = makeGRangesFromDataFrame(coord, keep.extra.columns = T)
 hits = as.data.frame(findOverlaps(coord, rpmsk))
 simhits = as.data.frame(findOverlaps(coord, simrp))
 rps = srps = list()
@@ -100,7 +101,9 @@ rps = do.call(rbind, rps)
 srps = do.call(rbind,srps)
 
 repeatintrons = Map(cbind, introns, lapply(introns, function(x) rps[match(x$intronID, rps$intronID),]))
-for (i in 1:length(repeatintrons)){
+length(repeatintrons)
+for (i in c(1:11,13:15)){
+  print(i)
   tmp = repeatintrons[[i]]
   tmp$repName = as.character(tmp$repName)
   tmp[is.na(tmp$repName),"repName"] = "No.Repeats"

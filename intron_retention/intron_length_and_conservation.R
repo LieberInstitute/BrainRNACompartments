@@ -99,6 +99,8 @@ ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Adult
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# density_intron_length_byFraction_allIntrons.pdf
+
 ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Cytosol:Adult-Increased" | 
                       length$Comparison=="Cytosol:Prenatal-Increased" |
                       length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
@@ -113,6 +115,7 @@ ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Cytos
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# density_intron_length_byAge_allIntrons.pdf
 
 # Plot density distribution of intron lengths using all introns reported in dIR output as background
 ggplot(length[which(length$Comparison=="Introns (Fraction)" | length$Comparison=="Adult:Cytosol-Increased" | 
@@ -129,6 +132,8 @@ ggplot(length[which(length$Comparison=="Introns (Fraction)" | length$Comparison=
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# density_intron_length_byFraction_allFracIntrons.pdf
+
 ggplot(length[which(length$Comparison=="Introns (Age)" | length$Comparison=="Cytosol:Adult-Increased" | 
                       length$Comparison=="Cytosol:Prenatal-Increased" |
                       length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
@@ -143,6 +148,7 @@ ggplot(length[which(length$Comparison=="Introns (Age)" | length$Comparison=="Cyt
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# density_intron_length_byFraction_allAgeIntrons.pdf
 
 # Measure length differences in groups of introns
 t.test(c(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Cytosol-Increased","length"]),
@@ -263,6 +269,8 @@ ggplot(gerp[which(gerp$Samples=="In Adult" | gerp$Samples=="In Prenatal"),],
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# gerp_introns_byFraction.pdf
+
 ggplot(gerp[which(gerp$Samples=="In Cytosol" | gerp$Samples=="In Nucleus"),],
        aes(x=Dir, y=mean.GERP, fill=Samples), color=Samples) + geom_boxplot() +
   xlab("") + 
@@ -273,6 +281,7 @@ ggplot(gerp[which(gerp$Samples=="In Cytosol" | gerp$Samples=="In Nucleus"),],
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+# gerp_introns_byAge.pdf
 
 # Measure gerp differences in groups of introns
 t.test(c(gerp[gerp$Comparison=="Adult:Cytosol-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Cytosol-Increased","mean.GERP"]),

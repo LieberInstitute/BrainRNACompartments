@@ -46,7 +46,7 @@ genes$group = c("All", "All", "Cytosolic Retention\nIn Adult","Nuclear Retention
                 "Pooled Adult\nRetention","Pooled Prenatal\nRetention")
 genes$retention = c("NA","NA","Cytosolic","Nuclear","Cytosolic","Nuclear","Adult","Prenatal","Adult","Prenatal","Nuclear","Adult", "Prenatal","Cytosolic","Nuclear","Adult","Prenatal")
 
-## by Fraction: cytosolic
+## by Fraction: cytosolic (is there a relationship between the number of introns found dIR and the number of genes?)
 fisher.test(data.frame(c(3,3),c(1164-3,1407-3)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
