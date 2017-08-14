@@ -81,6 +81,8 @@ varnames = lapply(varnames, function(x) length(unique(as.character(x))))
 proportion = as.data.frame(unlist(varnames))
 proportion$variant = rownames(proportion)
 proportion = proportion[-grep("P",proportion$variant),]
+proportion$variant = gsub(".D","", proportion$variant)
+proportion$variant = factor(proportion$variant, levels = c("SE","S2E","RI","MXE","A5SS","A3SS","AFE","ALE"))
 proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
