@@ -448,7 +448,7 @@ plotMA(agedxr.cyt, ylim = c(-5,5), main = "Differential Splicing by Age in Cytos
 save(fracdxd.adult,fracdxr.adult,fracdxd.prenatal,fracdxr.prenatal,agedxd.nuc,agedxr.nuc,agedxd.cyt,agedxr.cyt, 
      file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
 
-
+load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_objects.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
 
@@ -575,28 +575,28 @@ byageInnucleus.split = lapply(byageInnucleus.split, function(x) data.frame(x[,1:
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/volcano_plots_byComparison_byVariantType.pdf")
 for (i in 1:length(byfracInadult.split)){
 g = ggplot(data=byfracInadult.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
-  geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+  geom_point(alpha=0.4, size=1.75) + ylim(0,20) + xlim(-15,15) +
   xlab("log2 fold change") + ylab("-log10 p-value") +
   ggtitle(paste0("Differential Splicing by Fraction in Adults: ", names(byfracInadult.split)[i]))
 print(g)
 }
 for (i in 1:length(byfracInprenatal.split)){
   g = ggplot(data=byfracInprenatal.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
-    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) + xlim(-15,15) +
     xlab("log2 fold change") + ylab("-log10 p-value") +
     ggtitle(paste0("Differential Splicing by Fraction in Prenatal: ", names(byfracInprenatal.split)[i]))
   print(g)
 }
 for (i in 1:length(byageIncytosol.split)){
   g = ggplot(data=byageIncytosol.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
-    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) + xlim(-15,15) +
     xlab("log2 fold change") + ylab("-log10 p-value") +
     ggtitle(paste0("Differential Splicing by Age in Cytosolic RNA: ", names(byageIncytosol.split)[i]))
   print(g)
 }
 for (i in 1:length(byageInnucleus.split)){
   g = ggplot(data=byageInnucleus.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
-    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) + xlim(-15,15) +
     xlab("log2 fold change") + ylab("-log10 p-value") +
     ggtitle(paste0("Differential Splicing by Age in Nuclear RNA: ", names(byageInnucleus.split)[i]))
   print(g)
