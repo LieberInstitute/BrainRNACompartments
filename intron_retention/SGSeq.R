@@ -448,6 +448,10 @@ plotMA(agedxr.cyt, ylim = c(-5,5), main = "Differential Splicing by Age in Cytos
 save(fracdxd.adult,fracdxr.adult,fracdxd.prenatal,fracdxr.prenatal,agedxd.nuc,agedxr.nuc,agedxd.cyt,agedxr.cyt, 
      file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
 
+
+load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_objects.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
+
 # Explore results
 dexres = list(Fraction = fracdxr[order(fracdxr$padj),], Age = agedxr[order(agedxr$padj),], 
               frac.adult = fracdxr.adult[order(fracdxr.adult$padj),], 
@@ -516,4 +520,118 @@ ggplot(type[grep("Age", type$comparison),],
   theme(text = element_text(size = 20))
 # DSE_counts_byAge.pdf
 
+## Which direction are the log fold changes by variant type?
+lapply(dexres,head)
+byfracInadult = dexres[["frac.adult"]]
+byfracInprenatal = dexres[["frac.prenatal"]]
+byageIncytosol = dexres[["age.cytosol"]]
+byageInnucleus = dexres[["age.nucleus"]]
+colnames(byfracInadult)=colnames(byfracInprenatal)=colnames(byageIncytosol)=colnames(byageInnucleus)=
+  c("groupID","featureID","exonBaseMean","dispersion","stat","pvalue","padj","Adult","Prenatal",
+    "log2fold","genomicData","countData","vID","from","to","type","featureID.1","segmentID",
+    "closed5p","closed3p","closed5pEvent","closed3pEvent","geneID","eventID","variantID","featureID5p",
+    "featureID3p","featureID5pEvent","featureID3pEvent","txName","geneName","variantType","variantName",
+    "more.in.nuc.prenatal.Fraction","more.in.nuc.prenatal.Age","more.in.nuc.prenatal.frac.adult",
+    "more.in.nuc.prenatal.frac.prenatal","more.in.nuc.prenatal.age.cytosol","more.in.nuc.prenatal.age.nucleus")
 
+byfracInadult.split = list(SE = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("SE:S", x)) }), ],
+                           S2E = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("S2E:S", x)) }), ],
+                           RI = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("RI:R", x)) }), ],
+                           MXE = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("MXE", x)) }), ],
+                           A5SS.D = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("A5SS:D", x)) }), ],
+                           A3SS.D = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("A3SS:D", x)) }), ],
+                           AFE = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("AFE", x)) }), ],
+                           ALE = byfracInadult[sapply(byfracInadult$variantType, function(x) { any(grepl("ALE", x)) }), ])
+byfracInprenatal.split = list(SE = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("SE:S", x)) }), ],
+                              S2E = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("S2E:S", x)) }), ],
+                              RI = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("RI:R", x)) }), ],
+                              MXE = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("MXE", x)) }), ],
+                              A5SS.D = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("A5SS:D", x)) }), ],
+                              A3SS.D = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("A3SS:D", x)) }), ],
+                              AFE = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("AFE", x)) }), ],
+                              ALE = byfracInprenatal[sapply(byfracInprenatal$variantType, function(x) { any(grepl("ALE", x)) }), ])
+byageIncytosol.split = list(SE = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("SE:S", x)) }), ],
+                              S2E = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("S2E:S", x)) }), ],
+                              RI = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("RI:R", x)) }), ],
+                              MXE = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("MXE", x)) }), ],
+                              A5SS.D = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("A5SS:D", x)) }), ],
+                              A3SS.D = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("A3SS:D", x)) }), ],
+                              AFE = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("AFE", x)) }), ],
+                              ALE = byageIncytosol[sapply(byageIncytosol$variantType, function(x) { any(grepl("ALE", x)) }), ])
+byageInnucleus.split = list(SE = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("SE:S", x)) }), ],
+                            S2E = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("S2E:S", x)) }), ],
+                            RI = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("RI:R", x)) }), ],
+                            MXE = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("MXE", x)) }), ],
+                            A5SS.D = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("A5SS:D", x)) }), ],
+                            A3SS.D = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("A3SS:D", x)) }), ],
+                            AFE = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("AFE", x)) }), ],
+                            ALE = byageInnucleus[sapply(byageInnucleus$variantType, function(x) { any(grepl("ALE", x)) }), ])
+byfracInadult.split = lapply(byfracInadult.split, function(x) data.frame(x[,1:10], threshold=ifelse(x$padj<=0.05,"sig","NS")))
+byfracInprenatal.split = lapply(byfracInprenatal.split, function(x) data.frame(x[,1:10], threshold=ifelse(x$padj<=0.05,"sig","NS")))
+byageIncytosol.split = lapply(byageIncytosol.split, function(x) data.frame(x[,1:10], threshold=ifelse(x$padj<=0.05,"sig","NS")))
+byageInnucleus.split = lapply(byageInnucleus.split, function(x) data.frame(x[,1:10], threshold=ifelse(x$padj<=0.05,"sig","NS")))
+
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/volcano_plots_byComparison_byVariantType.pdf")
+for (i in 1:length(byfracInadult.split)){
+g = ggplot(data=byfracInadult.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
+  geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+  xlab("log2 fold change") + ylab("-log10 p-value") +
+  ggtitle(paste0("Differential Splicing by Fraction in Adults: ", names(byfracInadult.split)[i]))
+print(g)
+}
+for (i in 1:length(byfracInprenatal.split)){
+  g = ggplot(data=byfracInprenatal.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    xlab("log2 fold change") + ylab("-log10 p-value") +
+    ggtitle(paste0("Differential Splicing by Fraction in Prenatal: ", names(byfracInprenatal.split)[i]))
+  print(g)
+}
+for (i in 1:length(byageIncytosol.split)){
+  g = ggplot(data=byageIncytosol.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    xlab("log2 fold change") + ylab("-log10 p-value") +
+    ggtitle(paste0("Differential Splicing by Age in Cytosolic RNA: ", names(byageIncytosol.split)[i]))
+  print(g)
+}
+for (i in 1:length(byageInnucleus.split)){
+  g = ggplot(data=byageInnucleus.split[[i]], aes(x=log2fold, y=-log10(padj), colour=threshold)) +
+    geom_point(alpha=0.4, size=1.75) + ylim(0,20) +
+    xlab("log2 fold change") + ylab("-log10 p-value") +
+    ggtitle(paste0("Differential Splicing by Age in Nuclear RNA: ", names(byageInnucleus.split)[i]))
+  print(g)
+}
+dev.off()
+
+# Calculate the proportion of splice variants that are significant vs not significant
+byfracInadult.length = do.call(rbind, lapply(byfracInadult.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
+                                                                         NS = length(x[which(x$threshold=="NS"),"threshold"]),
+                                                                         total = (length(x[which(x$threshold=="sig"),"threshold"])+
+                                                                                    length(x[which(x$threshold=="NS"),"threshold"])),
+                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+byfracInadult.length$comparison = "byfracInadult"
+byfracInprenatal.length = do.call(rbind, lapply(byfracInprenatal.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
+                                                                                         NS = length(x[which(x$threshold=="NS"),"threshold"]),
+                                                                                         total = (length(x[which(x$threshold=="sig"),"threshold"])+
+                                                                                                    length(x[which(x$threshold=="NS"),"threshold"])),
+                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+byfracInprenatal.length$comparison = "byfracInprenatal"
+byageIncytosol.length = do.call(rbind, lapply(byageIncytosol.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
+                                                                                         NS = length(x[which(x$threshold=="NS"),"threshold"]),
+                                                                                         total = (length(x[which(x$threshold=="sig"),"threshold"])+
+                                                                                                    length(x[which(x$threshold=="NS"),"threshold"])),
+                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+byageIncytosol.length$comparison = "byageIncytosol"
+byageInnucleus.length = do.call(rbind, lapply(byageInnucleus.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
+                                                                                         NS = length(x[which(x$threshold=="NS"),"threshold"]),
+                                                                                         total = (length(x[which(x$threshold=="sig"),"threshold"])+
+                                                                                                    length(x[which(x$threshold=="NS"),"threshold"])),
+                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+byageInnucleus.length$comparison = "byageInnucleus"
+length = rbind(byfracInadult.length, byfracInprenatal.length, byageIncytosol.length, byageInnucleus.length)
+length$variantType = rownames(length)
+length$variantType = gsub("\\..*","",length$variantType)
+length$variantType = gsub("1","",length$variantType)
+length$variantType = gsub("2","",length$variantType)
+length$variantType = gsub("3","",length$variantType)
+write.csv(length, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison.csv",quote = F,row.names = F, col.names = T)
