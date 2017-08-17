@@ -1,5 +1,6 @@
 library(ggplot2)
 library(reshape2)
+library(GenomicRanges)
 
 # Load IRFinder Results
 names = scan("./Dropbox/NucVsCytosol/names.txt", what = "character")
@@ -12,63 +13,44 @@ for (i in 1:length(shortenedNames)){
 names(IRres) = shortenedNames
 
 # Filter introns
-IRfiltered = lapply(IRres, function(x) x[which(x$Warnings=="-"),])       
-clean = lapply(IRfiltered, function(x) grep("clean", x$GeneIntronDetails, fixed=T))
-IRfiltered2 = list()
-for (i in 1:length(IRfiltered)){
-  cl = clean[[i]]
-  irf = IRfiltered[[i]]
-  IRfiltered2[[i]] = irf[cl,]
-}
-names(IRfiltered2) = names(IRfiltered)
-string = lapply(IRfiltered2, function(x) strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE))
-string = lapply(string, function(x) unlist(x, recursive = FALSE))
-y = lapply(string, function(x) grep("ENSG", x))
-genes = list()
-for (i in 1:length(string)){
-  tmp = string[[i]]
-  genes[[i]] = tmp[y[[i]]]
-}
-names(genes) = names(string)
-intronID = lapply(IRfiltered2, function(x) paste0(x$Chr,":",x$Start,"-",x$End))
-IRfiltered2 = Map(cbind, IRfiltered2, genes = genes, intronID = intronID)
-head(IRfiltered2[[1]])
+IRfiltered = lapply(IRres, function(x) x[which(x$Warnings=="-" | x$Warnings=="MinorIsoform"),])
+IRfiltered = lapply(IRfiltered, function(x) x[grep("clean", x$GeneIntronDetails, fixed=T),])
+string = lapply(IRfiltered, function(x) strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE))
+string = lapply(string, function(x) unlist(x, recursive = F))
+IRfiltered = Map(cbind, IRfiltered, genes = lapply(string, function(x) x[grep("ENSG", x)]), 
+                 intronID = lapply(IRfiltered, function(x) paste0("chr",x$Chr,":",x$Start,"-",x$End,"(",x$Direction,")")))
+head(IRfiltered[[1]])
 
 ## Look at distribution of filtered introns by group
-introns = data.frame(num.introns = elementNROWS(IRfiltered2))
+introns = data.frame(num.introns = elementNROWS(IRfiltered))
 introns$SampleID = as.factor(rownames(introns))
-introns$Group = factor(x=c("Adult:Cytosol","Adult:Nucleus","Adult:Cytosol","Adult:Nucleus",
-                           "Adult:Cytosol","Adult:Nucleus","Prenatal:Cytosol","Prenatal:Nucleus",
-                           "Prenatal:Cytosol","Prenatal:Nucleus","Prenatal:Cytosol","Prenatal:Nucleus"),
-                       levels = c("Adult:Cytosol","Prenatal:Cytosol",
-                                  "Adult:Nucleus","Prenatal:Nucleus"))
-introns$num.genes = as.numeric(lapply(genes, function(x) length(unique(x))))
-introns$MeanIntronDepth = as.numeric(lapply(IRfiltered2, function(x) mean(x$IntronDepth)))
+introns$rownum = c(1:nrow(introns))
+introns$Fraction = ifelse(introns$rownum %in% grep("N",introns$SampleID), "Nucleus","Cytosol")
+introns$Age = ifelse(introns$rownum %in% grep("Br53",introns$SampleID), "Prenatal","Adult")
+introns$Group = factor(paste0(introns$Age,":",introns$Fraction), levels = c("Adult:Cytosol","Prenatal:Cytosol", "Adult:Nucleus","Prenatal:Nucleus"))
+introns$num.genes = as.numeric(lapply(lapply(string, function(x) x[grep("ENSG", x)]), function(x) length(unique(x))))
+introns$MeanIntronDepth = as.numeric(lapply(IRfiltered, function(x) mean(x$IntronDepth)))
 write.csv(introns, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
 
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/introns_passingQC.pdf", width =8,height = 5)
 ggplot(introns, aes(x=Group, y=num.introns)) + 
   geom_boxplot() + geom_jitter() +
-  ylab("Number") + 
-  xlab("") +
+  ylab("Number") + xlab("") +
   ggtitle("Introns Passing QC") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  labs(fill="") + ylim(0,60000) +
-  theme(legend.position = c(.85, 0.6)) +
-  theme(legend.background = element_rect(fill = "transparent"),
-        legend.key = element_rect(fill = "transparent", color = "transparent"))
-# introns_passingQC.pdf
-
+  labs(fill="") + ylim(0,60000)
+dev.off()
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/unique_genes_introns_passingQC.pdf", width =8,height = 5)
 ggplot(introns, aes(x=Group, y=num.genes)) + 
   geom_boxplot() + geom_jitter() +
-  ylab("Number") + 
-  xlab("") +
+  ylab("Number") + xlab("") +
   ggtitle("Unique Genes Containing Introns Passing QC") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") + ylim(0,8000)
-# unique_genes_introns_passingQC.pdf
-
+dev.off()
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/meanIntronDepth_introns_passingQC.pdf", width =8,height = 5)
 ggplot(introns, aes(x=Group, y=MeanIntronDepth)) + 
   geom_boxplot() + geom_jitter() +
   ylab("Number") + 
@@ -77,10 +59,10 @@ ggplot(introns, aes(x=Group, y=MeanIntronDepth)) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") + ylim(0,.35)
-# meanIntronDepth_introns_passingQC.pdf
+dev.off()
 
-allintrons = Reduce(intersect, intronID)
-length(allintrons) # 3621 of the introns pass QC in all four groups
+allintrons = Reduce(intersect, lapply(IRfiltered, function(x) paste0("chr",x$Chr,":",x$Start,"-",x$End,"(",x$Direction,")")))
+length(allintrons) # 3889 of the introns pass QC in all four groups
 
 
 ### Global IR Comparisons:
