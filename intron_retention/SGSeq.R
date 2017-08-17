@@ -608,25 +608,29 @@ byfracInadult.length = do.call(rbind, lapply(byfracInadult.split, function(x) da
                                                                          NS = length(x[which(x$threshold=="NS"),"threshold"]),
                                                                          total = (length(x[which(x$threshold=="sig"),"threshold"])+
                                                                                     length(x[which(x$threshold=="NS"),"threshold"])),
-                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+                                                                         greaterinnuc.pren.sig = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]),
+                                                                         greaterinnuc.pren.NS = length(x[which(x$threshold=="NS" & x$log2fold>0),"log2fold"]))))
 byfracInadult.length$comparison = "byfracInadult"
 byfracInprenatal.length = do.call(rbind, lapply(byfracInprenatal.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
                                                                                          NS = length(x[which(x$threshold=="NS"),"threshold"]),
                                                                                          total = (length(x[which(x$threshold=="sig"),"threshold"])+
                                                                                                     length(x[which(x$threshold=="NS"),"threshold"])),
-                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+                                                                                         greaterinnuc.pren.sig = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]),
+                                                                                         greaterinnuc.pren.NS = length(x[which(x$threshold=="NS" & x$log2fold>0),"log2fold"]))))
 byfracInprenatal.length$comparison = "byfracInprenatal"
 byageIncytosol.length = do.call(rbind, lapply(byageIncytosol.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
                                                                                          NS = length(x[which(x$threshold=="NS"),"threshold"]),
                                                                                          total = (length(x[which(x$threshold=="sig"),"threshold"])+
                                                                                                     length(x[which(x$threshold=="NS"),"threshold"])),
-                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+                                                                                         greaterinnuc.pren.sig = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]),
+                                                                                         greaterinnuc.pren.NS = length(x[which(x$threshold=="NS" & x$log2fold>0),"log2fold"]))))
 byageIncytosol.length$comparison = "byageIncytosol"
 byageInnucleus.length = do.call(rbind, lapply(byageInnucleus.split, function(x) data.frame(sig = length(x[which(x$threshold=="sig"),"threshold"]),
                                                                                          NS = length(x[which(x$threshold=="NS"),"threshold"]),
                                                                                          total = (length(x[which(x$threshold=="sig"),"threshold"])+
                                                                                                     length(x[which(x$threshold=="NS"),"threshold"])),
-                                                                                         greaterinnuc.pren = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]))))
+                                                                                         greaterinnuc.pren.sig = length(x[which(x$threshold=="sig" & x$log2fold>0),"log2fold"]),
+                                                                                         greaterinnuc.pren.NS = length(x[which(x$threshold=="NS" & x$log2fold>0),"log2fold"]))))
 byageInnucleus.length$comparison = "byageInnucleus"
 length = rbind(byfracInadult.length, byfracInprenatal.length, byageIncytosol.length, byageInnucleus.length)
 length$variantType = rownames(length)
@@ -634,4 +638,82 @@ length$variantType = gsub("\\..*","",length$variantType)
 length$variantType = gsub("1","",length$variantType)
 length$variantType = gsub("2","",length$variantType)
 length$variantType = gsub("3","",length$variantType)
-write.csv(length, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison.csv",quote = F,row.names = F, col.names = T)
+write.csv(length, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison.csv",quote = F,row.names = F)
+
+### is there a relationship between significance and variant type?
+# in adult by fraction
+fisher.test(data.frame(c(58,1323),c(3740,14845))) # SE: p-value < 2.2e-16
+fisher.test(data.frame(c(5,1376),c(327,18258))) # S2E: p-value = 8.846e-06
+fisher.test(data.frame(c(1053,328),c(7075,11510))) # RI: p-value < 2.2e-16
+fisher.test(data.frame(c(2,1379),c(170,18415))) # MXE: p-value = 0.0007373  
+fisher.test(data.frame(c(108,1273),c(2559,16026))) # A5SS: p-value = 3.302e-11
+fisher.test(data.frame(c(130,1251),c(2940,15645))) # A3SS: p-value = 1.88e-11
+fisher.test(data.frame(c(17,1364),c(1315,17270))) # AFE: p-value < 2.2e-16
+fisher.test(data.frame(c(8,1373),c(459,18126))) # ALE: p-value = 2.615e-07
+# in prenatal by fraction
+fisher.test(data.frame(c(2,66),c(5427,18933))) # SE: p-value = 1.284e-05
+fisher.test(data.frame(c(0,68),c(534,23826))) # S2E: p-value = 0.4081
+fisher.test(data.frame(c(49,19),c(8978,15382))) # RI: p-value = 6.616e-09
+fisher.test(data.frame(c(1,67),c(246,24114))) # MXE: p-value = 0.4994
+fisher.test(data.frame(c(9,59),c(3326,21034))) # A5SS: p-value = 1
+fisher.test(data.frame(c(4,64),c(3532,20828))) # A3SS: p-value = 0.05484
+fisher.test(data.frame(c(2,66),c(1751,22609))) # AFE: p-value = 0.2382
+fisher.test(data.frame(c(1,67),c(566,23794))) # ALE: p-value = 1
+# in cytosol by age
+fisher.test(data.frame(c(316,936),c(5175,18661))) # SE: p-value = 0.003608
+fisher.test(data.frame(c(38,1214),c(512,23324))) # S2E: p-value = 0.04669
+fisher.test(data.frame(c(449,803),c(8616,15220))) # RI: p-value = 0.8563
+fisher.test(data.frame(c(33,1219),c(253,23583))) # MXE: p-value = 7.439e-06
+fisher.test(data.frame(c(126,1126),c(3336,20500))) # A5SS: p-value = 5.286e-05
+fisher.test(data.frame(c(129,1123),c(3591,20245))) # A3SS: p-value = 1.711e-06
+fisher.test(data.frame(c(117,1135),c(1770,22066))) # AFE: p-value = 0.01541
+fisher.test(data.frame(c(44,1208),c(583,23253))) # ALE: p-value = 0.02515
+# in nucleus by age
+fisher.test(data.frame(c(386,983),c(5172,20190))) # SE: p-value = 2.248e-11
+fisher.test(data.frame(c(46,1323),c(497,24865))) # S2E: p-value = 0.001059
+fisher.test(data.frame(c(392,977),c(10114,15248))) # RI: p-value < 2.2e-16
+fisher.test(data.frame(c(43,1326),c(232,25130))) # MXE: p-value = 6.539e-11
+fisher.test(data.frame(c(163,1206),c(3333,22029))) # A5SS: p-value = 0.202
+fisher.test(data.frame(c(141,1228),c(3691,21671))) # A3SS: p-value = 6.142e-06
+fisher.test(data.frame(c(160,1209),c(1753,23609))) # AFE: p-value = 6.258e-10
+fisher.test(data.frame(c(38,1331),c(570,24792))) # ALE: p-value = 0.193
+
+### is there a relationship between proportion of sig vs non-sig and direction of expression in a variant type?
+# in adult by fraction
+fisher.test(data.frame(c(4,54),c(1528,2212))) #SE: p-value = 1.448e-08
+fisher.test(data.frame(c(0,5),c(136,191))) #S2E: p-value = 0.08125
+fisher.test(data.frame(c(1046,7),c(5170,1905))) # RI: p-value < 2.2e-16
+fisher.test(data.frame(c(2,0),c(88,82))) # MXE: p-value = 0.4982
+fisher.test(data.frame(c(0,108),c(891,1668))) # A5SS: p-value < 2.2e-16
+fisher.test(data.frame(c(6,124),c(968,1972))) # A3SS: p-value = 1.075e-14
+fisher.test(data.frame(c(6,11),c(622,693))) # AFE: p-value = 0.4644
+fisher.test(data.frame(c(2,6),c(218,241))) # ALE: p-value = 0.2915
+# in prenatal by fraction
+fisher.test(data.frame(c(0,2),c(2555,2872))) # SE: p-value = 0.5016
+fisher.test(data.frame(c(0,0),c(236,298))) # S2E: p-value = 1
+fisher.test(data.frame(c(48,1),c(6255,2723)))# RI: p-value = 8.627e-07
+fisher.test(data.frame(c(1,0),c(126,120)))# MXE: p-value = 1
+fisher.test(data.frame(c(1,8),c(1391,1935)))# A5SS: p-value = 0.08936
+fisher.test(data.frame(c(0,4),c(1390,2142)))# A3SS: p-value = 0.1593
+fisher.test(data.frame(c(0,2),c(815,936)))# AFE: p-value = 0.5022
+fisher.test(data.frame(c(0,1),c(263,303)))# ALE: p-value = 1
+# in cytosol by age
+fisher.test(data.frame(c(216,100),c(2502,2673)))# SE: p-value = 3.311e-12
+fisher.test(data.frame(c(23,15),c(277,235)))# S2E: p-value = 0.5016
+fisher.test(data.frame(c(367,82),c(5169,3447)))# RI: p-value < 2.2e-16
+fisher.test(data.frame(c(14,19),c(128,125)))# MXE: p-value = 0.46
+fisher.test(data.frame(c(72,54),c(1578,1758)))# A5SS: p-value = 0.03627
+fisher.test(data.frame(c(39,90),c(1557,2034)))# A3SS: p-value = 0.003609
+fisher.test(data.frame(c(58,59),c(916,854)))# AFE: p-value = 0.7026
+fisher.test(data.frame(c(23,21),c(276,307)))# ALE: p-value = 0.536
+# in nucleus by age
+fisher.test(data.frame(c(291,95),c(2730,2442)))# SE: p-value < 2.2e-16
+fisher.test(data.frame(c(33,13),c(279,218)))# S2E: p-value = 0.04341
+fisher.test(data.frame(c(142,250),c(4564,5550)))# RI: p-value = 0.0005123
+fisher.test(data.frame(c(19,24),c(105,127)))# MXE: p-value = 1
+fisher.test(data.frame(c(120,43),c(1819,1514)))# A5SS: p-value = 1.493e-06
+fisher.test(data.frame(c(92,49),c(1874,1817)))# A3SS: p-value = 0.0007733
+fisher.test(data.frame(c(90,70),c(905,848)))# AFE: p-value = 0.2829
+fisher.test(data.frame(c(19,19),c(266,304)))# ALE: p-value = 0.7387
+
+
