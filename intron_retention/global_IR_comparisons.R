@@ -68,17 +68,17 @@ length(allintrons) # 3889 of the introns pass QC in all four groups
 ### Global IR Comparisons:
 # What does the distribution of IR Ratios look like?
 
-IRratios = lapply(IRfiltered2, function(x) data.frame(IRratio=x$IRratio,intronID=x$intronID))
+IRratios = lapply(IRfiltered, function(x) data.frame(IRratio=x$IRratio,intronID=x$intronID))
 IRratios = Map(cbind, IRratios, Age=NA, Fraction=NA)
 for (i in 1:6){IRratios[[i]][,"Age"] = "Adult"}
 for (i in 7:12){IRratios[[i]][,"Age"] = "Prenatal"}
 for (i in c(2,4,6,8,10,12)){IRratios[[i]][,"Fraction"] = "Nucleus"}
 for (i in c(1,3,5,7,9,11)){IRratios[[i]][,"Fraction"] = "Cytosol"}
 IRratios = do.call(rbind, IRratios)
-IRratios$Group = paste(IRratios$Age, IRratios$Fraction, sep=":")
-IRratios$Group = factor(IRratios$Group, levels = c("Adult:Cytosol", "Prenatal:Cytosol",
-                                                   "Adult:Nucleus", "Prenatal:Nucleus"))
+IRratios$Group = factor(paste(IRratios$Age, IRratios$Fraction, sep=":"), levels = c("Adult:Cytosol", "Prenatal:Cytosol",
+                                                                                    "Adult:Nucleus", "Prenatal:Nucleus"))
 
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/IRratio_byGroup.pdf", width =6,height = 5)
 ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) +
   ylab("") + 
   xlab("IR Ratio") +
@@ -90,13 +90,13 @@ ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) 
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# IRratio_byGroup.pdf
+dev.off()
 
 # Just in shared introns
 ratio.overlaps = IRratios[which(IRratios$intronID %in% allintrons),]
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/IRratio_byGroup_QC_introns_only.pdf", width =6.25,height = 5)
 ggplot(ratio.overlaps, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) +
-  ylab("") + 
-  xlab("IR Ratio") +
+  ylab("") + xlab("IR Ratio") +
   ggtitle("IR Ratios By Group\n(Introns Passing QC In All Groups)") +
   xlim(0,.06) +
   theme(title = element_text(size = 20)) +
@@ -105,21 +105,20 @@ ggplot(ratio.overlaps, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Gr
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# IRratio_byGroup_QC_introns_only.pdf
-
+dev.off()
 
 # How many introns are retained at different thresholds?
-PercentIRs = data.frame(Constitutively.Spliced = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio==0),]))),
-                 ">0%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>0),]))),
-                 "less.five" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.05),]))),
-                 ">10%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.10),]))),
-                 ">20%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.20),]))),
-                 ">30%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.30),]))),
-                 ">40%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.40),]))),
-                 "fifty" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.50),]))),
-                 ">75%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.75),]))),
-                 ">90%" = unlist(lapply(IRfiltered2, function(x) nrow(x[which(x$IRratio>=.9),]))))
-Total = unlist(lapply(IRfiltered2, function(x) nrow(x)))
+PercentIRs = data.frame(Constitutively.Spliced = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio==0),]))),
+                 ">0%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>0),]))),
+                 "less.five" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.05),]))),
+                 ">10%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.10),]))),
+                 ">20%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.20),]))),
+                 ">30%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.30),]))),
+                 ">40%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.40),]))),
+                 "fifty" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.50),]))),
+                 ">75%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.75),]))),
+                 ">90%" = unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.9),]))))
+Total = unlist(lapply(IRfiltered, function(x) nrow(x)))
 PercentIRs = round(PercentIRs / Total *100, digits = 5)
 PercentIRs = data.frame(melt(PercentIRs), SampleID = rep.int(rownames(PercentIRs), 10))
 PercentIRs$Age = c(rep.int("Adult", 6), rep.int("Prenatal", 6))
@@ -138,6 +137,12 @@ PercentIRs$variable = gsub("X.75.",">75%", PercentIRs$variable)
 PercentIRs$variable = gsub("X.90.",">90%", PercentIRs$variable)
 PercentIRs$variable = factor(PercentIRs$variable, levels=c("Constitutively\nSpliced", ">0%", ">5%", 
                                                            ">10%", ">20%", ">30%", ">40%", ">50%", ">75%", ">90%"))
+(PercentIRs[which(PercentIRs$variable==">0%"),"value"]-PercentIRs[which(PercentIRs$variable==">5%"),"value"])[order(PercentIRs[which(PercentIRs$variable==">0%"),"value"]-PercentIRs[which(PercentIRs$variable==">5%"),"value"])]
+# range of 34.42-56.11% have IR ratio between 0-5%
+match(PercentIRs[which(PercentIRs$variable==">0%"),"SampleID"],PercentIRs[which(PercentIRs$variable==">5%"),"SampleID"])
+
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/percent_introns_byIRRatio.pdf", 
+    width =11,height = 5)
 ggplot(PercentIRs, aes(x=variable, y=value, fill=Group), color=Group) + 
   geom_boxplot() +
   ylab("Percent") + 
@@ -149,8 +154,9 @@ ggplot(PercentIRs, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# percent_introns_byIRRatio.pdf
-
+dev.off()
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/percent_introns_byIRRatio_greaterthan5perc.pdf", 
+    width =8,height = 5)
 ggplot(PercentIRs[which(PercentIRs$variable != "Constitutively\nSpliced" & PercentIRs$variable != ">0%"),],
        aes(x=variable, y=value, fill=Group), color=Group) + 
   geom_boxplot() +
@@ -163,10 +169,10 @@ ggplot(PercentIRs[which(PercentIRs$variable != "Constitutively\nSpliced" & Perce
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# percent_introns_byIRRatio_greaterthan5perc.pdf
+dev.off()
 
 # In only the introns in all four groups
-overlaps = lapply(IRfiltered2, function(x) x[which(x$intronID %in% allintrons),])
+overlaps = lapply(IRfiltered, function(x) x[which(x$intronID %in% allintrons),])
 PercentIRsOverlap = data.frame(Constitutively.Spliced = unlist(lapply(overlaps, function(x) nrow(x[which(x$IRratio==0),]))),
                         ">0%" = unlist(lapply(overlaps, function(x) nrow(x[which(x$IRratio>0),]))),
                         "less.five" = unlist(lapply(overlaps, function(x) nrow(x[which(x$IRratio>=.05),]))),
@@ -195,6 +201,8 @@ PercentIRsOverlap$variable = gsub("X.75.",">75%", PercentIRsOverlap$variable)
 PercentIRsOverlap$variable = gsub("X.90.",">90%", PercentIRsOverlap$variable)
 PercentIRsOverlap$variable = factor(PercentIRsOverlap$variable, levels=c("Constitutively\nSpliced", ">0%", ">5%", 
                                                            ">10%", ">20%", ">30%", ">40%", ">50%", ">75%", ">90%"))
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/percent_introns_byIRRatio_QC_intronsOnly.pdf", 
+    width =11,height = 5)
 ggplot(PercentIRsOverlap, aes(x=variable, y=value, fill=Group), color=Group) + 
   geom_boxplot() +
   ylab("Percent") + 
@@ -206,8 +214,9 @@ ggplot(PercentIRsOverlap, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# percent_introns_byIRRatio_QC_intronsOnly.pdf
-
+dev.off() 
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/percent_introns_byIRRatio_greaterthan5perc_QC_introns.pdf", 
+    width =8,height = 5)
 ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSpliced" & 
                                  PercentIRsOverlap$variable != ">0%"),],
        aes(x=variable, y=value, fill=Group), color=Group) + 
@@ -221,121 +230,83 @@ ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSp
   theme(legend.position = c(.85, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# percent_introns_byIRRatio_greaterthan5perc_QC_introns.pdf
+dev.off()
 
 # Is IR increased in the nucleus?
 # Main effect: All filtered introns
 t.test(x = IRratios[which(IRratios$Fraction=="Nucleus"),"IRratio"],
        y = IRratios[which(IRratios$Fraction=="Cytosol"),"IRratio"],
        alternative = "greater")
-#data:  IRratios[which(IRratios$Fraction == "Nucleus"), "IRratio"] and IRratios[which(IRratios$Fraction == "Cytosol"), "IRratio"]
-#t = 57.47, df = 373260, p-value < 2.2e-16
+#t = 59.932, df = 391890, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.003913777         Inf
+#  0.004549564         Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.008557266 0.004528172
+#0.009639673 0.004961720
 
 # in adult polyA
 t.test(x = IRratios[which(IRratios$Group=="Adult:Nucleus"),"IRratio"],
        y = IRratios[which(IRratios$Group=="Adult:Cytosol"),"IRratio"],
        alternative = "greater")
 #data:  IRratios[which(IRratios$Group == "Adult:Nucleus"), "IRratio"] and IRratios[which(IRratios$Group == "Adult:Cytosol"), "IRratio"]
-#t = 49.278, df = 130080, p-value < 2.2e-16
+#t = 51.34, df = 134720, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.005493063         Inf
+#  0.006244051         Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.009611667 0.003928916
+#0.010631792 0.004181069 
 
 # in Prenatal polyA
 t.test(x = IRratios[which(IRratios$Group=="Prenatal:Nucleus"),"IRratio"],
        y = IRratios[which(IRratios$Group=="Prenatal:Cytosol"),"IRratio"],
        alternative = "greater")
-#data:  IRratios[which(IRratios$Group == "Prenatal:Nucleus"), "IRratio"] and IRratios[which(IRratios$Group == "Prenatal:Cytosol"), "IRratio"]
-#t = 34.448, df = 242280, p-value < 2.2e-16
+#t = 36.518, df = 254640, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.002878125         Inf
+#  0.003453338         Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.007889297 0.004866854
+#0.009015836 0.005399616
 
-# Main effect: introns >=75% retained
+# Main effect: introns >=50% retained
 head(PercentIRs)
 # in all polyA
-t.test(x = PercentIRs[which(PercentIRs$Fraction=="Nucleus" & PercentIRs$variable == ">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Fraction=="Cytosol" & PercentIRs$variable == ">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Fraction == "Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Fraction == "Cytosol" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = 0.4709, df = 8.9399, p-value = 0.3245
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.0026255        Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.003896667 0.002990000
 t.test(x = PercentIRs[which(PercentIRs$Fraction=="Nucleus" & PercentIRs$variable == ">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Fraction=="Cytosol" & PercentIRs$variable == ">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Fraction == "Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Fraction == "Cytosol" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 3.0601, df = 5.5816, p-value = 0.01219
+#t = 3.6862, df = 5.5616, p-value = 0.005872
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.01136551        Inf
+#  0.02269485        Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.04321833 0.01132500
+#0.06533000 0.01655667
 
 # in adult polyA
-t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Adult:Cytosol" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = 0.93677, df = 3.8054, p-value = 0.2022
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.004404569          Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.005596667 0.002233333
 t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Adult:Cytosol" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 2.8918, df = 2.1153, p-value = 0.04764
+#t = 3.2264, df = 2.0066, p-value = 0.04188
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.0012081       Inf
+#  0.006040032         Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.05553333 0.01050333
+#0.07532667 0.01305333
 
 # in Prenatal polyA
-t.test(x = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Prenatal:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Cytosol" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = -1.0492, df = 3.1303, p-value = 0.8159
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.004968579          Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.002196667 0.003746667
 t.test(x = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Prenatal:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Cytosol" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 1.5401, df = 2.6922, p-value = 0.1156
+#t = 1.7847, df = 2.3756, p-value = 0.09795
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.01129211         Inf
+#  -0.01667134         Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.03090333 0.01214667 
+#0.05533333 0.02006000 
 
 
 ## Is IR increased in adults?
@@ -343,144 +314,103 @@ t.test(x = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$va
 t.test(x = IRratios[which(IRratios$Age=="Adult"),"IRratio"],
        y = IRratios[which(IRratios$Age=="Prenatal"),"IRratio"],
        alternative = "greater")
-#data:  IRratios[which(IRratios$Age == "Adult"), "IRratio"] and IRratios[which(IRratios$Age == "Prenatal"), "IRratio"]
-#t = 7.572, df = 323310, p-value = 1.843e-14
+#t = 4.8165, df = 349850, p-value = 7.308e-07
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.0004424013          Inf
+#  0.00026177        Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.006955816 0.006390642
+#0.007624388 0.007226860 
 
 # in Nuclear polyA
 t.test(x = IRratios[which(IRratios$Group=="Adult:Nucleus"),"IRratio"],
        y = IRratios[which(IRratios$Group=="Prenatal:Nucleus"),"IRratio"],
        alternative = "greater")
-#data:  IRratios[which(IRratios$Group == "Adult:Nucleus"), "IRratio"] and IRratios[which(IRratios$Group == "Prenatal:Nucleus"), "IRratio"]
-#t = 13.864, df = 166000, p-value < 2.2e-16
+#t = 11.717, df = 179990, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  0.001518024         Inf
+#  0.001389112         Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.009611667 0.007889297 
+#0.010631792 0.009015836  
 
 # in Cytosol polyA
 t.test(x = IRratios[which(IRratios$Group=="Adult:Cytosol"),"IRratio"],
        y = IRratios[which(IRratios$Group=="Prenatal:Cytosol"),"IRratio"],
        alternative = "greater")
-#data:  IRratios[which(IRratios$Group == "Adult:Cytosol"), "IRratio"] and IRratios[which(IRratios$Group == "Prenatal:Cytosol"), "IRratio"]
-#t = -12.575, df = 182850, p-value = 1
+#t = -15.029, df = 198370, p-value = 1
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.001060624          Inf
+#  -0.001351909          Inf
 #sample estimates:
 #  mean of x   mean of y 
-#0.003928916 0.004866854
+#0.004181069 0.005399616
+
 t.test(x = IRratios[which(IRratios$Group=="Adult:Cytosol"),"IRratio"],
        y = IRratios[which(IRratios$Group=="Prenatal:Cytosol"),"IRratio"],
        alternative = "less")
-#data:  IRratios[which(IRratios$Group == "Adult:Cytosol"), "IRratio"] and IRratios[which(IRratios$Group == "Prenatal:Cytosol"), "IRratio"]
-#t = -12.575, df = 182850, p-value < 2.2e-16
+#t = -15.029, df = 198370, p-value < 2.2e-16
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf -0.0008152517
+#  -Inf -0.001085186
 #sample estimates:
 #  mean of x   mean of y 
-#0.003928916 0.004866854
+#0.004181069 0.005399616
 
-# Main effect: introns >=75% retained
+# Main effect: introns >=50% retained
 head(PercentIRs)
 # in all polyA
-t.test(x = PercentIRs[which(PercentIRs$Age=="Adult" & PercentIRs$variable==">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Age=="Prenatal" & PercentIRs$variable==">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Age == "Adult" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Age == "Prenatal" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = 0.49039, df = 6.7169, p-value = 0.3197
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.002724383          Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.003915000 0.002971667
 t.test(x = PercentIRs[which(PercentIRs$Age=="Adult" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Age=="Prenatal" & PercentIRs$variable==">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Age == "Adult" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Age == "Prenatal" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 0.81858, df = 7.8679, p-value = 0.2186
+#t = 0.32118, df = 9.106, p-value = 0.3777
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.01467262         Inf
+#  -0.03051811         Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.03301833 0.02152500
+#0.04419000 0.03769667
 t.test(x = PercentIRs[which(PercentIRs$Age=="Adult" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Age=="Prenatal" & PercentIRs$variable==">50%"),"value"],
        alternative = "less")
-#data:  PercentIRs[which(PercentIRs$Age == "Adult" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Age == "Prenatal" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 0.81858, df = 7.8679, p-value = 0.7814
+#t = 0.32118, df = 9.106, p-value = 0.6223
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf 0.03765929
+#  -Inf 0.04350477
 #sample estimates:
 #  mean of x  mean of y 
-#0.03301833 0.02152500
+#0.04419000 0.03769667
 
 # in Nuclear polyA
-t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Nucleus" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = 1.0991, df = 2.8076, p-value = 0.1785
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.004087901          Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.005596667 0.002196667
 t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Nucleus" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Nucleus" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = 1.2954, df = 3.6621, p-value = 0.1354
+#t = 0.74063, df = 3.9983, p-value = 0.25
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.01700336         Inf
+#  -0.03756283         Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.05553333 0.03090333
+#0.07532667 0.05533333
 
 # in Cytosol polyA
-t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">75%"),"value"],
-       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">75%"),"value"],
-       alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Cytosol" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Cytosol" & PercentIRs$variable ==     ">75%"), "value"] and     ">75%"), "value"]
-#t = -0.64506, df = 2.4095, p-value = 0.7125
-#alternative hypothesis: true difference in means is greater than 0
-#95 percent confidence interval:
-#  -0.007632187          Inf
-#sample estimates:
-#  mean of x   mean of y 
-#0.002233333 0.003746667
 t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">50%"),"value"],
        alternative = "greater")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Cytosol" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Cytosol" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = -0.30372, df = 3.109, p-value = 0.6097
+#t = -1.1944, df = 2.0723, p-value = 0.8244
 #alternative hypothesis: true difference in means is greater than 0
 #95 percent confidence interval:
-#  -0.01419662         Inf
+#  -0.02373551         Inf
 #sample estimates:
 #  mean of x  mean of y 
-#0.01050333 0.01214667
+#0.01305333 0.02006000
 t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">50%"),"value"],
        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">50%"),"value"],
        alternative = "less")
-#data:  PercentIRs[which(PercentIRs$Group == "Adult:Cytosol" & PercentIRs$variable ==  and PercentIRs[which(PercentIRs$Group == "Prenatal:Cytosol" & PercentIRs$variable ==     ">50%"), "value"] and     ">50%"), "value"]
-#t = -0.30372, df = 3.109, p-value = 0.3903
+#t = -1.1944, df = 2.0723, p-value = 0.1756
 #alternative hypothesis: true difference in means is less than 0
 #95 percent confidence interval:
-#  -Inf 0.01090996
+#  -Inf 0.009722174
 #sample estimates:
 #  mean of x  mean of y 
-#0.01050333 0.01214667
+#0.01305333 0.02006000
