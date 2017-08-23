@@ -303,3 +303,87 @@ plot(compareDO,colorBy="p.adjust",  showCategory = 40, title= "Disease Ontology 
 
 save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
      file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.downsampled.rda")
+
+### In the different groups of fraction regulated genes, is there a relationship between direction of expression over age and significance over age?
+AgebyFrac = list(Cres.down = data.frame(Cres.down), Nres = data.frame(Nres))
+AgebyFrac = Map(cbind, AgebyFrac,lapply(AgebyFrac, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
+                Comparison = list("Cytosol", "Nucleus"))
+AgebyFrac = do.call(rbind, AgebyFrac)
+AgebyFrac$FDR = ifelse(AgebyFrac$padj<=0.05, "FDR<0.05", "FDR>0.05")
+AgebyFrac = AgebyFrac[which(AgebyFrac$padj!="NA"),]
+
+fracDevel = lapply(sig, function(x) AgebyFrac[which(AgebyFrac$gencodeID %in% x$geneID),])
+fracDevel = do.call(rbind, fracDevel)
+fracDevel$fracReg = gsub("\\..*","", rownames(fracDevel))
+fracDevel$fracReg = gsub("both_retained","Both Retained", fracDevel$fracReg)
+fracDevel$fracReg = gsub("both_exported","Both Exported", fracDevel$fracReg)
+fracDevel$fracReg = gsub("Fet_retained","Retained in Prenatal", fracDevel$fracReg)
+fracDevel$fracReg = gsub("Ad_retained","Retained in Adult", fracDevel$fracReg)
+fracDevel$fracReg = gsub("Fet_exported","Exported in Prenatal", fracDevel$fracReg)
+fracDevel$fracReg = gsub("Ad_exported","Exported in Adult", fracDevel$fracReg)
+fracDevel$fracReg = gsub("ret_Ad_exp_Fet","Retained in Adult/\nExported in Prenatal", fracDevel$fracReg)
+fracDevel$fracReg = gsub("ret_Fet_exp_Ad","Retained in Prenatal/\nExported in Adult", fracDevel$fracReg)
+fracDevel$fracReg = gsub("interacting","Interaction", fracDevel$fracReg)
+fracDevel$fracReg = factor(fracDevel$fracReg, 
+                           levels = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
+                                      "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
+                                      "Retained in Prenatal/\nExported in Adult", "Interaction"))
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/RetainedbyAge_LFCxFDR.pdf", width=24, height=6)
+ggplot(fracDevel, aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_violin() +
+  facet_grid(. ~ fracReg) +
+  ylab("Log2 Fold Change") + 
+  xlab("") +
+  ggtitle(paste0("Age Expression Changes in Gene Groups Regulated by Fraction")) + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
+### Is there a relationship between direction of expression of by age and significance in groups of genes differentially regulated by fraction?
+# In cytosol:
+fracDevel = lapply(sig, function(x) AgebyFrac[which(AgebyFrac$gencodeID %in% x$geneID),])
+x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+                                                                               x$padj<=0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                               x$padj<=0.05),"gencodeID"]))),
+                                                     c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+                                                                               x$padj>0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                               x$padj>0.05),"gencodeID"]))))))
+x = unlist(lapply(x,function(x) as.character(x)[1]))
+x = data.frame(x)
+CytCounts = do.call(rbind, lapply(fracDevel, function(x) data.frame(Sig = c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
+                                                Nonsig = c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),
+                                                Dir = c("UpPrenatal", "UpAdult"))))
+CytCounts$FracGroup = gsub("\\..*","", rownames(CytCounts))
+CytCounts$fisher.pval = x[match(CytCounts$FracGroup,rownames(x)),]
+CytCounts$Comparison = "Cytosol"
+
+# In Nucleus:
+x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
+                                                                               x$padj<=0.05),"gencodeID"])),
+                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
+                                                                               x$padj<=0.05),"gencodeID"]))),
+                                                         c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
+                                                                               x$padj>0.05),"gencodeID"])),
+                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
+                                                                               x$padj>0.05),"gencodeID"]))))))
+x = unlist(lapply(x,function(x) as.character(x)[1]))
+x = data.frame(x)
+NucCounts = do.call(rbind, lapply(fracDevel, function(x) data.frame(Sig = c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
+                                                                            length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
+                                                                    Nonsig = c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
+                                                                               length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),
+                                                                    Dir = c("UpPrenatal", "UpAdult"))))
+NucCounts$FracGroup = gsub("\\..*","", rownames(NucCounts))
+NucCounts$fisher.pval = x[match(NucCounts$FracGroup,rownames(x)),]
+NucCounts$Comparison = "Nucleus"
+write.csv(rbind(CytCounts,NucCounts), 
+          file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/AgeLFCxAgepval_bysigFracGroup_fisher_pvalues.csv",
+          row.names = F,quote = F)
