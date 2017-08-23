@@ -753,6 +753,7 @@ venn.diagram(c(sigIR.intron.combined, nonsigIR.intron.combined),
              fontfamily = "Arial", fontface = "bold",
              cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
              cat.fontfamily = "Arial", margin=0.2)
+# all 7 saved together at ./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_overlap_Fraction_Age.pdf
 
 fisher.test(data.frame(c(1+4+10+85,5+15+78+285),c(6+20+51+322,322+927+1088))) 
 #data: dIR_FractionbyAge_combined.jpeg  
@@ -957,6 +958,8 @@ venn.diagram(c(sigIR.gene.combined, nonsigIR.gene.combined),
              fontfamily = "Arial", fontface = "bold",
              cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
              cat.fontfamily = "Arial", margin=0.2)
+# all 7 saved together at ./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_byGene_overlap_Fraction_Age.pdf
+
 
 fisher.test(data.frame(c(21+17+29+53,35+74+46+142),c(51+39+50+153,368+663+529))) 
 #data: dIR_gene_FractionbyAge_combined.jpeg  
