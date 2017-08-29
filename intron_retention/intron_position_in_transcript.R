@@ -31,7 +31,7 @@ sigdIR = c(lapply(sigdIR[1:8], function(x) x[,c(1:4,6,8,30,32,33,34)]),lapply(si
 introns = c("Introns (Fraction)" = list(do.call(rbind, lapply(dIRclean[1:2], function(x) x[,c(1:4,6,8,30,32,33,34)]))), 
             "Introns (Age)" = list(do.call(rbind, lapply(dIRclean[3:4], function(x) x[,c(1:4,6,8,30,32,33,34)]))), sigdIR)
 introns = lapply(introns[c(1:10,12:14)], function(x) data.frame(Chr = paste0("chr",x$Chr), x[2:10]))
-
+lapply(Tx, head)
 
 ## Map introns to transcripts
 exonMap$exonID = rownames(exonMap)

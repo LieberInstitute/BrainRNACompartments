@@ -43,148 +43,153 @@ IRclean = lapply(IR, function(x) lapply(x, function(y)
             y$B.warnings!="LowSplicing" & y$B.warnings!="NonUniformIntronCover" &
             y$comments=="clean"),]))
 
-### begin already gone through results from IR_analysis.R ###
+
 # Explore the results
 lapply(IRclean, function(x) elementNROWS(x))
 #IRcomp
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#1097              1001               689              1214               136               168 
+#792               649               461               740                55                85 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#1097              1001               689              1214               136               168 
+#792               649               461               740                55                85 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#785               661               421               877               131               155 
+#566               413               274               517                52                76 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#184               330                94               237                 5                 3 
+#145               253                74               181                 3                 2 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#646               710               409               694                56                57
+#465               471               270               430                19                31
 lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$Sign=="MoreIRInNuc.Fetal"),])))
 #IRcomp
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#1087               975               576               595               136               104 
+#783               629               391               390                55                59 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#1087               975               576               595               136               104 
+#783               629               391               390                55                59 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#776               641               334               380               131                95 
+#558               399               220               231                52                50 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#182               322                80               137                 5                 3 
+#144               246                62               113                 3                 2 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#638               698               344               355                56                38 
+#458               462               227               239                19                20 
 lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$p.diff<=0.05),])))
 #IRcomp
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#314               213               171               351                99                95 
+#162                93                80               179                32                37 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#314               213               171               351                99                95 
+#162                93                80               179                32                37 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#268               192               141               323                97                93 
+#143                84                69               169                32                35 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#57                30                18                48                 3                 2 
+#45                21                12                32                 1                 1 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#203               134                83               191                42                36
+#117                66                42               105                10                17
 lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$p.diff<=0.05 & y$Sign=="MoreIRInNuc.Fetal"),])))
-#IRcomp
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#312               212               140               165                99                62 
+#160                92                63                77                32                25 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#312               212               140               165                99                62 
+#160                92                63                77                32                25 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#266               191               112               145                97                60 
+#141                83                53                72                32                23 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#56                30                14                23                 3                 2 
+#44                21                 9                17                 1                 1 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#201               134                67                91                42                25
+#115                66                30                45                10                11
 lapply(IRclean, function(x) elementNROWS(lapply(x, function(y) y[which(y$A.IRratio>=0.5 | y$B.IRratio>=0.5),])))
 #IRcomp
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 3                16                 3                 7 
+#4                 5                 1                12                 1                 3 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 3                16                 3                 7 
+#4                 5                 1                12                 1                 3 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 3                16                 3                 7 
+#4                 5                 1                12                 1                 3 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
 #0                 0                 0                 1                 0                 0 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#2                 1                 0                 9                 0                 1      
+#2                 1                 0                 7                 0                 1 
 lapply(IRclean, function(x) elementNROWS(lapply(lapply(x, function(y) y[which(y$A.IRratio>=0.5 | y$B.IRratio>=0.5),]), 
                                                 function(z) z[which(z$Sign=="MoreIRInNuc.Fetal"),])))
 #IRcomp
-#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 1                 6                 3                 5 
+# Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
+#4                 5                 1                 4                 1                 3 
 #nonconst
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 1                 6                 3                 5 
+#4                 5                 1                 4                 1                 3 
 #rat.1
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#8                 5                 1                 6                 3                 5 
+#4                 5                 1                 4                 1                 3 
 #nonconst.nowarn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
 #0                 0                 0                 1                 0                 0 
 #nonconst.66warn
 #Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#2                 1                 0                 4                 0                 1
+#2                 1                 0                 2                 0                 1 
+
 
 #moving forward with the nonconstitutively spliced results because they capture more introns, 
 #and coverage issues are filtered after differential retention calculation
 nonconst = IRclean[["nonconst"]]
+elementNROWS(nonconst)
+elementNROWS(lapply(nonconst, function(y) y[which(y$Sign=="MoreIRInNuc.Fetal"),]))
 elementNROWS(lapply(nonconst, function(x) x[which(x$p.diff<=0.05),]))
+elementNROWS(lapply(nonconst, function(y) y[which(y$p.diff<=0.05 & y$Sign=="MoreIRInNuc.Fetal"),]))
+elementNROWS(lapply(nonconst, function(y) y[which(y$A.IRratio>=0.5 | y$B.IRratio>=0.5),]))
+elementNROWS(lapply(nonconst, function(y) y[which((y$A.IRratio>=0.5 | y$B.IRratio>=0.5) & y$Sign=="MoreIRInNuc.Fetal"),]))
 
 # Comparison of significantly vs nonsignificantly retained introns by zone/age
-fisher.test(data.frame(c(312,2),c(775,8))) 
+fisher.test(data.frame(c(160,2),c(623,7))) 
 # adult zone
-#p-value = 0.7332
+#p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.3188043 15.6435734
+#  0.1689921 8.9521084
 #sample estimates:
 #  odds ratio 
-#1.609729
-fisher.test(data.frame(c(212,1),c(763,25)))
+#0.8989833
+fisher.test(data.frame(c(92,1),c(537,19)))
 # fetal zone
-#p-value = 0.02666
+#p-value = 0.3372
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.122308 286.209119
+#  0.5043948 136.6375340
 #sample estimates:
 #  odds ratio 
-#6.938855
-fisher.test(data.frame(c(141,30),c(435,83)))
+#3.251195
+fisher.test(data.frame(c(63,17),c(391-63,461-391-17)))
 # cytosol age
-#p-value = 0.6352
+#p-value = 0.1214
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.5572585 1.4726430
+#  0.3166124 1.1787385
 #sample estimates:
 #  odds ratio 
-#0.8969333 
-fisher.test(data.frame(c(165,186),c(430,433)))
+#0.5995641
+fisher.test(data.frame(c(77,102),c(390-77,740-390-102)))
 # nucleus age
-#p-value = 0.3762
+#p-value = 0.003416
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.6912077 1.1541152
+#  0.4194177 0.8517435
 #sample estimates:
 #  odds ratio 
-#0.8933697
+#0.5985671
 
 # Get the DEG pval and LFC sign by Fraction for differentially retained introns
 FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres),
@@ -194,8 +199,8 @@ FracList = Map(cbind, FracList, lapply(FracList, function(x) geneMap[match(rowna
 nonconst = Map(cbind, nonconst, 
                AP.sig = lapply(nonconst, function(x) FracList[["Apres"]][match(x$ensID, FracList[["Apres"]][,"ensemblID"]),"padj"]),
                AP.LFC = lapply(nonconst, function(x) FracList[["Apres"]][match(x$ensID, FracList[["Apres"]][,"ensemblID"]),"log2FoldChange"]),
-               FP.sig = lapply(nonconst, function(x) FracList[["Fpres"]][match(x$ensID, FracList[["Fpres"]][,"ensemblID"]),"padj"]),
-               FP.LFC = lapply(nonconst, function(x) FracList[["Fpres"]][match(x$ensID, FracList[["Fpres"]][,"ensemblID"]),"log2FoldChange"]),
+               FP.sig = lapply(nonconst, function(x) FracList[["Fpres.down"]][match(x$ensID, FracList[["Fpres.down"]][,"ensemblID"]),"padj"]),
+               FP.LFC = lapply(nonconst, function(x) FracList[["Fpres.down"]][match(x$ensID, FracList[["Fpres.down"]][,"ensemblID"]),"log2FoldChange"]),
                AR.sig = lapply(nonconst, function(x) FracList[["Arres"]][match(x$ensID, FracList[["Arres"]][,"ensemblID"]),"padj"]),
                AR.LFC = lapply(nonconst, function(x) FracList[["Arres"]][match(x$ensID, FracList[["Arres"]][,"ensemblID"]),"log2FoldChange"]),
                FR.sig = lapply(nonconst, function(x) FracList[["Frres"]][match(x$ensID, FracList[["Frres"]][,"ensemblID"]),"padj"]),
@@ -212,10 +217,10 @@ dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]>=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]<=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.sig"]>=0.05),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]<=0.05),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]>=0.05),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]<=0.05),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.sig"]>=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.sig"]<=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.sig"]>=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.sig"]<=0.05),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.sig"]>=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]<=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]>=0.05),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.sig"]<=0.05),])
@@ -224,52 +229,48 @@ dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]>=0.05),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]<=0.05),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.sig"]>=0.05),])
-fisher.test(data.frame(c(164,148), c(286,489))) #adult polya
-#data:  data.frame(c(164, 148), c(286, 489))
-#p-value = 2.539e-06
+fisher.test(data.frame(c(85,77), c(230,394))) #adult polya
+#p-value = 0.0004274
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.439242 2.493470
+#  1.313810 2.721389
 #sample estimates:
 #  odds ratio 
-#1.893514
-fisher.test(data.frame(c(42,167), c(47,717))) #prenatal polya
-#data:  data.frame(c(42, 167), c(47, 717))
-#p-value = 1.507e-08
+#1.889471
+fisher.test(data.frame(c(22,68), c(36,504))) #prenatal polya
+#p-value = 1.949e-06
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  2.379715 6.151949
+#  2.380947 8.425692
 #sample estimates:
 #  odds ratio 
-#3.829787
-fisher.test(data.frame(c(194,117), c(368,408))) #adult both libraries
-#data:  data.frame(c(194, 117), c(368, 408))
-#p-value = 8.927e-06
+#4.513507
+fisher.test(data.frame(c(97,65), c(291,333))) #adult both libraries
+#p-value = 0.002739
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.392601 2.430641
+#  1.184965 2.469225
 #sample estimates:
 #  odds ratio 
-#1.837345
-fisher.test(data.frame(c(42,167), c(47,717))) #prenatal both libraries
-#data:  data.frame(c(42, 167), c(47, 717))
-#p-value = 1.507e-08
+#1.706497
+fisher.test(data.frame(c(30,62), c(111,442))) #prenatal both libraries
+#p-value = 0.009472
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  2.379715 6.151949
+#  1.143450 3.189854
 #sample estimates:
 #  odds ratio 
-#3.829787
+#1.9246
 
 # Are genes with significantly differentially retained introns more likely to have LFC in one direction by fraction?
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]>0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]<0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]>0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"AP.LFC"]<0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]>0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]<0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]>0),])
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.down.LFC"]<0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]<0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]>0),])
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"FP.LFC"]<0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]>0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]<0),])
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"A.LFC"]>0),])
@@ -278,70 +279,64 @@ dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]<0),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]>0),])
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"F.down.LFC"]<0),])
-fisher.test(data.frame(c(147,65), c(447,335))) #prenatal polya
-#data:  data.frame(c(147, 65), c(447, 335))
-#p-value = 0.001547
+fisher.test(data.frame(c(85,77), c(371,256))) #adult polya
+#p-value = 0.1299
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.212726 2.384151
+#  0.5305547 1.0952479
 #sample estimates:
 #  odds ratio 
-#1.694006
-fisher.test(data.frame(c(151,162), c(439,341))) #adult polya
-#data:  data.frame(c(151, 162), c(439, 341))
-#p-value = 0.01873
+#0.7619954
+fisher.test(data.frame(c(70,22), c(334,219))) #prenatal polya
+#p-value = 0.003621
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.5517484 0.9501778
+#  1.231986 3.644240
 #sample estimates:
 #  odds ratio 
-#0.7242496
-fisher.test(data.frame(c(149,164), c(453,327))) #adult in both libraries
-#data:  data.frame(c(149, 164), c(453, 327))
-#p-value = 0.001954
+#2.084049
+fisher.test(data.frame(c(84,78), c(378,249))) #adult in both libraries
+#p-value = 0.06017
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.4994930 0.8611575
+#  0.4939812 1.0201661
 #sample estimates:
 #  odds ratio 
-#0.6561047
-fisher.test(data.frame(c(134,78), c(488,295))) #prenatal in both libraries
-#data:  data.frame(c(134, 78), c(488, 295))
-#p-value = 0.873
+#0.7097328
+fisher.test(data.frame(c(66,26), c(367,187))) #prenatal in both libraries
+#p-value = 0.3389
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7504722 1.4433322
+#  0.7797678 2.1955444
 #sample estimates:
 #  odds ratio 
-#1.038481
+#1.292938
 
-# Are genes with significantly differentially retained introns more likely to have a higher IR ratio in nuclear RNA?
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #312
+# Are significantly differentially retained introns by fraction more likely to have a higher IR ratio in nuclear RNA?
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #160
 dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #2
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #775
-dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #8
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #212
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #623
+dim(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #7
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #92
 dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #1
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #763
-dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #25
-fisher.test(data.frame(c(312,2), c(775,8))) #adult
-#data:  data.frame(c(312, 2), c(775, 8))
-#p-value = 0.7332
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #537
+dim(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]>=0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #19
+fisher.test(data.frame(c(160,2), c(623,7))) #adult
+#p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.3188043 15.6435734
+#  0.1689921 8.9521084
 #sample estimates:
 #  odds ratio 
-#1.609729
-fisher.test(data.frame(c(212,1), c(763,25))) #prenatal
-#data:  data.frame(c(212, 1), c(763, 25))
-#p-value = 0.02666
+#0.8989833
+fisher.test(data.frame(c(92,1), c(537,19))) #prenatal
+#p-value = 0.3372
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.122308 286.209119
+#  0.5043948 136.6375340
 #sample estimates:
 #  odds ratio 
-#6.938855
+#3.251195
 
 # Get the DEG Age p-value and LFC sign for differentially retained introns
 AgeList = list(Cpres = data.frame(Cpres), Npres = data.frame(Npres),
@@ -383,42 +378,38 @@ dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.di
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]>=0.05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]<=0.05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.sig"]>=0.05),])
-fisher.test(data.frame(c(118,50), c(302,207))) #cytosol polya
-#data:  data.frame(c(118, 50), c(302, 207))
-#p-value = 0.0132
+fisher.test(data.frame(c(56,23), c(217,159))) #cytosol polya
+#p-value = 0.03199
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.096525 2.406682
+#  1.028505 3.169073
 #sample estimates:
 #  odds ratio 
-#1.61649
-fisher.test(data.frame(c(235,112), c(513,339))) #nucleus polya
-#data:  data.frame(c(235, 112), c(513, 339))
-#p-value = 0.01509
+#1.78183
+fisher.test(data.frame(c(116,60), c(326,229))) #nucleus polya
+#p-value = 0.0935
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.057376 1.823272
+#  0.9402847 1.9730512
 #sample estimates:
 #  odds ratio 
-#1.386161
-fisher.test(data.frame(c(127,40), c(356,153))) #cytosol in both libraries
-#data:  data.frame(c(127, 40), c(356, 153))
-#p-value = 0.1393
+#1.357514
+fisher.test(data.frame(c(63,16), c(261,115))) #cytosol in both libraries
+#p-value = 0.07552
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.8994604 2.0982478
+#  0.9397578 3.3574674
 #sample estimates:
 #  odds ratio 
-#1.363929
-fisher.test(data.frame(c(244,103), c(559,293))) #nucleus in both libraries
-#data:  data.frame(c(244, 103), c(559, 293))
-#p-value = 0.1199
+#1.732976
+fisher.test(data.frame(c(121,55), c(356,199))) #nucleus in both libraries
+#p-value = 0.2768
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.9405281 1.6451632
+#  0.844410 1.804591
 #sample estimates:
 #  odds ratio 
-#1.241454
+#1.229432
 
 # Are genes with significantly differentially retained introns more likely to have LFC in one direction by age?
 dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"CP.down.LFC"]<0),])
@@ -437,70 +428,64 @@ dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.di
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]>0),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]<05),])
 dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"N.LFC"]>0),])
-fisher.test(data.frame(c(109,59), c(248,261))) #cytosol polya
-#data:  data.frame(c(109, 59), c(248, 261))
-#p-value = 0.0003479
+fisher.test(data.frame(c(43,36), c(162,214))) #cytosol polya
+#p-value = 0.08126
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.335597 2.844027
+#  0.9413047 2.6522660
 #sample estimates:
 #  odds ratio 
-#1.942424
-fisher.test(data.frame(c(200,148), c(853,392))) #nucleus polya
-#data:  data.frame(c(200, 148), c(853, 392))
-#p-value = 0.0001536
+#1.576209
+fisher.test(data.frame(c(89,88), c(555,296))) #nucleus polya
+#p-value = 0.0002336
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.4833510 0.7992836
+#  0.3839657 0.7584748
 #sample estimates:
 #  odds ratio 
-#0.6211912
-fisher.test(data.frame(c(105,63), c(262,247))) #cytosol in both libraries
-#data:  data.frame(c(105, 63), c(262, 247))
-#p-value = 0.01577
+#0.539719
+fisher.test(data.frame(c(43,36), c(175,201))) #cytosol in both libraries
+#p-value = 0.2169
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.083506 2.287870
+#  0.8192296 2.3048746
 #sample estimates:
 #  odds ratio 
-#1.570188
-fisher.test(data.frame(c(206,142), c(853,354))) #nucleus in both libraries
-#data:  data.frame(c(206, 142), c(853, 354))
-#p-value = 6.697e-05
+#1.370935
+fisher.test(data.frame(c(92,85), c(555,268))) #nucleus in both libraries
+#p-value = 0.0001298
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.4670682 0.7776257
+#  0.3712786 0.7369890
 #sample estimates:
 #  odds ratio 
-#0.6022291
+#0.5229967
 
-# Are genes with significantly differentially retained introns more likely to have a higher IR ratio in prenatal samples?
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #140
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #31
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #436
-dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #82
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #165
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #186
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #430
-dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #433
-fisher.test(data.frame(c(140,31), c(436,82))) #cytosol
-#data:  data.frame(c(140, 31), c(436, 82))
-#p-value = 0.4768
+# Are significantly differentially retained introns more likely to have a higher IR ratio in prenatal samples?
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #63
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #17
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #328
+dim(nonconst[["Cytosol_PolyA_Age"]][which(nonconst[["Cytosol_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Cytosol_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #53
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #77
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]<=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #102
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInNuc.Fetal"),]) #313
+dim(nonconst[["Nuclear_PolyA_Age"]][which(nonconst[["Nuclear_PolyA_Age"]][,"p.diff"]>=0.05 & nonconst[["Nuclear_PolyA_Age"]][,"Sign"]=="MoreIRInCyt.Adult"),]) #248
+fisher.test(data.frame(c(63,17), c(328,53))) #cytosol
+#p-value = 0.1214
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.5296991 1.3881400
+#  0.3166124 1.1787385
 #sample estimates:
 #  odds ratio 
-#0.8495898
-fisher.test(data.frame(c(165,186), c(430,433))) #nucleus
-#data:  data.frame(c(165, 186), c(430, 433))
-#p-value = 0.3762
+#0.5995641
+fisher.test(data.frame(c(77,102), c(313,248))) #nucleus
+#p-value = 0.003416
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.6912077 1.1541152
+#  0.4194177 0.8517435
 #sample estimates:
 #  odds ratio 
-#0.8933697
+#0.5985671
 
 # IR regulated genes 
 DirList = lapply(nonconst, function(x) split(x, x$Sign))
@@ -564,13 +549,13 @@ dev.off()
 t.test(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"], 
        IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"], alternative = "two.sided")
 #data:  Adult:Cytosol-Enriched and Adult:Nuclear-Enriched
-#t = 2.5258, df = 1.0291, p-value = 0.2343
+#t = 2.2342, df = 1.0548, p-value = 0.2575
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -3.340238  5.142398
+#  -3.235357  4.839308
 #sample estimates:
-#  mean of x   mean of y 
-#0.82133680 -0.07974323 
+#  mean of x  mean of y 
+#0.82133680 0.01936121 
 t.test(IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"], 
        IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"], alternative = "two.sided")
 #data:  Prenatal:Cytosol-Enriched and Prenatal:Nuclear-Enriched
@@ -580,58 +565,58 @@ t.test(c(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriche
        c(IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
          IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"]), alternative = "two.sided")
 #data:  Combined  Cytosol-Enriched and Nuclear-Enriched
-#t = 1.3287, df = 2.0234, p-value = 0.314
+#t = 1.0935, df = 2.0468, p-value = 0.3861
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -1.093380  2.086214
+#  -1.167567  1.986998
 #sample estimates:
-#  mean of x  mean of y 
-#0.50996684 0.01354981
+#  mean of x mean of y 
+#0.5099668 0.1002516
 t.test(IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"], 
        IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"], alternative = "two.sided")
 #data: Cytosol:Adult-Enriched and Cytosol:Prenatal-Enriched
-#t = 5.8578, df = 39.413, p-value = 7.874e-07
+#t = 5.2669, df = 24.108, p-value = 2.089e-05
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  0.9365837 1.9240148
+#  0.9850287 2.2539872
 #sample estimates:
 #  mean of x  mean of y 
-#0.6834974 -0.7468019
+#0.9928103 -0.6266976
 t.test(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"], 
        IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"], alternative = "two.sided")
 #data:  Nucleus:Adult-Enriched and Nucleus:Prenatal-Enriched
-#t = 9.7837, df = 270.56, p-value < 2.2e-16
+#t = 6.9574, df = 135.18, p-value = 1.356e-10
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  0.9818406 1.4765372
+#  0.8695872 1.5602946
 #sample estimates:
 #  mean of x  mean of y 
-#0.2691135 -0.9600754
+#0.3771470 -0.8377939 
 t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
          IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"]), 
        c(IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
          IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"]), alternative = "two.sided")
 #data:  Combined Adult-Enriched and Combined Prenatal-Enriched
-#t = 11.608, df = 457.07, p-value < 2.2e-16
+#t = 8.5545, df = 240.5, p-value = 1.405e-15
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  0.986928 1.389202
+#  0.9272796 1.4820912
 #sample estimates:
 #  mean of x  mean of y 
-#0.3267855 -0.8612796 
+#0.4643206 -0.7403648  
 
-## Are the Fraction pvalues values more significant in genes containing a retained intron preferentially?
+## Are the Fraction pvalues more significant in genes containing a retained intron preferentially?
 
 t.test(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"padj"], 
        IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"], alternative = "two.sided")
 #data:  Adult:Cytosol-Enriched and Adult:Nuclear-Enriched
-#t = -10.085, df = 265.99, p-value < 2.2e-16
+#t = -8.0333, df = 142.5, p-value = 3.254e-13
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.2104949 -0.1417319
+#  -0.2483328 -0.1502528
 #sample estimates:
 #  mean of x   mean of y 
-#0.001126789 0.177240174 
+#0.001126789 0.200419598  
 t.test(IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"padj"], 
        IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"], alternative = "two.sided")
 #data:  Prenatal:Cytosol-Enriched and Prenatal:Nuclear-Enriched
@@ -641,45 +626,45 @@ t.test(c(IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriche
        c(IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"],
          IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"]), alternative = "two.sided")
 #data:  Combined  Cytosol-Enriched and Nuclear-Enriched
-#t = 0.16058, df = 2.0111, p-value = 0.8871
+#t = 0.12266, df = 2.0225, p-value = 0.9135
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -1.117272  1.204380
+#  -1.12296  1.18959
 #sample estimates:
 #  mean of x mean of y 
-#0.2719766 0.2284224
+#0.2719766 0.2386617
 t.test(IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"], 
        IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"], alternative = "two.sided")
 #data: Cytosol:Adult-Enriched and Cytosol:Prenatal-Enriched
-#t = 0.37388, df = 36.487, p-value = 0.7107
+#t = 0.53028, df = 20.638, p-value = 0.6016
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.08262087  0.11998935
+#  -0.1188533  0.2000960
 #sample estimates:
 #  mean of x  mean of y 
-#0.11864635 0.09996211 
+#0.13665037 0.09602901 
 t.test(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"], 
        IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"], alternative = "two.sided")
 #data:  Nucleus:Adult-Enriched and Nucleus:Prenatal-Enriched
-#t = 2.3936, df = 310.23, p-value = 0.01728
+#t = 1.7406, df = 161.27, p-value = 0.08367
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  0.01360126 0.13926969
+#  -0.01103201  0.17498677
 #sample estimates:
 #  mean of x mean of y 
-#0.1881114 0.1116759
+#0.2127748 0.1307974
 t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
          IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"]), 
        c(IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
          IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"]), alternative = "two.sided")
 #data:  Combined Adult-Enriched and Combined Prenatal-Enriched
-#t = 2.7719, df = 357.99, p-value = 0.005865
+#t = 2.3053, df = 212.35, p-value = 0.02212
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  0.02097326 0.12341456
+#  0.01264375 0.16184756
 #sample estimates:
 #  mean of x mean of y 
-#0.1784436 0.1062497
+#0.2019961 0.1147505
 
 ## Are dIR introns by age more likely to be dIR introns by fraction?
 nonconst = Map(cbind, IRclean[["nonconst"]], intronID = lapply(IRclean[["nonconst"]], function(x) paste0(x$Chr, ":", x$Start, "-", x$"End")))
@@ -755,134 +740,135 @@ venn.diagram(c(sigIR.intron.combined, nonsigIR.intron.combined),
              cat.fontfamily = "Arial", margin=0.2)
 # all 7 saved together at ./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_overlap_Fraction_Age.pdf
 
-fisher.test(data.frame(c(1+4+10+85,5+15+78+285),c(6+20+51+322,322+927+1088))) 
-#data: dIR_FractionbyAge_combined.jpeg  
-#  p-value = 0.001026
+fisher.test(data.frame(c(1+3+4+42,7+2+46+142),c(5+2+33+163,873+233+630))) 
+#data: dIR_FractionbyAge_combined  
+#p-value = 2.972e-05
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.184734 1.961597
+#  1.506956 3.083273
 #sample estimates:
 #  odds ratio 
-#1.529056
-fisher.test(data.frame(c(35,11+125),c(19+260,52+447+720)))
-#data: dIR_FractionbyAge_adult_cytosol.jpeg
-#p-value = 0.5371
+#2.169531
+fisher.test(data.frame(c(15,7+58),c(14+133,581+42+325)))
+#data: dIR_FractionbyAge_adult_cytosol
+#p-value = 0.1805
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7354046 1.6826860
+#  0.7669728 2.7235930
 #sample estimates:
 #  odds ratio 
-#1.12436
-fisher.test(data.frame(c(5,19+147),c(6+202,26+486+743)))
-#data: dIR_FractionbyAge_prenatal_cytosol.jpeg
-#p-value = 3.313e-06
+#1.487655
+fisher.test(data.frame(c(1,6+73),c(3+89,22+528+356)))
+#data: dIR_FractionbyAge_prenatal_cytosol
+#p-value = 0.01107
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.05758012 0.44079056
+#  0.003087761 0.734638044
 #sample estimates:
 #  odds ratio 
-#0.1818474
-fisher.test(data.frame(c(31,34+286),c(21+262,111+731+638)))
-#data: dIR_FractionbyAge_adult_nucleus.jpeg
-#p-value = 0.0003822
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.3313704 0.7524600
-#sample estimates:
-#  odds ratio 
-#0.5067602
-fisher.test(data.frame(c(41,49+261),c(19+153,170+674+569)))
-#data: dIR_FractionbyAge_prenatal_nucleus.jpeg
-#p-value = 0.6382
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7367658 1.5731319
-#sample estimates:
-#  odds ratio 
-#1.086481
-fisher.test(data.frame(c(28,14+171),c(23+263,41+724+728)))
-#data: dIR_Fraction_adult_fetal.jpeg
-#p-value = 0.3194
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5009596 1.2076840
-#sample estimates:
-#  odds ratio 
-#0.790188
-fisher.test(data.frame(c(39,20+292),c(5+127,50+808+448)))
-#data: dIR_Age_cytosol_nucleus.jpeg
-#p-value = 0.2665
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8242523 1.8220293
-#sample estimates:
-#  odds ratio 
-#1.236588
-
-# What about only the introns reported in both comparisons?
-fisher.test(data.frame(c(1+4+10+85,5+78),c(6+51,322))) 
-#data: dIR_FractionbyAge_combined.jpeg  
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  4.449856 10.415955
-#sample estimates:
-#  odds ratio 
-#6.777491
-fisher.test(data.frame(c(35,11),c(19,52)))
-#data: dIR_FractionbyAge_adult_cytosol.jpeg
-#p-value = 1.851e-07
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  3.431975 22.659230
-#sample estimates:
-#  odds ratio 
-#8.51932
-fisher.test(data.frame(c(5,19),c(6,26)))
-#data: dIR_FractionbyAge_prenatal_cytosol.jpeg
+#0.1247735
+fisher.test(data.frame(c(21,29+129),c(15+126,97+504+449)))
+#data: dIR_FractionbyAge_adult_nucleus
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.2367084 5.2428228
+#  0.5765156 1.6293415
 #sample estimates:
 #  odds ratio 
-#1.137662
-fisher.test(data.frame(c(31,34),c(21,111)))
-#data: dIR_FractionbyAge_adult_nucleus.jpeg
-#p-value = 4.731e-06
+#0.9897722
+fisher.test(data.frame(c(16,17+146),c(9+68,93+446+459)))
+#data: dIR_FractionbyAge_prenatal_nucleus
+#p-value = 0.4399
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  2.327024 10.006823
+#  0.6753004 2.2670649
 #sample estimates:
 #  odds ratio 
-#4.77432
-fisher.test(data.frame(c(41,49),c(19,170)))
-#data: dIR_FractionbyAge_prenatal_nucleus.jpeg
-#p-value = 7.144e-11
+#1.271986
+fisher.test(data.frame(c(2,5+86),c(6+154,21+529+604)))
+#data: dIR_Fraction_adult_fetal
+#p-value = 0.001206
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  3.820863 14.858858
+#  0.0187539 0.6002508
 #sample estimates:
 #  odds ratio 
-#7.419343
-fisher.test(data.frame(c(28,14),c(23,41)))
-#data: dIR_Fraction_adult_fetal.jpeg
-#p-value = 0.00277
+#0.1586279
+fisher.test(data.frame(c(12,10+157),c(4+64,30+341+527)))
+#data: dIR_Age_cytosol_nucleus
+#p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.459885 8.825248
+#  0.4572037 1.8166853
 #sample estimates:
 #  odds ratio 
-#3.519946
-fisher.test(data.frame(c(39,20),c(5,50)))
-#data: dIR_Age_cytosol_nucleus.jpeg
-#p-value = 1.683e-10
+#0.94895
+
+# What about only the introns reported in both comparisons?
+fisher.test(data.frame(c(1+3+4+42,2+46),c(2+33,233))) 
+#data: dIR_FractionbyAge_combined  
+#p-value = 4.229e-13
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  6.250532 70.547304
+#  3.933238 12.221562
 #sample estimates:
 #  odds ratio 
-#18.87679
+#6.885668
+fisher.test(data.frame(c(15,7),c(14,42)))
+#data: dIR_FractionbyAge_adult_cytosol
+#p-value = 0.0006281
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.938127 22.224856
+#sample estimates:
+#  odds ratio 
+#6.249445
+fisher.test(data.frame(c(1,6),c(3,22)))
+#data: dIR_FractionbyAge_prenatal_cytosol
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.01998962 18.71582978
+#sample estimates:
+#  odds ratio 
+#1.214275
+fisher.test(data.frame(c(21,29),c(15,97)))
+#data: dIR_FractionbyAge_adult_nucleus
+#p-value = 0.0001511
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.993149 11.047539
+#sample estimates:
+#  odds ratio 
+#4.629837
+fisher.test(data.frame(c(16,17),c(9,93)))
+#data: dIR_FractionbyAge_prenatal_nucleus
+#p-value = 2.7e-06
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  3.340701 28.882652
+#sample estimates:
+#  odds ratio 
+#9.492299
+fisher.test(data.frame(c(2,5),c(6,21)))
+#data: dIR_Fraction_adult_fetal
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0.1064076 11.6437411
+#sample estimates:
+#  odds ratio 
+#1.385473
+fisher.test(data.frame(c(12,10),c(4,30)))
+#data: dIR_Age_cytosol_nucleus
+#p-value = 0.0008489
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  2.030847 45.265290
+#sample estimates:
+#  odds ratio 
+#8.58202
+
 
 
 ## Are genes that have a dIR intron by age more likely to have a dIR intron by fraction?
@@ -961,197 +947,132 @@ venn.diagram(c(sigIR.gene.combined, nonsigIR.gene.combined),
 # all 7 saved together at ./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_byGene_overlap_Fraction_Age.pdf
 
 
-fisher.test(data.frame(c(21+17+29+53,35+74+46+142),c(51+39+50+153,368+663+529))) 
-#data: dIR_gene_FractionbyAge_combined.jpeg  
-#p-value = 3.879e-09
+fisher.test(data.frame(c(30+9+11+9,44+22+19+84),c(35+18+22+87,606+271+421))) 
+#data: dIR_gene_FractionbyAge_combined
+#p-value = 1.842e-08
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.665630 2.767285
+#  1.955509 3.962748
 #sample estimates:
 #  odds ratio 
-#2.150367
-fisher.test(data.frame(c(5+3+4+25,19+4+12+85),c(13+30+28+163,101+299+521)))
-#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
-#p-value = 0.3448
+#2.795009
+fisher.test(data.frame(c(1+1+2+12,13+4+4+40),c(6+17+89+17,454+75+243)))
+#data: dIR_gene_FractionbyAge_adult_cytosol
+#p-value = 0.1328
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7933247 1.8224939
+#  0.8180197 2.8602972
 #sample estimates:
 #  odds ratio 
-#1.213404
-fisher.test(data.frame(c(0+1+1+11,24+8+15+97),c(6+13+24+124,64+360+578)))
-#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
-#p-value = 0.04613
+#1.568876
+fisher.test(data.frame(c(2,8+5+5+57),c(3+3+9+69,42+439+293)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol
+#p-value = 0.03734
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.2751708 0.9850721
+#  0.02873558 0.95037313
 #sample estimates:
 #  odds ratio 
-#0.5418933
-fisher.test(data.frame(c(6+2+10+36,46+15+34+164),c(13+29+21+154,153+504+431)))
-#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
-#p-value = 0.8005
+#0.2459412
+fisher.test(data.frame(c(20+1+4+3,35+7+14+84),c(4+18+15+80,122+382+348)))
+#data: dIR_gene_FractionbyAge_adult_nucleus
+#p-value = 0.104
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7384812 1.4615272
+#  0.8931127 2.3128402
 #sample estimates:
 #  odds ratio 
-#1.045328
-fisher.test(data.frame(c(6+4+8+32,8+22+9+91),c(29+18+53+163,182+487+421)))
-#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
-#p-value = 0.01352
+#1.455879
+fisher.test(data.frame(c(18+2+2+1,20+7+15+103),c(5+11+4+43,113+354+363)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus
+#p-value = 0.007971
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.095534 2.291578
+#  1.196070 3.542889
 #sample estimates:
 #  odds ratio 
-#1.593495
-fisher.test(data.frame(c(3+2+8+25,27+7+19+89),c(16+34+23+160,95+529+516)))
-#data: dIR_gene_Fraction_adult_fetal.jpeg
-#p-value = 0.1748
+#2.088009
+fisher.test(data.frame(c(7+3,12+4+8+52),c(10+6+17+102,65+465+413)))
+#data: dIR_gene_Fraction_adult_fetal
+#p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.8659325 1.9426236
+#  0.4134921 1.8414453
 #sample estimates:
 #  odds ratio 
-#1.309072
-fisher.test(data.frame(c(4+7+6+36,32+7+39+182),c(10+3+11+80,103+583+301)))
-#data: dIR_gene_Age_cytosol_nucleus.jpeg
-#p-value = 0.0004928
+#0.919139
+fisher.test(data.frame(c(12+2+2+1,20+3+19+109),c(5+2+5+48,58+260+427)))
+#data: dIR_gene_Age_cytosol_nucleus
+#p-value = 0.2703
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.323990 2.800034
+#  0.7428577 2.5088940
 #sample estimates:
 #  odds ratio 
-#1.933604
+#1.397376
+
 
 # What about only the genes reported in both comparisons?
-fisher.test(data.frame(c(21+17+29+53,35+74+46+142),c(51+39+50+153,368+663+529))) 
-#data: dIR_gene_FractionbyAge_combined.jpeg  
-#p-value = 3.879e-09
+fisher.test(data.frame(c(30+9+11+9,44+22),c(35+18,271))) 
+#data: dIR_gene_FractionbyAge_combined
+#p-value = 7.768e-11
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.665630 2.767285
+#  2.813228 7.410751
 #sample estimates:
 #  odds ratio 
-#2.150367
-fisher.test(data.frame(c(5+3+4+25,19+4+12+85),c(13+30+28+163,101+299+521)))
-#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
-#p-value = 0.3448
+#4.552273
+fisher.test(data.frame(c(1+1+2+12,13+4),c(6+17,75)))
+#data: dIR_gene_FractionbyAge_adult_cytosol
+#p-value = 0.008738
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7933247 1.8224939
+#  1.228627 7.583875
 #sample estimates:
 #  odds ratio 
-#1.213404
-fisher.test(data.frame(c(0+1+1+11,24+8+15+97),c(6+13+24+124,64+360+578)))
-#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
-#p-value = 0.04613
+#3.039395
+fisher.test(data.frame(c(2,8+5),c(3+3,42)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol
+#p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.2751708 0.9850721
+#  0.09517173 7.03631018
 #sample estimates:
 #  odds ratio 
-#0.5418933
-fisher.test(data.frame(c(6+2+10+36,46+15+34+164),c(13+29+21+154,153+504+431)))
-#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
-#p-value = 0.8005
+#1.075645
+fisher.test(data.frame(c(20+1+4+3,35+7),c(4+18,122)))
+#data: dIR_gene_FractionbyAge_adult_nucleus
+#p-value = 0.0001195
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7384812 1.4615272
+#  1.812570 7.542576
 #sample estimates:
 #  odds ratio 
-#1.045328
-fisher.test(data.frame(c(6+4+8+32,8+22+9+91),c(29+18+53+163,182+487+421)))
-#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
-#p-value = 0.01352
+#3.67088
+fisher.test(data.frame(c(18+2+2+1,20+7),c(5+11,113)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus
+#p-value = 3.752e-06
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.095534 2.291578
+#  2.615232 13.878318
 #sample estimates:
 #  odds ratio 
-#1.593495
-fisher.test(data.frame(c(3+2+8+25,27+7+19+89),c(16+34+23+160,95+529+516)))
-#data: dIR_gene_Fraction_adult_fetal.jpeg
-#p-value = 0.1748
+#5.940231
+fisher.test(data.frame(c(7+3,12+4),c(10+6,65)))
+#data: dIR_gene_Fraction_adult_fetal
+#p-value = 0.06736
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.8659325 1.9426236
+#  0.852056 7.293437
 #sample estimates:
 #  odds ratio 
-#1.309072
-fisher.test(data.frame(c(4+7+6+36,32+7),c(10+3,103)))
-#data: dIR_gene_Age_cytosol_nucleus.jpeg
-#p-value = 7.898e-13
+#2.514344
+fisher.test(data.frame(c(12+2+2+1,20+3),c(5+2,58)))
+#data: dIR_gene_Age_cytosol_nucleus
+#p-value = 0.0002721
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  5.059531 23.696676
+#  2.043956 19.550674
 #sample estimates:
 #  odds ratio 
-#10.6203
-
-# What about only the genes reported in both comparisons?
-fisher.test(data.frame(c(21+17+29+53,35+74),c(51+39,368))) 
-#data: dIR_gene_FractionbyAge_combined.jpeg  
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  3.133920 6.463821
-#sample estimates:
-#  odds ratio 
-#4.490156
-fisher.test(data.frame(c(5+3+4+25,19+4),c(13+30,101)))
-#data: dIR_gene_FractionbyAge_adult_cytosol.jpeg
-#p-value = 3.532e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.919544 7.474978
-#sample estimates:
-#  odds ratio 
-#3.751376
-fisher.test(data.frame(c(0+1+1+11,24+8),c(6+13,64)))
-#data: dIR_gene_FractionbyAge_prenatal_cytosol.jpeg
-#p-value = 0.523
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5457205 3.3482308
-#sample estimates:
-#  odds ratio 
-#1.364944
-fisher.test(data.frame(c(6+2+10+36,46+15),c(13+29,153)))
-#data: dIR_gene_FractionbyAge_adult_nucleus.jpeg
-#p-value = 4.187e-06
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.894974 5.487542
-#sample estimates:
-#  odds ratio 
-#3.21149
-fisher.test(data.frame(c(6+4+8+32,8+22),c(18+53,182)))
-#data: dIR_gene_FractionbyAge_prenatal_nucleus.jpeg
-#p-value = 5.295e-08
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.436011 7.527893
-#sample estimates:
-#  odds ratio 
-#4.250734
-fisher.test(data.frame(c(3+2+8+25,27+7),c(16+34,95)))
-#data: dIR_gene_Fraction_adult_fetal.jpeg
-#p-value = 0.1748
-#p-value = 0.01247
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.146241 3.931282
-#sample estimates:
-#  odds ratio 
-#2.115891
-fisher.test(data.frame(c(4+7+6+36,32+7),c(10+3,103)))
-#data: dIR_gene_Age_cytosol_nucleus.jpeg
-#p-value = 7.898e-13
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  5.059531 23.696676
-#sample estimates:
-#  odds ratio 
-#10.6203
+#6.00427

@@ -48,7 +48,7 @@ introns = c("All Introns" = list(allIntrons), "Introns (Fraction)" = list(do.cal
             "Introns (Age)" = list(do.call(rbind, lapply(dIRclean[3:4], function(x) x[,c(1:4,6,8,30,32,33,34)]))), sigdIR)
 introns[["Introns (Fraction)"]] = introns[["Introns (Fraction)"]][unique(introns[["Introns (Fraction)"]][,"intronID"]),]
 introns[["Introns (Age)"]] = introns[["Introns (Age)"]][unique(introns[["Introns (Age)"]][,"intronID"]),]
-
+elementNROWS(introns)
 # get conservation information from the UCSC table browser
 elementNROWS(dIRclean)
 coord = do.call(rbind, lapply(dIRclean, function(x) x[,c(1:3,6)]))
@@ -85,6 +85,7 @@ levels(length$Comparison) = c("All Introns", "Introns (Fraction)", "Introns (Age
                               "Nucleus:Prenatal-Increased","Nucleus-Increased", "Adult-Increased", "Prenatal-Increased")
 
 # Plot density distribution of intron lengths using all "clean" introns as background
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_intron_length_byFraction_allIntrons.pdf", width = 8.5, height = 5)
 ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Adult:Cytosol-Increased" | 
                       length$Comparison=="Adult:Nucleus-Increased" |
                       length$Comparison=="Prenatal:Cytosol-Increased" | length$Comparison=="Prenatal:Nucleus-Increased"),],
@@ -99,8 +100,9 @@ ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Adult
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# density_intron_length_byFraction_allIntrons.pdf
+dev.off()
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_intron_length_byAge_allIntrons.pdf", width = 8.5, height = 5)
 ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Cytosol:Adult-Increased" | 
                       length$Comparison=="Cytosol:Prenatal-Increased" |
                       length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
@@ -115,9 +117,10 @@ ggplot(length[which(length$Comparison=="All Introns" | length$Comparison=="Cytos
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# density_intron_length_byAge_allIntrons.pdf
+dev.off()
 
 # Plot density distribution of intron lengths using all introns reported in dIR output as background
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_intron_length_byFraction_allFracIntrons.pdf", width = 8.5, height = 5)
 ggplot(length[which(length$Comparison=="Introns (Fraction)" | length$Comparison=="Adult:Cytosol-Increased" | 
                       length$Comparison=="Adult:Nucleus-Increased" |
                       length$Comparison=="Prenatal:Cytosol-Increased" | length$Comparison=="Prenatal:Nucleus-Increased"),],
@@ -132,8 +135,9 @@ ggplot(length[which(length$Comparison=="Introns (Fraction)" | length$Comparison=
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# density_intron_length_byFraction_allFracIntrons.pdf
+dev.off()
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_intron_length_byFraction_allAgeIntrons.pdf", width = 8.5, height = 5)
 ggplot(length[which(length$Comparison=="Introns (Age)" | length$Comparison=="Cytosol:Adult-Increased" | 
                       length$Comparison=="Cytosol:Prenatal-Increased" |
                       length$Comparison=="Nucleus:Adult-Increased" | length$Comparison=="Nucleus:Prenatal-Increased"),],
@@ -148,7 +152,7 @@ ggplot(length[which(length$Comparison=="Introns (Age)" | length$Comparison=="Cyt
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# density_intron_length_byFraction_allAgeIntrons.pdf
+dev.off() 
 
 # Measure length differences in groups of introns
 t.test(c(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Cytosol-Increased","length"]),
@@ -161,6 +165,9 @@ t.test(c(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[le
 #sample estimates:
 #  mean of x mean of y 
 #556.7346  498.2258
+t.test(length[length$Comparison=="Adult:Cytosol-Increased","length"],length[length$Comparison=="Adult:Nucleus-Increased","length"])
+#data: Adult cytosolic vs adult nuclear
+# not enough 'y' observations
 t.test(length[length$Comparison=="Prenatal:Cytosol-Increased","length"],length[length$Comparison=="Prenatal:Nucleus-Increased","length"])
 #data: Prenatal cytosolic vs Prenatal nuclear introns
 #t = 0.65007, df = 181.32, p-value = 0.5165
@@ -247,8 +254,8 @@ meancons = data.frame(intronID = names(meancons), mean.GERP = unlist(meancons))
 head(meancons)
 
 # Plot mean GERP scores using all "clean" introns as background
-introns = Map(cbind, introns, lapply(introns, function(x) meancons[match(x$intronID, meancons$intronID),]))
-gerp = do.call(rbind, lapply(introns, function(x) data.frame(mean.GERP = x$mean.GERP, Comparison=x$Comparison)))
+int = Map(cbind, introns, lapply(introns, function(x) meancons[match(x$intronID, meancons$intronID),]))
+gerp = do.call(rbind, lapply(int, function(x) data.frame(mean.GERP = x$mean.GERP, Comparison=x$Comparison)))
 gerp$Samples = gerp$Dir = "NA"
 gerp[grep("Adult:", gerp$Comparison), "Samples"] = "In Adult"
 gerp[grep("Prenatal:", gerp$Comparison), "Samples"] = "In Prenatal"
@@ -259,50 +266,55 @@ gerp[grep("Prenatal-", gerp$Comparison), "Dir"] = "Decreasing\nRetention"
 gerp[grep("Nucleus-", gerp$Comparison), "Dir"] = "Nuclear\nRetention"
 gerp[grep("Cytosol-", gerp$Comparison), "Dir"] = "Cytosolic\nRetention"
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/gerp_introns_byFraction.pdf", width = 6, height = 5)
 ggplot(gerp[which(gerp$Samples=="In Adult" | gerp$Samples=="In Prenatal"),],
        aes(x=Dir, y=mean.GERP, fill=Samples), color=Samples) + geom_boxplot() +
   xlab("") + 
   ylab("Mean GERP") +
-  ggtitle("Mean Base Conservation (GERP) in Introns\nDifferentially Retained By Fraction") +
+  ggtitle("Base Conservation\nin Introns Differentially\nRetained By Fraction") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# gerp_introns_byFraction.pdf
+dev.off()
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/gerp_introns_byAge.pdf", width = 6, height = 5)
 ggplot(gerp[which(gerp$Samples=="In Cytosol" | gerp$Samples=="In Nucleus"),],
        aes(x=Dir, y=mean.GERP, fill=Samples), color=Samples) + geom_boxplot() +
   xlab("") + 
   ylab("Mean GERP") +
-  ggtitle("Mean Base Conservation (GERP) in Introns\nDifferentially Retained Over Development") +
+  ggtitle("Base Conservation\nin Introns Differentially\nRetained Over Development") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-# gerp_introns_byAge.pdf
+dev.off() 
 
 # Measure gerp differences in groups of introns
 t.test(c(gerp[gerp$Comparison=="Adult:Cytosol-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Cytosol-Increased","mean.GERP"]),
        c(gerp[gerp$Comparison=="Adult:Nucleus-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Nucleus-Increased","mean.GERP"]))
 #data: pooled cytosolic vs pooled nuclear introns
-#t = 0.38464, df = 146.15, p-value = 0.7011
+#t = 1.1979, df = 2.656, p-value = 0.3269
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.2020140  0.2996507
+#  -0.3459565  0.7174918
 #sample estimates:
 #  mean of x  mean of y 
-#-0.5531988 -0.6020171
+#-0.3874209 -0.5731886 
+t.test(gerp[gerp$Comparison=="Adult:Cytosol-Increased","mean.GERP"],gerp[gerp$Comparison=="Adult:Nucleus-Increased","mean.GERP"])
+#data: Adult cytosolic vs Adult nuclear introns
+#t = 0.33715, df = 1.2683, p-value = 0.7833
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.363015  1.485754
+#sample estimates:
+#  mean of x  mean of y 
+#-0.4925867 -0.5539564
 t.test(gerp[gerp$Comparison=="Prenatal:Cytosol-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Nucleus-Increased","mean.GERP"])
 #data: Prenatal cytosolic vs Prenatal nuclear introns
-#t = 0.41074, df = 144.77, p-value = 0.6819
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.2008175  0.3061764
-#sample estimates:
-#  mean of x  mean of y 
-#-0.5539564 -0.6066359
+# not enough 'x' observations
 t.test(c(gerp[gerp$Comparison=="Adult:Cytosol-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Cytosol-Increased","mean.GERP"],
          gerp[gerp$Comparison=="Adult:Nucleus-Increased","mean.GERP"],gerp[gerp$Comparison=="Prenatal:Nucleus-Increased","mean.GERP"]),
        gerp[gerp$Comparison=="Introns (Fraction)","mean.GERP"])
@@ -317,31 +329,31 @@ t.test(c(gerp[gerp$Comparison=="Adult:Cytosol-Increased","mean.GERP"],gerp[gerp$
 t.test(c(gerp[gerp$Comparison=="Cytosol:Adult-Increased","mean.GERP"],gerp[gerp$Comparison=="Nucleus:Adult-Increased","mean.GERP"]),
        c(gerp[gerp$Comparison=="Cytosol:Prenatal-Increased","mean.GERP"],gerp[gerp$Comparison=="Nucleus:Prenatal-Increased","mean.GERP"]))
 #data: pooled adult vs pooled prenatal introns
-#t = 0.89377, df = 161.03, p-value = 0.3728
+#t = -1.4647, df = 245.86, p-value = 0.1443
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.1301288  0.3453030
+#  -0.39317020  0.05780492
 #sample estimates:
 #  mean of x  mean of y 
-#-0.3517381 -0.4593253
+#-0.5167330 -0.3490504
 t.test(gerp[gerp$Comparison=="Cytosol:Adult-Increased","mean.GERP"],gerp[gerp$Comparison=="Cytosol:Prenatal-Increased","mean.GERP"])
 #data: Cytosol:adult vs Cytosol:prenatal introns
-#t = 0.22215, df = 20.084, p-value = 0.8264
+#t = -0.508, df = 21.307, p-value = 0.6167
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.5150967  0.6379259
+#  -0.7262199  0.4408770
 #sample estimates:
 #  mean of x  mean of y 
-#-0.4640919 -0.5255065
+#-0.4640919 -0.3214205
 t.test(gerp[gerp$Comparison=="Nucleus:Adult-Increased","mean.GERP"],gerp[gerp$Comparison=="Nucleus:Prenatal-Increased","mean.GERP"])
 #data: Nucleus:adult vs Nucleus:prenatal introns
-#t = 0.33485, df = 137.56, p-value = 0.7382
+#t = -1.0864, df = 160.79, p-value = 0.2789
 #alternative hypothesis: true difference in means is not equal to 0
 #95 percent confidence interval:
-#  -0.2464155  0.3468878
+#  -0.4335184  0.1258186
 #sample estimates:
 #  mean of x  mean of y 
-#-0.3214205 -0.3716566
+#-0.5255065 -0.3716566 
 t.test(c(gerp[gerp$Comparison=="Cytosol:Adult-Increased","mean.GERP"],gerp[gerp$Comparison=="Nucleus:Adult-Increased","mean.GERP"],
          gerp[gerp$Comparison=="Cytosol:Prenatal-Increased","mean.GERP"],gerp[gerp$Comparison=="Nucleus:Prenatal-Increased","mean.GERP"]),
        gerp[gerp$Comparison=="Introns (Age)","mean.GERP"])

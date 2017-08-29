@@ -226,104 +226,104 @@ fisher.test(data.frame(c(2,0),c(1164-2,208-0)))
 #  odds ratio 
 #Inf
 ## by Fraction in adults: nuclear
-fisher.test(data.frame(c(143,14),c(1164-143,208-14)))
-#p-value = 0.01809
+fisher.test(data.frame(c(143-14,14),c(1164-208-143+14,208-14)))
+#p-value = 0.006989
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.089770 3.716792
+#  1.208367 4.153066
 #sample estimates:
 #  odds ratio 
-#1.939949
+#2.160386
 ## by Fraction in adults: cytosolic vs nuclear
-fisher.test(data.frame(c(0,2),c(14,143)))
+fisher.test(data.frame(c(0,2),c(14,143-14)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.00000 56.70379
+#  0.00000 51.17491
 #sample estimates:
 #  odds ratio 
 #0
 ## by Fraction in prenatal: cytosolic
-fisher.test(data.frame(c(1,0),c(1164-1,208-0)))
+fisher.test(data.frame(c(1,0),c(1164-208-1,208-0)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.004597455         Inf
+#  0.005594338         Inf
 #sample estimates:
 #  odds ratio 
 #Inf
 ## by Fraction in prenatal: nuclear
-fisher.test(data.frame(c(85,6),c(1164-85,208-6)))
-#p-value = 0.01519
+fisher.test(data.frame(c(85-6,6),c(1164-208-85+6,208-6)))
+#p-value = 0.004889
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.146571 7.528197
+#  1.306040 8.626995
 #sample estimates:
 #  odds ratio 
-#2.650804
+#3.030696 
 ## by Fraction in prenatal: cytosolic vs nuclear
-fisher.test(data.frame(c(0,1),c(6,85)))
+fisher.test(data.frame(c(0,1),c(6,85-6)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.0000 554.1683
+#  0.000 515.817
 #sample estimates:
 #  odds ratio 
 #0
 ## number of genes with more than one retained intron by Age in cytosol: adult
-fisher.test(data.frame(c(17,0),c(973-17,179-0)))
-#p-value = 0.09151
+fisher.test(data.frame(c(17,0),c(973-179-17,179-0)))
+#p-value = 0.05415
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.7638818       Inf
+#  0.9392915       Inf
 #sample estimates:
 #  odds ratio 
 #Inf
 ## by Age in cytosol: prenatal
-fisher.test(data.frame(c(60,3),c(973-60,179-3)))
-#p-value = 0.01156
+fisher.test(data.frame(c(60-3,3),c(973-179-60+3,179-3)))
+#p-value = 0.003167
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.234134 19.417409
+#  1.447555 22.889346
 #sample estimates:
 #  odds ratio 
-#3.852529
+#4.532908
 ## by Age in cytosol: adult vs prenatal
-fisher.test(data.frame(c(17,0),c(60,3)))
+fisher.test(data.frame(c(17,0),c(60-3,3)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.1090554       Inf
+#  0.11463     Inf
 #sample estimates:
 #  odds ratio 
 #Inf
 ## by Age in nucleus: adult
-fisher.test(data.frame(c(98,2),c(973-98,179-2)))
-#p-value = 8.33e-06
+fisher.test(data.frame(c(98-2,2),c(973-98-179+2,179-2)))
+#p-value = 3.463e-07
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  2.624225 83.815840
+#  3.217669 102.846112
 #sample estimates:
 #  odds ratio 
-#9.902178
+#12.15652
 ## by Age in nucleus: prenatal
-fisher.test(data.frame(c(72,5),c(973-72,179-5)))
-#p-value = 0.02179
+fisher.test(data.frame(c(72-5,5),c(973-72-179+5,179-5)))
+#p-value = 0.00681
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.113765 8.945158
+#  1.27900 10.34251
 #sample estimates:
 #  odds ratio 
-#2.779165
+#3.204523
 ## by Age in nucleus: adult vs prenatal
-fisher.test(data.frame(c(98,2),c(72,5)))
-#p-value = 0.242
+fisher.test(data.frame(c(98-2,2),c(72-5,5)))
+#p-value = 0.1352
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.5349826 36.4020892
+#  0.5618737 38.3894865
 #sample estimates:
 #  odds ratio 
-#3.379843
+#3.555643
 
 ### Are genes with more than one retained intron more likely to be differentially expressed by fraction or age?
 lapply(morethan1, head)
@@ -346,9 +346,9 @@ elementNROWS(morethan1)
 lapply(res, elementNROWS)
 lapply(lapply(res, function(x) lapply(x, function(y) y[which(y$padj<=0.05),])), elementNROWS)
 
-## number of genes with more than one retained intron by fraction or age that are also significantly DE 
+## In genes with more than one intron, is there a relationship between having an intron be dIR and the gene being DE? 
 #by Fraction in adults: cytosolic
-fisher.test(data.frame(c(67-0,0),c(207-67-0,0-0)))
+fisher.test(data.frame(c(67-0,0),c(207-67-0,0)))
 #p-value = 1
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
@@ -357,14 +357,14 @@ fisher.test(data.frame(c(67-0,0),c(207-67-0,0-0)))
 #  odds ratio 
 #0
 ## by Fraction in adults: nuclear
-fisher.test(data.frame(c(67-2,2),c(207-67-14,14-2)))
-#p-value = 0.1519
+fisher.test(data.frame(c(67-2,2),c(207-67-14+2,14-2)))
+#p-value = 0.2346
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.6561061 29.1754264
+#  0.6461105 28.7194481
 #sample estimates:
 #  odds ratio 
-#3.081567
+#3.033725
 ## by Fraction in adults: cytosolic vs nuclear
 fisher.test(data.frame(c(2,0),c(14-2,0-0)))
 #p-value = 1
@@ -384,14 +384,14 @@ fisher.test(data.frame(c(24-0,0),c(207-24-0,0-0)))
 #  odds ratio 
 #0
 ## by Fraction in prenatal: nuclear
-fisher.test(data.frame(c(24-1,1),c(207-24-6,6-1)))
-#p-value = 0.5291
+fisher.test(data.frame(c(24-1,1),c(207-24-6+1,6-1)))
+#p-value = 0.5272
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.06836571 32.05028330
+#  0.06798533 31.87023517
 #sample estimates:
 #  odds ratio 
-#0.6513078
+#0.6476653
 ## by Fraction in prenatal: cytosolic vs nuclear
 fisher.test(data.frame(c(1,0),c(6-1,0-0)))
 #p-value = 1
@@ -418,7 +418,7 @@ fisher.test(data.frame(c(81-0,0),c(178-81-3,3-0)))
 #  0.3466785       Inf
 #sample estimates:
 #  odds ratio 
-#Inf
+#Inf 
 ## by Age in cytosol: adult vs prenatal
 fisher.test(data.frame(c(0,0),c(0-0,3-0)))
 #p-value = 1
