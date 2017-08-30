@@ -4,7 +4,7 @@ library(ggplot2)
 
 
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.downsampled.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23_nodownsamp.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Disease Ontology
@@ -44,6 +44,7 @@ for (i in 1:length(disease)){
 
 ### plot expression of disease-associated genes
 # Prader-Willi
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/NPAP1_prader-willi_byFraction_byAge_byLibrary.pdf", width = 7, height = 5)
 ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000185823.3_1)) +
   facet_grid(. ~ Library) +
   labs(fill="") +
@@ -53,7 +54,8 @@ ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000185823.3_1))
                  "\nFDR (Prenatal)=",round(Fres.down[which(rownames(Fres.down)=="ENSG00000185823.3_1"),"padj"], digits=5))) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-
+dev.off()
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/NPAP1_prader-willi_byFraction_byAge.pdf", width = 7, height = 5)
 ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000185823.3_1)) +
   labs(fill="") +
   ylab("log(RPKM+1)") + 
@@ -62,9 +64,10 @@ ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000185823.3_1))
                  "\nFDR (Prenatal)=",round(Fres.down[which(rownames(Fres.down)=="ENSG00000185823.3_1"),"padj"], digits=5))) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
 
 # APOE
-# Prader-Willi
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/APOE_byFraction_byAge_byLibrary.pdf", width = 7, height = 5)
 ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000130203.9_2)) +
   facet_grid(. ~ Library) +
   labs(fill="") +
@@ -74,7 +77,8 @@ ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000130203.9_2))
                  "\nFDR (Prenatal)=",round(Fres.down[which(rownames(Fres.down)=="ENSG00000130203.9_2"),"padj"], digits=5))) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-
+dev.off()
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/APOE_byFraction_byAge.pdf", width = 7, height = 5)
 ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000130203.9_2)) +
   labs(fill="") +
   ylab("log(RPKM+1)") + 
@@ -83,9 +87,10 @@ ggplot(x, aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=ENSG00000130203.9_2))
                  "\nFDR (Prenatal)=",round(Fres.down[which(rownames(Fres.down)=="ENSG00000130203.9_2"),"padj"], digits=5))) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
 
 ## Alzheimers
-pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/AZ_gene_expression_byAge_byFraction_byLibrary.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/AZ_gene_expression_byAge_byFraction_byLibrary.pdf", width = 7, height = 5)
 plots = list()
 for (i in 1:length(disease[["az"]])){
   print(i)
@@ -101,7 +106,7 @@ for (i in 1:length(disease[["az"]])){
 }
 dev.off()   
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/AZ_gene_expression_byAge_byFraction.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/AZ_gene_expression_byAge_byFraction.pdf", width = 7, height = 5)
 for (i in 1:length(disease[["az"]])){
  print(i)
  plots[[i]] = ggplot(diseaseRPKM[["az"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["az"]][i]))) +
@@ -116,7 +121,7 @@ for (i in 1:length(disease[["az"]])){
  dev.off()   
  
  ## Motor neuron disease
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/motorNeuron_gene_expression_byAge_byFraction_byLibrary.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/motorNeuron_gene_expression_byAge_byFraction_byLibrary.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["motor"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["motor"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["motor"]][i]))) +
@@ -132,7 +137,7 @@ for (i in 1:length(disease[["az"]])){
  }
  dev.off()   
  
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/motorNeuron_gene_expression_byAge_byFraction.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/motorNeuron_gene_expression_byAge_byFraction.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["motor"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["motor"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["motor"]][i]))) +
@@ -148,7 +153,7 @@ for (i in 1:length(disease[["az"]])){
  dev.off() 
 
 ## ALS
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ALS_gene_expression_byAge_byFraction_byLibrary.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ALS_gene_expression_byAge_byFraction_byLibrary.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["als"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["als"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["als"]][i]))) +
@@ -164,7 +169,7 @@ for (i in 1:length(disease[["az"]])){
  }
  dev.off()   
  
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ALS_gene_expression_byAge_byFraction.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ALS_gene_expression_byAge_byFraction.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["als"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["als"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["als"]][i]))) +
@@ -180,7 +185,7 @@ for (i in 1:length(disease[["az"]])){
  dev.off()
  
  ## lateral sclerosis
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/LateralSclerosis_gene_expression_byAge_byFraction_byLibrary.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/LateralSclerosis_gene_expression_byAge_byFraction_byLibrary.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["ls"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["ls"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["ls"]][i]))) +
@@ -196,7 +201,7 @@ for (i in 1:length(disease[["az"]])){
  }
  dev.off()   
  
- pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/LateralSclerosis_gene_expression_byAge_byFraction.pdf")
+ pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/LateralSclerosis_gene_expression_byAge_byFraction.pdf", width = 7, height = 5)
  for (i in 1:length(disease[["ls"]])){
    print(i)
    plots[[i]] = ggplot(diseaseRPKM[["ls"]], aes(fill = Fraction)) + geom_boxplot(aes(x=Age,y=get(disease[["ls"]][i]))) +
