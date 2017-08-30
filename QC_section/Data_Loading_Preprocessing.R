@@ -110,8 +110,26 @@ metricsD = metrics
 txNumReadsD = txNumReads
 txTpmD = txTpm
 
+# load new RPKM objects
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_Amanda_polya_n12.copy.rda")
+exonRpkmP = exonRpkm
+geneRpkmP = geneRpkm
+jRpkmP = jRpkm
+jMapP = jMap
+metricsP = metrics
+txNumReadsP = txNumReads
+txTpmP = txTpm
+load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_Amanda_ribozero_n12.copy.rda")
+exonRpkmR = exonRpkm
+geneRpkmR = geneRpkm
+jRpkmR = jRpkm
+jMapR = jMap
+metricsR = metrics
+txNumReadsR = txNumReads
+txTpmR = txTpm
+
 # Combine files
-metrics = rbind(metricsP,metricsR,metricsD)
+metrics = rbind(metricsP,metricsR[,1:58])
 geneRpkm = cbind(geneRpkmP, geneRpkmR)
 exonRpkm = cbind(exonRpkmP, exonRpkmR)
 txNumReads = cbind(txNumReadsP, txNumReadsR)
@@ -121,7 +139,7 @@ exonRpkm.down = cbind(exonRpkm[,c(1:6,8,10:24)],exonRpkmD)
 txNumReads.down = cbind(txNumReads[,c(1:6,8,10:24)],txNumReadsD)
 txTpm.down = cbind(txTpm[,c(1:6,8,10:24)],txTpmD)
 colnames(exonRpkm.down) = colnames(geneRpkm.down) = colnames(txTpm.down) = colnames(txNumReads.down) = gsub("downsamp", "polyA", colnames(geneRpkm.down))
-jMap = c(jMapP,jMapR,jMapD)
+jMap = c(jMapP,jMapR)
 jMap = sort(unique(jMap))
 
 rm(exonRpkmP, exonRpkmR,exonRpkmD,geneRpkmP, geneRpkmR,geneRpkmD,metricsP,metricsR,metricsD,txNumReadsP,txNumReadsR,txNumReadsD,
@@ -137,6 +155,7 @@ geneRpkm.down = geneRpkm.down[,order(colnames(geneRpkm.down))]
 exonRpkm = exonRpkm[,order(colnames(exonRpkm))]
 exonRpkm.down = exonRpkm.down[,order(colnames(exonRpkm.down))]
 
-save(geneRpkm, geneRpkm.down, geneMap, metrics, pd, txMap, txNumReads, txNumReads.down, txTpm, txTpm.down,
-     exonRpkm, exonRpkm.down, exonMap, jMap, jRpkmP,jRpkmR,jRpkmD,
-     file="./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23.rda")
+save(geneRpkm, geneMap, metrics, pd, txMap, txNumReads, txTpm, exonRpkm, exonMap, jMap, jRpkmP,jRpkmR,
+     file="./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23_nodownsamp.rda")
+
+# add back in geneRpkm.down, txNumReads.down, txTpm.down, exonRpkm.down,jRpkmD, after rerunning downsampled
