@@ -24,6 +24,7 @@ library(clusterProfiler)
 require("org.Hs.eg.db")
 
 load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/rna_editing/data/rna_editing_results.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Explore results
@@ -200,6 +201,13 @@ ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 # Genomic_features_editing_AtoGOnly.pdf
+
+intron = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="Intron",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
+utr3 = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="UTR3",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
+total = editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction", "Age")]
+intron$V1/total$V1 * 100
+utr3$V1/total$V1 * 100
+
 
 ### In editing sites shared between all four groups:
 #How many sites are present in all groups?
@@ -437,6 +445,8 @@ unique = list(cytosolOnly = cyt[!(editingID %in% nuc$editingID),,], nucleusOnly 
               ANnotPN = AN[!(editingID %in% PN$editingID),,], PNnotAN = PN[!(editingID %in% AN$editingID),,],
               ACnotPC = AC[!(editingID %in% PC$editingID),,], PCnotAC = PC[!(editingID %in% AC$editingID),,], 
               PCnotPN = PC[!(editingID %in% PN$editingID),,], PNnotPC = PN[!(editingID %in% PC$editingID),,])
+elementNROWS(unique)
+all = list(cytosolAll = cyt, nucleusAll = nuc, adultAll = ad, prenatalAll = pren, allAC = AC, allAN = AN, allPC = PC, allPN = PN)
 
 ## Proportion of edited sites identified in x that are unique to x
 
@@ -453,12 +463,27 @@ prop = cbind(comparison = rownames(prop), total = c(total$cytosol, total$nucleus
                                            prop["ANnotPN"]/total$AN, prop["PNnotAN"]/total$PN,
                                            prop["ACnotPC"]/total$AC, prop["PCnotAC"]/total$PC,
                                            prop["PCnotPN"]/total$PC, prop["PNnotPC"]/total$PN))
-prop
+prop = as.data.frame(prop)
+prop[order(prop[,3]),]
+prop$Group = factor(rownames(prop), levels = c("cytosolOnly", "nucleusOnly", "adultOnly", "prenatalOnly", "ANnotAC",
+                                                 "ACnotAN", "ANnotPN", "PNnotAN", "ACnotPC", "PCnotAC", "PCnotPN", "PNnotPC"))
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/unique_editing_sites_inEach_category.pdf", width = 8, height = 6)
+ggplot(prop, aes(x = Group, y = unique)) + geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(100*proportion,1),"%")), vjust = -.5) +
+  labs(y = "Percent", fill="") +
+  ylab("Count") + 
+  xlab("") +
+  ggtitle("Unique Editing Sites in Each Category") +
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+dev.off()
 
 # Check coverage by unique editing group
 for (i in 1:length(unique)){  unique[[i]] = cbind(unique[[i]], Status = names(unique)[i])  }
 unique_dt = do.call(rbind, unique)
-unique_dt$Status = factor(unique$Status, levels = c("cytosolOnly", "nucleusOnly", "adultOnly", "prenatalOnly", "ANnotAC",
+unique_dt$Status = factor(unique_dt$Status, levels = c("cytosolOnly", "nucleusOnly", "adultOnly", "prenatalOnly", "ANnotAC",
                                                  "ACnotAN", "ANnotPN", "PNnotAN", "ACnotPC", "PCnotAC", "PCnotPN", "PNnotPC"))
 
 ggplot(unique_dt, aes(x = sampleID, y = valdepth, fill = Group)) + geom_boxplot() +
@@ -482,6 +507,7 @@ x = lapply(unique, function(x) x[,length(unique(editingID)),by="annotation"])
 x = lapply(x, function(x) as.data.frame(x))
 x = lapply(x, function(x) x[order(x$annotation),])
 x = data.frame(annotation = x[[1]][,1], cyt = x[[1]][,2], nuc = x[[2]][,2], adult = x[[3]][,2], prenatal = x[[4]][,2])
+x
 #annotation  cyt  nuc adult prenatal
 #1        CDS   53  116   173      132
 #2     Intron 1255 4237  3635     2635
@@ -531,7 +557,7 @@ fisher.test(data.frame(c(35,3830-35),c(91,8809-91))) # 5'UTR
 #  odds ratio 
 #0.8835633
 
-## Are  more likely to be in adult over prenatal or vice versa?
+## Are more likely to be in adult over prenatal or vice versa?
 fisher.test(data.frame(c(173,9539-173),c(132,6049-132))) # CDS
 #p-value = 0.1093
 #alternative hypothesis: true odds ratio is not equal to 1
@@ -583,6 +609,7 @@ x = lapply(x, function(x) as.data.frame(x))
 x = lapply(x, function(x) x[order(x$annotation),])
 y = data.frame(x[[5]][,1], x[[5]][,2], x[[6]][,2], x[[7]][,2], x[[8]][,2],x[[9]][,2],x[[10]][,2],x[[11]][,2],x[[12]][,2])
 colnames(y) = c("annotation", names(x)[5:12])
+y
 #annotation ANnotAC ACnotAN ANnotPN PNnotAN ACnotPC PCnotAC PCnotPN PNnotPC
 #1        CDS      84      35     150     114     107     100      30      50
 #2     Intron    3068     690    3214    2070    1244    1466     834    1846
@@ -843,7 +870,7 @@ save(Kegg.cytosolOnly,Kegg.adultOnly,Kegg.prenatalOnly,Kegg.ANnotAC,Kegg.ACnotAN
      Kegg.ANnotPN,Kegg.PNnotAN,Kegg.ACnotPC,Kegg.PCnotAC,Kegg.PCnotPN,Kegg.PNnotPC, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/kegg.objects.RNAediting.SplitByAnnotation.rda")
 # Biological Process
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/BP_split_by_annotation.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/BP_split_by_annotation.pdf", height = 6, width = 10.5)
 BP.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(BP.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: cytosolOnly")
 BP.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
@@ -867,7 +894,7 @@ dev.off()
 save(BP.cytosolOnly,BP.nucleusOnly,BP.prenatalOnly,BP.ANnotAC,BP.ACnotAN,BP.PCnotAC,BP.PCnotPN, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BP.objects.RNAediting.SplitByAnnotation.rda")
 # Molecular Function
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/MF_split_by_annotation.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/MF_split_by_annotation.pdf", height = 12, width = 8)
 MF.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(MF.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: cytosolOnly")
 MF.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
@@ -893,7 +920,7 @@ dev.off()
 save(MF.cytosolOnly,MF.nucleusOnly,MF.adultOnly,MF.ANnotAC,MF.ACnotAN,MF.ANnotPN,MF.ACnotPC,MF.PCnotPN,MF.PNnotPC, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/MF.objects.RNAediting.SplitByAnnotation.rda")
 # Cellular Component
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/CC_split_by_annotation.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/CC_split_by_annotation.pdf", height = 8, width = 10)
 CC.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(CC.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: cytosolOnly")
 CC.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
@@ -975,203 +1002,3 @@ elementNROWS(IRsig)
 IRranges = lapply(IRclean, function(x) makeGRangesFromDataFrame(x, start.field="Start",end.field="End",strand.field="Direction",keep.extra.columns = T))
 editing_ranges = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
 IR_hits = lapply(IRranges, function(x) findOverlaps(editing_ranges, x)) # No overlaps!
-
-
-## Characterize the overlap with differentially expressed genes
-
-DEG_hits = findOverlaps(geneMapGR, reduce(editing_ranges))
-length(reduce(editing_ranges)) #23354
-length(unique(subjectHits(DEG_hits))) # 20157
-
-elementNROWS(sig)
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad 
-#975           1010            354           3427            350           2442             16              4 
-#interacting 
-#1194
-editing_anno = as.data.frame(editing_anno)
-DEG_editing = lapply(sig, function(x) editing_anno[which(editing_anno$collapsedconversion=="A:G / T:C" & 
-                                                           editing_anno$nearestID %in% as.character(x$geneID)),])
-elementNROWS(DEG_editing)
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad 
-#2283           2582            405           8301            332           2319            154              0 
-#interacting 
-#2746
-elementNROWS(lapply(DEG_editing, function(x) unique(x$editingID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad 
-#1141            994            234           4021            146           1024             51              0 
-#interacting 
-#1371
-elementNROWS(lapply(DEG_editing, function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad 
-#209            198             62            726             28            219              5              0 
-#interacting 
-#272 
-# in DEG with a LFC greater than 1
-DEG_editing.1 = lapply(sig.1, function(x) editing_anno[which(editing_anno$collapsedconversion=="A:G / T:C" &
-                                                               editing_anno$nearestID %in% as.character(x$geneID)),])
-elementNROWS(DEG_editing.1)
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#786            435             27           1464              0            206              0              0            777
-elementNROWS(lapply(DEG_editing.1, function(x) unique(x$editingID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#407            202             21            652              0             99              0              0            391
-elementNROWS(lapply(DEG_editing.1, function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#92             48              3            131              0             22              0              0             94
-
-
-## Are cytosolic-specific editing sites enriched for DEG Fraction?
-names(unique)
-cyt = unique[["cytosolOnly"]]
-cytonly.deg = lapply(sig, function(x) cyt[which(cyt$collapsedconversion=="A:G / T:C" & cyt$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cytonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.056533 2.167616
-#sample estimates:
-#  odds ratio 
-#1.508694 
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.206004 1.761161
-#sample estimates:
-#  odds ratio 
-#1.455631
-fisher.test(data.frame(c(58+16,975+354), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.01582
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4920598 0.9349386
-#sample estimates:
-#  odds ratio 
-#0.6796239
-
-## Are nuclear-specific editing sites enriched for DEG Fraction?
-nuc = unique[["nucleusOnly"]]
-nuconly.deg = lapply(sig, function(x) nuc[which(nuc$collapsedconversion=="A:G / T:C" & nuc$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuconly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#167           112            47           546            19           136
-
-fisher.test(data.frame(c(167,975-167), c(112,1010-112))) # both ages: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 0.0001323
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.271346 2.164859
-#sample estimates:
-#  odds ratio 
-#1.656712
-fisher.test(data.frame(c(167+546,975+3427-(167+546)), c(112+136,1010+2442-(112+136)))) # adult: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.140855 2.919265
-#sample estimates:
-#  odds ratio 
-#2.496752
-fisher.test(data.frame(c(167+47,975+354-(167+47)), c(112+19,1010+350-(112+19)))) # prenatal: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 6.311e-07
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.419394 2.289464
-#sample estimates:
-#  odds ratio 
-#1.800193
-
-## Are adult-specific editing sites enriched for DEG Fraction?
-ad = unique[["adultOnly"]]
-adonly.deg = lapply(sig, function(x) ad[which(ad$collapsedconversion=="A:G / T:C" & ad$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(adonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#154           127            44           509            18           157 
-
-fisher.test(data.frame(c(154,975-154), c(127,1010-127))) # both ages: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 0.04576
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.004371 1.695185
-#sample estimates:
-#  odds ratio 
-#1.303989
-fisher.test(data.frame(c(154+509,975+3427-(154+509)), c(127+157,1010+2442-(127+157)))) # adult: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.704538 2.299308
-#sample estimates:
-#  odds ratio 
-#1.977819 
-fisher.test(data.frame(c(154+44,975+354-(154+44)), c(127+18,1010+350-(127+18)))) # prenatal: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 0.001182
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.159608 1.858403
-#sample estimates:
-#  odds ratio 
-#1.466712
-
-## Are prenatal-specific editing sites enriched for DEG Fraction?
-pren = unique[["prenatalOnly"]]
-prenonly.deg = lapply(sig, function(x) pren[which(pren$collapsedconversion=="A:G / T:C" & pren$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(prenonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#104           105            24           380            15           106 
-
-fisher.test(data.frame(c(104,975-104), c(105,1010-105))) # both ages: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.8838
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7643917 1.3854113
-#sample estimates:
-#  odds ratio 
-#1.029133
-fisher.test(data.frame(c(104+380,975+3427-(104+380)), c(105+106,1010+2442-(105+106)))) # prenatal: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 2.018e-14
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.599683 2.256263
-#sample estimates:
-#  odds ratio 
-#1.897326
-fisher.test(data.frame(c(104+24,975+354-(104+24)), c(105+15,1010+350-(105+15)))) # prenatal: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.5052
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8406777 1.4434121
-#sample estimates:
-#  odds ratio 
-#1.101264
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
