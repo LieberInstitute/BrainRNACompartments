@@ -7,22 +7,23 @@ load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_tra
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 # Plot Fraction:Age interaction genes
-Idds.down = DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Fetal + Zone + Fetal:Zone)
-Idds.down = DESeq(Idds.down)
-sigres.down = data.frame(Ires.down[which(Ires.down$padj<=0.05 & abs(Ires.down$log2FoldChange)>=1),])
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/interaction_genes.downsampled.pdf")
+Ipdds.down = DESeqDataSetFromMatrix(countData = geneCounts.down[,grep("polyA", colnames(geneCounts.down))], 
+                                    colData = pd[which(pd$Library=="polyA"),], design = ~ Fetal + Zone + Fetal:Zone)
+Ipdds.down = DESeq(Ipdds.down)
+Ipres.down = results(Ipdds.down)
+sigres.down = data.frame(Ipres.down[which(Ipres.down$padj<=0.05 & abs(Ipres.down$log2FoldChange)>=1),])
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/interaction_genes.polyAonly.pdf")
 plots = list()
 for (i in 1:nrow(sigres.down)){
-  plots[[i]] = plotCounts(Idds.down, as.character(rownames(sigres.down[i,])), 
-                               intgroup = c("Fetal", "Zone", "Library"), returnData =TRUE)
+  plots[[i]] = plotCounts(Ipdds.down, as.character(rownames(sigres.down[i,])), 
+                               intgroup = c("Fetal", "Zone"), returnData =TRUE)
   tmp = plots[[i]]
-  tmp$Group = paste(tmp$Fetal,tmp$Zone, sep = "\n")
-  x = ggplot(tmp, aes(x=Group, y=count)) + geom_boxplot() + 
-    geom_jitter() + scale_colour_manual(name = "Library") +
+  x = ggplot(tmp, aes(x=Fetal, y=count, fill=Zone)) + geom_boxplot() + 
+    geom_jitter() +
     scale_y_log10(breaks=c(25,100,400)) +
     ylab("Normalized Count") + 
     xlab("") +
-    ggtitle(paste0(as.character(geneMap[match(rownames(sigres.down[i,]),geneMap$gencodeID),"ensemblID"]),":",
+    ggtitle(paste0(as.character(geneMap[match(rownames(sigres.down[i,]),geneMap$gencodeID),"ensemblID"]),": ",
                    as.character(geneMap[match(rownames(sigres.down[i,]),geneMap$gencodeID),"Symbol"]))) + 
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20))
@@ -31,56 +32,52 @@ for (i in 1:nrow(sigres.down)){
 dev.off()
 
 # Make list of genes
-all = list(Ires.down = data.frame(Ires.down[order(rownames(Ires.down)),]), 
-           Ares = data.frame(Ares[order(rownames(Ares)),]), 
-           Fres.down = data.frame(Fres.down[order(rownames(Fres.down)),]))
-Sign = lapply(all, function(x) ifelse(x$log2FoldChange>0, "Pos", "Neg"))
-all = Map(cbind, all, Sign = Sign)
-Ires.down = all[["Ires.down"]]
-Ares = all[["Ares"]]
-Fres.down = all[["Fres.down"]]
+all = list(Ipres.down = data.frame(Ipres.down[order(rownames(Ipres.down)),]), 
+           Apres = data.frame(Apres[order(rownames(Apres)),]), 
+           Fpres.down = data.frame(Fpres.down[order(rownames(Fpres.down)),]))
+all = Map(cbind, all, Sign = lapply(all, function(x) ifelse(x$log2FoldChange>0, "Pos", "Neg")))
+Ipres.down = all[["Ipres.down"]]
+Apres = all[["Apres"]]
+Fpres.down = all[["Fpres.down"]]
 
-AdPos = as.character(rownames(Ares[which(Ares$Sign=="Pos"),]))
-AdNeg = as.character(rownames(Ares[which(Ares$Sign=="Neg"),]))
-AdSig = as.character(rownames(Ares[which(Ares$padj<=0.05),]))
-AdLFC = as.character(rownames(Ares[which(abs(Ares$log2FoldChange)>=1),]))
-FetPos = as.character(rownames(Fres.down[which(Fres.down$Sign=="Pos"),]))
-FetNeg = as.character(rownames(Fres.down[which(Fres.down$Sign=="Neg"),]))
-FetSig = as.character(rownames(Fres.down[which(Fres.down$padj<=0.05),]))
-FetLFC = as.character(rownames(Fres.down[which(abs(Fres.down$log2FoldChange)>=1),]))
+AdPos = as.character(rownames(Apres[which(Apres$Sign=="Pos"),]))
+AdNeg = as.character(rownames(Apres[which(Apres$Sign=="Neg"),]))
+AdSig = as.character(rownames(Apres[which(Apres$padj<=0.05),]))
+AdLFC = as.character(rownames(Apres[which(abs(Apres$log2FoldChange)>=1),]))
+FetPos = as.character(rownames(Fpres.down[which(Fpres.down$Sign=="Pos"),]))
+FetNeg = as.character(rownames(Fpres.down[which(Fpres.down$Sign=="Neg"),]))
+FetSig = as.character(rownames(Fpres.down[which(Fpres.down$padj<=0.05),]))
+FetLFC = as.character(rownames(Fpres.down[which(abs(Fpres.down$log2FoldChange)>=1),]))
 
-sig = list(both_retained = Ires.down[which(rownames(Ires.down)%in%AdPos & rownames(Ires.down)%in%FetPos 
-                                     & rownames(Ires.down)%in%AdSig & rownames(Ires.down)%in%FetSig),],
-           both_exported = Ires.down[which(rownames(Ires.down)%in%AdNeg & rownames(Ires.down)%in%FetNeg 
-                                     & rownames(Ires.down)%in%AdSig & rownames(Ires.down)%in%FetSig),],
-           Fet_retained = Ires.down[which(rownames(Ires.down)%in%FetPos & !(rownames(Ires.down)%in%AdSig) & 
-                                       rownames(Ires.down)%in%FetSig),],
-           Ad_retained = Ires.down[which(rownames(Ires.down)%in%AdPos & rownames(Ires.down)%in%AdSig & !(rownames(Ires.down)%in%FetSig)),],
-           Fet_exported = Ires[which(rownames(Ires.down)%in%FetNeg & !(rownames(Ires.down)%in%AdSig) & rownames(Ires.down)%in%FetSig),],
-           Ad_exported = Ires[which(rownames(Ires.down)%in%AdNeg & rownames(Ires.down)%in%AdSig & !(rownames(Ires.down)%in%FetSig)),],
-           ret_Ad_exp_Fet = Ires.down[which(rownames(Ires.down)%in%AdPos & rownames(Ires.down)%in%FetNeg 
-                                      & rownames(Ires.down)%in%AdSig & rownames(Ires.down)%in%FetSig),],
-           ret_Fet_exp_Ad = Ires.down[which(rownames(Ires.down)%in%FetPos & rownames(Ires.down)%in%AdNeg 
-                                      & rownames(Ires.down)%in%AdSig & rownames(Ires.down)%in%FetSig),],
-           interacting = Ires.down[which(Ires.down$padj<=0.05),])
+sig = list(both_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetPos 
+                                     & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
+           both_exported = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%FetNeg 
+                                     & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
+           Fet_retained = Ipres.down[which(rownames(Ipres.down)%in%FetPos & !(rownames(Ipres.down)%in%AdSig) & 
+                                       rownames(Ipres.down)%in%FetSig),],
+           Ad_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
+           Fet_exported = Ires[which(rownames(Ipres.down)%in%FetNeg & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
+           Ad_exported = Ires[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
+           ret_Ad_exp_Fet = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetNeg 
+                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
+           ret_Fet_exp_Ad = Ipres.down[which(rownames(Ipres.down)%in%FetPos & rownames(Ipres.down)%in%AdNeg 
+                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
+           interacting = Ipres.down[which(Ipres.down$padj<=0.05),])
 
-gene = geneMap[which(rownames(geneMap)%in%rownames(Ires.down)),]
-gene = gene[order(rownames(gene)),]
-Ares = Ares[match(rownames(Ires.down),rownames(Ares)),]
-Ares = Ares[order(rownames(Ares)),]
-data = data.frame(geneID = rownames(Ires.down), baseMean = Ires.down$baseMean, 
-                  Prenatal.LFC = Fres.down$log2FoldChange, 
-                  Prenatal.SE = Fres.down$lfcSE, 
-                  Prenatal.padj = Fres.down$padj,
-                  Adult.LFC = Ares$log2FoldChange, 
-                  Adult.SE = Ares$lfcSE, Adult.padj = Ares$padj,
-                  ensID = gene[match(rownames(Ires.down),as.character(rownames(gene))),"ensemblID"],
-                  Symbol = gene[match(rownames(Ires.down),as.character(rownames(gene))),"Symbol"],
-                  EntrezID = gene[match(as.character(rownames(Ires.down)),gene$gencodeID),"EntrezID"],
-                  Type = gene[match(as.character(rownames(Ires.down)),gene$gencodeID),"gene_type"])
-sig = lapply(sig, function(x) data[which(data$geneID%in%rownames(x)),])
+data = data.frame(geneID = rownames(Ipres.down), baseMean = Ipres.down$baseMean, 
+                  Prenatal.LFC = Fpres.down[match(rownames(Ipres.down), rownames(Fpres.down)), "log2FoldChange"], 
+                  Prenatal.SE = Fpres.down[match(rownames(Ipres.down), rownames(Fpres.down)), "lfcSE"], 
+                  Prenatal.padj = Fpres.down[match(rownames(Ipres.down), rownames(Fpres.down)), "padj"],
+                  Adult.LFC = Apres[match(rownames(Ipres.down), rownames(Apres)), "log2FoldChange"], 
+                  Adult.SE = Apres[match(rownames(Ipres.down), rownames(Apres)), "lfcSE"],
+                  Adult.padj = Apres[match(rownames(Ipres.down), rownames(Apres)), "padj"],
+                  ensID = geneMap[match(rownames(Ipres.down),as.character(rownames(geneMap))),"ensemblID"],
+                  Symbol = geneMap[match(rownames(Ipres.down),as.character(rownames(geneMap))),"Symbol"],
+                  EntrezID = geneMap[match(as.character(rownames(Ipres.down)),geneMap$gencodeID),"EntrezID"],
+                  Type = geneMap[match(as.character(rownames(Ipres.down)),geneMap$gencodeID),"gene_type"])
+sig = lapply(sig, function(x) data[which(data$geneID %in% rownames(x)),])
 sig.1 = lapply(sig, function(x) x[which(abs(x$Prenatal.LFC)>=1 | abs(x$Adult.LFC)>=1),])
-save(Ires.down,Fres.down,Ares,sig,sig.1,geneMap, 
+save(Ipres.down,Fpres.down,Apres,sig,sig.1,geneMap, 
      file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Annotate genes
@@ -112,7 +109,9 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="TR_C_gene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="polymorphic_pseudogene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="IG_V_gene" & TypeFreq$Group==group[i]),2],
-        TypeFreq[which(TypeFreq$RNA_Type=="TR_V_gene" & TypeFreq$Group==group[i]),2])
+        TypeFreq[which(TypeFreq$RNA_Type=="TR_V_gene" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="IG_J_gene" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="TR_J_gene" & TypeFreq$Group==group[i]),2])
   type[which(type$RNA.Type=="Pseudogene" & type$Group==group[i]),2] = 
     sum(TypeFreq[which(TypeFreq$RNA_Type=="pseudogene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="transcribed_processed_pseudogene" & TypeFreq$Group==group[i]),2],
@@ -142,7 +141,8 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="rRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="snoRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="scRNA" & TypeFreq$Group==group[i]),2],
-        TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2])
+        TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
 group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
           "Exported:\nPrenatal Only", "Exported:\nAdult Only",
@@ -152,6 +152,7 @@ type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported:
                                                     "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
 
 # Graph the Frequencies
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age.pdf", height = 7, width = 8)
 ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
@@ -160,6 +161,7 @@ ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "iden
   ggtitle("Gene Annotation") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
 
 ## Limiting to 1 LFC
 
@@ -179,7 +181,9 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="TR_C_gene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="polymorphic_pseudogene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="IG_V_gene" & TypeFreq$Group==group[i]),2],
-        TypeFreq[which(TypeFreq$RNA_Type=="TR_V_gene" & TypeFreq$Group==group[i]),2])
+        TypeFreq[which(TypeFreq$RNA_Type=="TR_V_gene" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="IG_J_gene" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="TR_J_gene" & TypeFreq$Group==group[i]),2])
   type[which(type$RNA.Type=="Pseudogene" & type$Group==group[i]),2] = 
     sum(TypeFreq[which(TypeFreq$RNA_Type=="pseudogene" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="transcribed_processed_pseudogene" & TypeFreq$Group==group[i]),2],
@@ -209,7 +213,8 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="rRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="snoRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="scRNA" & TypeFreq$Group==group[i]),2],
-        TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2])
+        TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
+        TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
 group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
           "Exported:\nPrenatal Only", "Exported:\nAdult Only",
@@ -218,14 +223,16 @@ type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported:
                                                     "Exported:\nPrenatal Only", "Exported:\nAdult Only",
                                                     "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
 # Graph the Frequencies
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.pdf", height = 7, width = 8)
 ggplot(type, aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
   ylab("Count") + 
   xlab("") +
-  ggtitle("Gene Annotation:\nLog2 Fold Change >1") +
+  ggtitle("Gene Annotation:\nabs(Log2 Fold Change) >1") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
 
 ## Gene Ontology
 names(sig.1) = names(sig) = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
@@ -233,7 +240,7 @@ names(sig.1) = names(sig) = c("Retained: Both", "Exported: Both", "Retained:\nPr
                               "Retained: Prenatal/\nExported: Adult", "Interaction")
 entrezID = lapply(sig.1, function(x) na.omit(x$EntrezID))
 # Define universe as all genes expressed in each of the four groups
-GeneUniverse = as.character(unique(geneMap[match(rownames(Ires.down),geneMap$gencodeID),"EntrezID"]))
+GeneUniverse = as.character(unique(geneMap[match(rownames(Ipres.down),geneMap$gencodeID),"EntrezID"]))
 GeneUniverse = na.omit(GeneUniverse)
 # Find enriched Pathways via KEGG
 elementNROWS(entrezID)
@@ -283,16 +290,13 @@ compareKegg = compareCluster(entrezID, fun="enrichKEGG", qvalueCutoff = 0.05, pv
 plot(compareKegg,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment")
 # Biological Process
 compareBP = compareCluster(entrezID, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareBPDropped = dropGO(compareBP,  level = 3)
-plot(compareBPDropped,colorBy="p.adjust",  showCategory = 30, title= "Biological Process GO Enrichment")
+plot(compareBP,colorBy="p.adjust",  showCategory = 45, title= "Biological Process GO Enrichment")
 # Molecular Function
 compareMF = compareCluster(entrezID, fun="enrichGO",  ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareMFDropped = dropGO(compareMF,  level = 3)
-plot(compareMFDropped,colorBy="p.adjust",  showCategory = 30, title= "Molecular Function GO Enrichment")
+plot(compareMFDropped,colorBy="p.adjust",  showCategory = 45, title= "Molecular Function GO Enrichment")
 # Cellular Component
 compareCC = compareCluster(entrezID, fun="enrichGO",  ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-compareCCDropped = dropGO(compareCC,  level = 3)
-plot(compareCCDropped,colorBy="p.adjust",  showCategory = 30, title= "Cellular Compartment GO Enrichment")
+plot(compareCCDropped,colorBy="p.adjust",  showCategory = 45, title= "Cellular Compartment GO Enrichment")
 # Disease Ontology
 compareDO = compareCluster(entrezID, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 plot(compareDO,colorBy="p.adjust",  showCategory = 30, title= "Disease Ontology Enrichment")
@@ -302,10 +306,10 @@ compareDO = compareCluster(entrez.noLFC, fun="enrichDO",
 plot(compareDO,colorBy="p.adjust",  showCategory = 40, title= "Disease Ontology Enrichment")
 
 save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
-     file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.downsampled.rda")
+     file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.polyAonly.downsampled.rda")
 
 ### In the different groups of fraction regulated genes, is there a relationship between direction of expression over age and significance over age?
-AgebyFrac = list(Cres.down = data.frame(Cres.down), Nres = data.frame(Nres))
+AgebyFrac = list(Cpres.down = data.frame(Cpres.down), Npres = data.frame(Npres))
 AgebyFrac = Map(cbind, AgebyFrac,lapply(AgebyFrac, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
                 Comparison = list("Cytosol", "Nucleus"))
 AgebyFrac = do.call(rbind, AgebyFrac)
@@ -315,19 +319,10 @@ AgebyFrac = AgebyFrac[which(AgebyFrac$padj!="NA"),]
 fracDevel = lapply(sig, function(x) AgebyFrac[which(AgebyFrac$gencodeID %in% x$geneID),])
 fracDevel = do.call(rbind, fracDevel)
 fracDevel$fracReg = gsub("\\..*","", rownames(fracDevel))
-fracDevel$fracReg = gsub("both_retained","Both Retained", fracDevel$fracReg)
-fracDevel$fracReg = gsub("both_exported","Both Exported", fracDevel$fracReg)
-fracDevel$fracReg = gsub("Fet_retained","Retained in Prenatal", fracDevel$fracReg)
-fracDevel$fracReg = gsub("Ad_retained","Retained in Adult", fracDevel$fracReg)
-fracDevel$fracReg = gsub("Fet_exported","Exported in Prenatal", fracDevel$fracReg)
-fracDevel$fracReg = gsub("Ad_exported","Exported in Adult", fracDevel$fracReg)
-fracDevel$fracReg = gsub("ret_Ad_exp_Fet","Retained in Adult/\nExported in Prenatal", fracDevel$fracReg)
-fracDevel$fracReg = gsub("ret_Fet_exp_Ad","Retained in Prenatal/\nExported in Adult", fracDevel$fracReg)
-fracDevel$fracReg = gsub("interacting","Interaction", fracDevel$fracReg)
 fracDevel$fracReg = factor(fracDevel$fracReg, 
-                           levels = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
-                                      "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
-                                      "Retained in Prenatal/\nExported in Adult", "Interaction"))
+                           levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
+                                      "Exported:\nPrenatal Only", "Exported:\nAdult Only",
+                                      "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/RetainedbyAge_LFCxFDR.pdf", width=24, height=6)
 ggplot(fracDevel, aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
@@ -343,17 +338,13 @@ ggplot(fracDevel, aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) +
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
 
-### Is there a relationship between direction of expression of by age and significance in groups of genes differentially regulated by fraction?
+### Is there a relationship between direction of expression by age and significance in groups of genes differentially regulated by fraction?
 # In cytosol:
 fracDevel = lapply(sig, function(x) AgebyFrac[which(AgebyFrac$gencodeID %in% x$geneID),])
-x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
-                                                                               x$padj<=0.05),"gencodeID"])),
-                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
-                                                                               x$padj<=0.05),"gencodeID"]))),
-                                                     c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
-                                                                               x$padj>0.05),"gencodeID"])),
-                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
-                                                                               x$padj>0.05),"gencodeID"]))))))
+x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
+                                                     c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
+                                                       length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))))))
 x = unlist(lapply(x,function(x) as.character(x)[1]))
 x = data.frame(x)
 CytCounts = do.call(rbind, lapply(fracDevel, function(x) data.frame(Sig = c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
@@ -366,14 +357,10 @@ CytCounts$fisher.pval = x[match(CytCounts$FracGroup,rownames(x)),]
 CytCounts$Comparison = "Cytosol"
 
 # In Nucleus:
-x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
-                                                                               x$padj<=0.05),"gencodeID"])),
-                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
-                                                                               x$padj<=0.05),"gencodeID"]))),
-                                                         c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
-                                                                               x$padj>0.05),"gencodeID"])),
-                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
-                                                                               x$padj>0.05),"gencodeID"]))))))
+x = lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
+                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
+                                                         c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
+                                                           length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))))))
 x = unlist(lapply(x,function(x) as.character(x)[1]))
 x = data.frame(x)
 NucCounts = do.call(rbind, lapply(fracDevel, function(x) data.frame(Sig = c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
