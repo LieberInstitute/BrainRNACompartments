@@ -1,6 +1,7 @@
 library(GenomicRanges)
 library(data.table)
 library(ggplot2)
+library(VennDiagram)
 
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
@@ -338,6 +339,7 @@ fisher.test(data.frame(c(92,1), c(537,19))) #prenatal
 #  odds ratio 
 #3.251195
 
+
 # Get the DEG Age p-value and LFC sign for differentially retained introns
 AgeList = list(Cpres = data.frame(Cpres), Npres = data.frame(Npres),
                 Crres = data.frame(Crres), Nrres = data.frame(Nrres), 
@@ -665,6 +667,83 @@ t.test(c(IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriche
 #sample estimates:
 #  mean of x mean of y 
 #0.2019961 0.1147505
+
+# Are genes with greater IR in cytosol in prenatal higher- or lower-expressed in prenatal than adult in cytosol?
+t.test(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"C.down.LFC"],
+       nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"C.down.LFC"])
+#not enough observations
+t.test(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"C.down.LFC"],
+       nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"C.down.LFC"])
+#t = -0.65579, df = 19.676, p-value = 0.5196
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.0739628  0.5606191
+#sample estimates:
+#  mean of x  mean of y 
+#0.01235413 0.26902596
+
+# plot IR ratio in cytosolic prenatal samples and LFC by age in cytosol
+ggplot(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<0.05),], aes(x=IR.diff, y=C.down.LFC)) + 
+  geom_point() +
+  ylab("Log2 Fold Change") + ylim(-10,10) + 
+  xlab("Difference in IR Ratio") +
+  ggtitle("Age LFC and IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20))
+
+# Are genes with greater IR in cytosol in prenatal higher- or lower-expressed in prenatal than adult in nucleus?
+t.test(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"N.LFC"],
+       nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"N.LFC"])
+#not enough observations
+t.test(nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"N.LFC"],
+       nonconst[["Fetal_PolyA_Zone"]][which(nonconst[["Fetal_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"N.LFC"])
+#t = -0.61683, df = 19.753, p-value = 0.5444
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -0.9254822  0.5033181
+#sample estimates:
+#  mean of x   mean of y 
+#-0.08663488  0.12444718
+
+# Are genes with greater IR in cytosol in adult higher- or lower-expressed in prenatal than adult in nucleus?
+t.test(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"N.LFC"],
+       nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"N.LFC"])
+#t = 2.2808, df = 1.4913, p-value = 0.1917
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.097634  2.420453
+#sample estimates:
+#  mean of x  mean of y 
+#0.2756661 -0.3857433 
+t.test(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"N.LFC"],
+       nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"N.LFC"])
+#t = -0.45151, df = 8.1151, p-value = 0.6634
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.700300  1.142344
+#sample estimates:
+#  mean of x  mean of y 
+#-0.5957356 -0.3167575
+
+# Are genes with greater IR in nucleus in adult higher- or lower-expressed in prenatal than adult in cytosol?
+t.test(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"C.down.LFC"],
+       nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"p.diff"]<0.05 & nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"C.down.LFC"])
+#t = 2.5725, df = 1.0759, p-value = 0.2216
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -5.427908  8.833757
+#sample estimates:
+#  mean of x  mean of y 
+#1.2312692 -0.4716555
+t.test(nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"Sign"]!="MoreIRInNuc.Fetal"),"C.down.LFC"],
+       nonconst[["Adult_PolyA_Zone"]][which(nonconst[["Adult_PolyA_Zone"]][,"Sign"]=="MoreIRInNuc.Fetal"),"C.down.LFC"])
+#alternative hypothesis: true difference in means is not equal to 0
+#95 percent confidence interval:
+#  -1.447122  1.709665
+#sample estimates:
+#  mean of x  mean of y 
+#-0.1437747 -0.2750462
+
 
 ## Are dIR introns by age more likely to be dIR introns by fraction?
 nonconst = Map(cbind, IRclean[["nonconst"]], intronID = lapply(IRclean[["nonconst"]], function(x) paste0(x$Chr, ":", x$Start, "-", x$"End")))
@@ -1076,3 +1155,130 @@ fisher.test(data.frame(c(12+2+2+1,20+3),c(5+2,58)))
 #sample estimates:
 #  odds ratio 
 #6.00427
+
+
+## What about direction of retention in shared introns?
+for (i in 1:length(nonconst)){
+  nonconst[[i]] = cbind(nonconst[[i]], name = names(nonconst)[i])
+}
+x = do.call(rbind, nonconst[1:4])
+dIR.adult = as.character(x[which(x$p.diff<=0.05 & x$name=="Adult_PolyA_Zone"),"intronID"])
+dIR.pren = as.character(x[which(x$p.diff<=0.05 & x$name=="Fetal_PolyA_Zone"),"intronID"])
+dIR.cyt = as.character(x[which(x$p.diff<=0.05 & x$name=="Cytosol_PolyA_Age"),"intronID"])
+dIR.nuc = as.character(x[which(x$p.diff<=0.05 & x$name=="Nuclear_PolyA_Age"),"intronID"])
+x$intronID = as.character(x$intronID)
+
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(13,0),c(0,2)))
+#data: dIR_gene_FractionbyAge_adult_cytosol
+#p-value = 0.009524
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  1.786286      Inf
+#sample estimates:
+#  odds ratio 
+#Inf
+
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(1,0),c(0,0)))
+#data: dIR_gene_FractionbyAge_prenatal_cytosol
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0 Inf
+#sample estimates:
+#  odds ratio 
+#0
+
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nucleus_PolyA_Age" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(3,18),c(0,0)))
+#data: dIR_gene_FractionbyAge_adult_nucleus
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0 Inf
+#sample estimates:
+#  odds ratio 
+#0
+
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(13,3),c(0,0)))
+#data: dIR_gene_FractionbyAge_prenatal_nucleus
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0 Inf
+#sample estimates:
+#  odds ratio 
+#0
+
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Fetal_PolyA_Zone" & x$intronID %in% dIR.adult & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Adult_PolyA_Zone" & x$intronID %in% dIR.pren & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(2,0),c(0,0)))
+#data: dIR_gene_Fraction_adult_fetal
+#p-value = 1
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  0 Inf
+#sample estimates:
+#  odds ratio 
+#0
+
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign=="MoreIRInNuc.Fetal"),"intronID"])
+dim(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+dim(x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),])
+match(x[which(x$name=="Cytosol_PolyA_Age" & x$intronID %in% dIR.nuc & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"],
+      x[which(x$name=="Nuclear_PolyA_Age" & x$intronID %in% dIR.cyt & x$p.diff<=0.05 & x$Sign!="MoreIRInNuc.Fetal"),"intronID"])
+
+fisher.test(data.frame(c(9,0),c(0,3)))
+#data: dIR_gene_Age_cytosol_nucleus
+#p-value = 0.004545
+#alternative hypothesis: true odds ratio is not equal to 1
+#95 percent confidence interval:
+#  2.301964      Inf
+#sample estimates:
+#  odds ratio 
+#Inf 
+
