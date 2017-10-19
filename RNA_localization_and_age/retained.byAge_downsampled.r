@@ -2,6 +2,7 @@ library(ggplot2)
 library(plyr)
 library(clusterProfiler)
 require(org.Hs.eg.db)
+library(DESeq2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
@@ -53,11 +54,10 @@ sig = list(both_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rown
                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
            both_exported = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%FetNeg 
                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
-           Fet_retained = Ipres.down[which(rownames(Ipres.down)%in%FetPos & !(rownames(Ipres.down)%in%AdSig) & 
-                                       rownames(Ipres.down)%in%FetSig),],
+           Fet_retained = Ipres.down[which(rownames(Ipres.down)%in%FetPos & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
            Ad_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
-           Fet_exported = Ires[which(rownames(Ipres.down)%in%FetNeg & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
-           Ad_exported = Ires[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
+           Fet_exported = Ipres.down[which(rownames(Ipres.down)%in%FetNeg & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
+           Ad_exported = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
            ret_Ad_exp_Fet = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetNeg 
                                       & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
            ret_Fet_exp_Ad = Ipres.down[which(rownames(Ipres.down)%in%FetPos & rownames(Ipres.down)%in%AdNeg 
