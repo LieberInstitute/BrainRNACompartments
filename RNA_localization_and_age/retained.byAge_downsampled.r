@@ -374,3 +374,51 @@ NucCounts$Comparison = "Nucleus"
 write.csv(rbind(CytCounts,NucCounts), 
           file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/AgeLFCxAgepval_bysigFracGroup_fisher_pvalues.csv",
           row.names = F,quote = F)
+
+# Make Age Sig object
+age = list(Ipres.down = data.frame(Ipres.down[order(rownames(Ipres.down)),]), 
+           Npres = data.frame(Npres[order(rownames(Npres)),]), 
+           Cpres.down = data.frame(Cpres.down[order(rownames(Cpres.down)),]))
+age = Map(cbind, age, Sign = lapply(age, function(x) ifelse(x$log2FoldChange>0, "Pos", "Neg")))
+Ipres.down = age[["Ipres.down"]]
+Npres = age[["Npres"]]
+Cpres.down = age[["Cpres.down"]]
+
+NucPos = as.character(rownames(Npres[which(Npres$Sign=="Pos"),]))
+NucNeg = as.character(rownames(Npres[which(Npres$Sign=="Neg"),]))
+NucSig = as.character(rownames(Npres[which(Npres$padj<=0.05),]))
+NucLFC = as.character(rownames(Npres[which(abs(Npres$log2FoldChange)>=1),]))
+CytPos = as.character(rownames(Cpres.down[which(Cpres.down$Sign=="Pos"),]))
+CytNeg = as.character(rownames(Cpres.down[which(Cpres.down$Sign=="Neg"),]))
+CytSig = as.character(rownames(Cpres.down[which(Cpres.down$padj<=0.05),]))
+CytLFC = as.character(rownames(Cpres.down[which(abs(Cpres.down$log2FoldChange)>=1),]))
+
+age.sig = list(both_decreasing = Ipres.down[which(rownames(Ipres.down)%in%NucPos & rownames(Ipres.down)%in%CytPos 
+                                            & rownames(Ipres.down)%in%NucSig & rownames(Ipres.down)%in%CytSig),],
+           both_increasing = Ipres.down[which(rownames(Ipres.down)%in%NucNeg & rownames(Ipres.down)%in%CytNeg 
+                                            & rownames(Ipres.down)%in%NucSig & rownames(Ipres.down)%in%CytSig),],
+           Cyt_decreasing = Ipres.down[which(rownames(Ipres.down)%in%CytPos & !(rownames(Ipres.down)%in%NucSig) & rownames(Ipres.down)%in%CytSig),],
+           Nuc_decreasing = Ipres.down[which(rownames(Ipres.down)%in%NucPos & rownames(Ipres.down)%in%NucSig & !(rownames(Ipres.down)%in%CytSig)),],
+           Cyt_increasing = Ipres.down[which(rownames(Ipres.down)%in%CytNeg & !(rownames(Ipres.down)%in%NucSig) & rownames(Ipres.down)%in%CytSig),],
+           Nuc_increasing = Ipres.down[which(rownames(Ipres.down)%in%NucNeg & rownames(Ipres.down)%in%NucSig & !(rownames(Ipres.down)%in%CytSig)),],
+           decr_Nuc_incr_Cyt = Ipres.down[which(rownames(Ipres.down)%in%NucPos & rownames(Ipres.down)%in%CytNeg 
+                                             & rownames(Ipres.down)%in%NucSig & rownames(Ipres.down)%in%CytSig),],
+           decr_Cyt_incr_Nuc = Ipres.down[which(rownames(Ipres.down)%in%CytPos & rownames(Ipres.down)%in%NucNeg 
+                                             & rownames(Ipres.down)%in%NucSig & rownames(Ipres.down)%in%CytSig),],
+           interacting = Ipres.down[which(Ipres.down$padj<=0.05),])
+
+age.data = data.frame(geneID = rownames(Ipres.down), baseMean = Ipres.down$baseMean, 
+                  Cytosol.LFC = Cpres.down[match(rownames(Ipres.down), rownames(Cpres.down)), "log2FoldChange"], 
+                  Cytosol.SE = Cpres.down[match(rownames(Ipres.down), rownames(Cpres.down)), "lfcSE"], 
+                  Cytosol.padj = Cpres.down[match(rownames(Ipres.down), rownames(Cpres.down)), "padj"],
+                  Nucleus.LFC = Npres[match(rownames(Ipres.down), rownames(Npres)), "log2FoldChange"], 
+                  Nucleus.SE = Npres[match(rownames(Ipres.down), rownames(Npres)), "lfcSE"],
+                  Nucleus.padj = Npres[match(rownames(Ipres.down), rownames(Npres)), "padj"],
+                  ensID = geneMap[match(rownames(Ipres.down),as.character(rownames(geneMap))),"ensemblID"],
+                  Symbol = geneMap[match(rownames(Ipres.down),as.character(rownames(geneMap))),"Symbol"],
+                  EntrezID = geneMap[match(as.character(rownames(Ipres.down)),geneMap$gencodeID),"EntrezID"],
+                  Type = geneMap[match(as.character(rownames(Ipres.down)),geneMap$gencodeID),"gene_type"])
+age.sig = lapply(age.sig, function(x) age.data[which(age.data$geneID %in% rownames(x)),])
+age.sig.1 = lapply(age.sig, function(x) x[which(abs(x$Cytosol.LFC)>=1 | abs(x$Nucleus.LFC)>=1),])
+save(Ipres.down,Cpres.down,Npres,age.sig,age.sig.1,sig,sig.1,geneMap, 
+     file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
