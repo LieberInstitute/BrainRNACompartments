@@ -6,3610 +6,488 @@ library(ggplot2)
 library(plyr)
 
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/rna_editing_results.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
-# Explore results
-editingres = editingres[c(1:6,8,10:14)]
-names(editingres) = gsub(".downsampled", "", names(editingres))
-editingres = Map(cbind, editingres, conversion = lapply(editingres, function(x) paste0(x$ref, ":", x$alt)),
-                 sampleID = lapply(names(editingres), function(x) x), rnum = lapply(editingres, function(x) 1:nrow(x)),
-                 editingID = lapply(editingres, function(x) paste0(x$chromosome,":",x$start,"-",x$end,":",x$ref,":",x$alt)))
-for (i in 1:length(editingres)){
-  tmp = editingres[[i]]
-  tmp$Fraction = ifelse((tmp$rnum %in% grep("N", tmp$sampleID)), "Nucleus", "Cytosol")
-  tmp$Age = ifelse((tmp$rnum %in% grep("53", tmp$sampleID)), "Prenatal", "Adult")
-  tmp$Group = paste0(tmp$Age, ":", tmp$Fraction)
-  tmp$collapsedconversion = NA
-  tmp[which(tmp$conversion=="A:C" | tmp$conversion=="T:G"), "collapsedconversion"] = "A:C / T:G"
-  tmp[which(tmp$conversion=="A:G" | tmp$conversion=="T:C"), "collapsedconversion"] = "A:G / T:C"
-  tmp[which(tmp$conversion=="A:T" | tmp$conversion=="T:A"), "collapsedconversion"] = "A:T / T:A"
-  tmp[which(tmp$conversion=="C:A" | tmp$conversion=="G:T"), "collapsedconversion"] = "C:A / G:T"
-  tmp[which(tmp$conversion=="C:G" | tmp$conversion=="G:C"), "collapsedconversion"] = "C:G / G:C"
-  tmp[which(tmp$conversion=="C:T" | tmp$conversion=="G:A"), "collapsedconversion"] = "C:T / G:A"
-  editingres[[i]] = tmp
+
+### Isolate the sites unique to each group
+
+unique = lapply(unique_bySamp, function(x) editing_anno[which(editingID %in% x$EditingID),,])
+elementNROWS(unique)
+unique = Map(cbind, unique, ensID = lapply(unique, function(x) geneMap[match(x$nearestID,geneMap$gencodeID),"ensemblID"]),
+                 Type = lapply(unique, function(x) geneMap[match(x$nearestID,geneMap$gencodeID),"gene_type"]),
+                 baseMean = lapply(unique, function(x) Ipres.down[match(x$nearestID, rownames(Ipres.down)),"baseMean"]), 
+                 P.LFC = lapply(unique, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "log2FoldChange"]), 
+                 P.SE = lapply(unique, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "lfcSE"]), 
+                 P.padj = lapply(unique, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "padj"]),
+                 A.LFC = lapply(unique, function(x) Apres[match(x$nearestID, rownames(Apres)), "log2FoldChange"]), 
+                 A.SE = lapply(unique, function(x) Apres[match(x$nearestID, rownames(Apres)), "lfcSE"]),
+                 A.padj = lapply(unique, function(x) Apres[match(x$nearestID, rownames(Apres)), "padj"]),
+                 N.LFC = lapply(unique, function(x) Npres[match(x$nearestID, rownames(Npres)), "log2FoldChange"]), 
+                 N.SE = lapply(unique, function(x) Npres[match(x$nearestID, rownames(Npres)), "lfcSE"]), 
+                 N.padj = lapply(unique, function(x) Npres[match(x$nearestID, rownames(Npres)), "padj"]),
+                 C.LFC = lapply(unique, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "log2FoldChange"]), 
+                 C.SE = lapply(unique, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "lfcSE"]),
+                 C.padj = lapply(unique, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "padj"]))
+DEGnames = c(lapply(sig[1:8], function(x) as.character(x$geneID)), lapply(age.sig, function(x) as.character(x$geneID))) 
+unique = Map(cbind, unique, both_retained = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$both_retained, "both_retained", "no")),
+                 both_exported = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$both_exported, "both_exported", "no")),
+                 Fet_retained = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Fet_retained, "Fet_retained", "no")),
+                 Ad_retained = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Ad_retained, "Ad_retained", "no")),
+                 Fet_exported = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Fet_exported, "Fet_exported", "no")),
+                 Ad_exported = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Ad_exported, "Ad_exported", "no")),
+                 ret_Ad_exp_Fet = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$ret_Ad_exp_Fet, "ret_Ad_exp_Fet", "no")),
+                 ret_Fet_exp_Ad = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$ret_Fet_exp_Ad, "ret_Fet_exp_Ad", "no")),
+                 interacting = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$interacting, "interacting", "no")),
+                 both_decreasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$both_decreasing, "both_decreasing", "no")),
+                 both_increasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$both_increasing, "both_increasing", "no")),
+                 Cyt_decreasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Cyt_decreasing, "Cyt_decreasing", "no")),
+                 Nuc_decreasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Nuc_decreasing, "Nuc_decreasing", "no")),
+                 Cyt_increasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Cyt_increasing, "Cyt_increasing", "no")),
+                 Nuc_increasing = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$Nuc_increasing, "Nuc_increasing", "no")),
+                 decr_Nuc_incr_Cyt = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$decr_Nuc_incr_Cyt, "decr_Nuc_incr_Cyt", "no")),
+                 decr_Cyt_incr_Nuc = lapply(unique, function(x) ifelse(x$nearestID %in% DEGnames$decr_Cyt_incr_Nuc, "decr_Cyt_incr_Nuc", "no")))
+elementNROWS(unique)
+lapply(unique, head)
+
+all = Map(cbind, all, ensID = lapply(all, function(x) geneMap[match(x$nearestID,geneMap$gencodeID),"ensemblID"]),
+          Type = lapply(all, function(x) geneMap[match(x$nearestID,geneMap$gencodeID),"gene_type"]),
+          baseMean = lapply(all, function(x) Ipres.down[match(x$nearestID, rownames(Ipres.down)),"baseMean"]), 
+          P.LFC = lapply(all, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "log2FoldChange"]), 
+          P.SE = lapply(all, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "lfcSE"]), 
+          P.padj = lapply(all, function(x) Fpres.down[match(x$nearestID, rownames(Fpres.down)), "padj"]),
+          A.LFC = lapply(all, function(x) Apres[match(x$nearestID, rownames(Apres)), "log2FoldChange"]), 
+          A.SE = lapply(all, function(x) Apres[match(x$nearestID, rownames(Apres)), "lfcSE"]),
+          A.padj = lapply(all, function(x) Apres[match(x$nearestID, rownames(Apres)), "padj"]),
+          N.LFC = lapply(all, function(x) Npres[match(x$nearestID, rownames(Npres)), "log2FoldChange"]), 
+          N.SE = lapply(all, function(x) Npres[match(x$nearestID, rownames(Npres)), "lfcSE"]), 
+          N.padj = lapply(all, function(x) Npres[match(x$nearestID, rownames(Npres)), "padj"]),
+          C.LFC = lapply(all, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "log2FoldChange"]), 
+          C.SE = lapply(all, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "lfcSE"]),
+          C.padj = lapply(all, function(x) Cpres.down[match(x$nearestID, rownames(Cpres.down)), "padj"]),
+          both_retained = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$both_retained, "both_retained", "no")),
+          both_exported = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$both_exported, "both_exported", "no")),
+          Fet_retained = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Fet_retained, "Fet_retained", "no")),
+          Ad_retained = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Ad_retained, "Ad_retained", "no")),
+          Fet_exported = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Fet_exported, "Fet_exported", "no")),
+          Ad_exported = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Ad_exported, "Ad_exported", "no")),
+          ret_Ad_exp_Fet = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$ret_Ad_exp_Fet, "ret_Ad_exp_Fet", "no")),
+          ret_Fet_exp_Ad = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$ret_Fet_exp_Ad, "ret_Fet_exp_Ad", "no")),
+          interacting = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$interacting, "interacting", "no")),
+          both_decreasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$both_decreasing, "both_decreasing", "no")),
+          both_increasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$both_increasing, "both_increasing", "no")),
+          Cyt_decreasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Cyt_decreasing, "Cyt_decreasing", "no")),
+          Nuc_decreasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Nuc_decreasing, "Nuc_decreasing", "no")),
+          Cyt_increasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Cyt_increasing, "Cyt_increasing", "no")),
+          Nuc_increasing = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$Nuc_increasing, "Nuc_increasing", "no")),
+          decr_Nuc_incr_Cyt = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$decr_Nuc_incr_Cyt, "decr_Nuc_incr_Cyt", "no")),
+          decr_Cyt_incr_Nuc = lapply(all, function(x) ifelse(x$nearestID %in% DEGnames$decr_Cyt_incr_Nuc, "decr_Cyt_incr_Nuc", "no")))
+
+
+
+### How many sites are there per gene, and is this different than the distribution of sites that aren't specific to a group and in all samples in a group?
+
+## Number of sites per gene
+numsites_bygene = lapply(unique, function(x) x[,length(unique(editingID)),by="nearestID"])
+numsites_bygene_all = lapply(all, function(x) x[,length(unique(editingID)),by="nearestID"])
+numsites_bygene = lapply(numsites_bygene,as.data.frame)
+numsites_bygene_all = lapply(numsites_bygene_all, as.data.frame)
+elementNROWS(numsites_bygene)
+elementNROWS(numsites_bygene_all)
+
+## Compare to the number of sites per gene in sites present in each compartment but not unique, and the total number of sites in the same genes as those of the unique sites
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+allgroup = c("cytosolAll","nucleusAll","adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+t.num.bygene = t.editedgenes.numsites = list()
+for (i in 1:length(numsites_bygene)){
+  t.num.bygene[[i]] = t.test(x = numsites_bygene[[group[i]]][,"V1"], y = numsites_bygene_all[[allgroup[i]]][-which(numsites_bygene_all[[allgroup[i]]][,"nearestID"] %in% numsites_bygene[[group[i]]][,"nearestID"]),"V1"])
+  t.editedgenes.numsites[[i]] = t.test(x = numsites_bygene_all[[allgroup[i]]][which(numsites_bygene_all[[allgroup[i]]][,"nearestID"] %in% numsites_bygene[[group[i]]][,"nearestID"]),"V1"], 
+                                       y = numsites_bygene_all[[allgroup[i]]][-which(numsites_bygene_all[[allgroup[i]]][,"nearestID"] %in% numsites_bygene[[group[i]]][,"nearestID"]),"V1"])
 }
-editingres_df = do.call(rbind, editingres)
-editingres_df$rate = editingres_df$alt.count / editingres_df$valdepth
+names(t.num.bygene) = names(t.editedgenes.numsites) = group
+t.num.bygene.editing = rbind(Tstat = data.frame(lapply(t.num.bygene, function(x) round(x$statistic,3))), pval = data.frame(lapply(t.num.bygene, function(x) x$p.value)),
+                             confInt = data.frame(lapply(t.num.bygene, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(t.num.bygene, function(x) round(x$estimate,3))),
+                             max = data.frame(lapply(numsites_bygene, function(x) max(x$V1))), median = data.frame(lapply(numsites_bygene, function(x) median(x$V1))), 
+                             sd = data.frame(lapply(numsites_bygene, function(x) round(sd(x$V1),3))))
+#                   cytosolOnly  nucleusOnly   adultOnly prenatalOnly      ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#Tstat              1.082000e+01 2.037100e+01 1.55920e+01 4.953000e+00 6.613000e+00 1.781800e+01 7.597000e+00 1.182600e+01 1.019100e+01 4.822000e+00 1.571700e+01  2.968000000
+#pval               1.037003e-26 4.262358e-87 1.09945e-49 8.796764e-07 5.324119e-11 1.357331e-66 5.046285e-14 3.891695e-31 2.650874e-22 1.852096e-06 5.555072e-49  0.003129269
+#confInt.1          6.460000e-01 1.742000e+00 1.79100e+00 4.210000e-01 4.020000e-01 1.808000e+00 4.620000e-01 8.650000e-01 1.090000e+00 4.220000e-01 1.778000e+00  0.140000000
+#confInt.2          9.330000e-01 2.114000e+00 2.30700e+00 9.740000e-01 7.420000e-01 2.256000e+00 7.840000e-01 1.209000e+00 1.610000e+00 1.002000e+00 2.286000e+00  0.686000000
+#estMeans.mean of x 2.361000e+00 3.383000e+00 3.73500e+00 2.995000e+00 2.199000e+00 3.447000e+00 2.199000e+00 2.555000e+00 2.941000e+00 2.717000e+00 3.577000e+00  2.650000000
+#estMeans.mean of y 1.572000e+00 1.455000e+00 1.68600e+00 2.297000e+00 1.627000e+00 1.415000e+00 1.576000e+00 1.519000e+00 1.591000e+00 2.005000e+00 1.545000e+00  2.238000000
+#max                1.900000e+01 5.100000e+01 5.10000e+01 4.200000e+01 1.500000e+01 4.300000e+01 1.800000e+01 2.700000e+01 2.800000e+01 3.600000e+01 4.800000e+01 30.000000000
+#median             1.000000e+00 2.000000e+00 2.00000e+00 1.000000e+00 1.000000e+00 2.000000e+00 1.000000e+00 2.000000e+00 1.000000e+00 1.000000e+00 2.000000e+00  1.000000000
+#sd                 2.220000e+00 4.202000e+00 5.14500e+00 3.973000e+00 1.932000e+00 4.309000e+00 2.023000e+00 2.597000e+00 3.573000e+00 3.467000e+00 4.812000e+00  3.234000000
+t.editedgenes.numsites.df = rbind(Tstat = data.frame(lapply(t.editedgenes.numsites, function(x) x$statistic)), pval = data.frame(lapply(t.editedgenes.numsites, function(x) x$p.value)),
+                                  confInt = data.frame(lapply(t.editedgenes.numsites, function(x) x$conf.int)), estMeans = data.frame(lapply(t.editedgenes.numsites, function(x) x$estimate)),
+                                  max = mapply(function(x,y) max(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"nearestID"] %in% numsites_bygene[[x]][,"nearestID"]),"V1"]), group, allgroup),
+                                  median = mapply(function(x,y) median(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"nearestID"] %in% numsites_bygene[[x]][,"nearestID"]),"V1"]), group, allgroup),
+                                  sd = mapply(function(x,y) sd(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"nearestID"] %in% numsites_bygene[[x]][,"nearestID"]),"V1"]), group, allgroup))
+#                    cytosolOnly   nucleusOnly    adultOnly prenatalOnly      ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#Tstat              2.227659e+01  2.597561e+01 1.953522e+01 1.156446e+01 1.657753e+01 2.217149e+01 1.686707e+01 1.877149e+01 1.371927e+01 8.996844e+00 1.909397e+01 8.733816e+00
+#pval               7.439237e-98 1.210852e-134 1.518419e-77 1.199959e-29 1.504480e-56 4.564877e-99 6.698610e-58 2.468235e-72 5.014523e-39 1.823673e-18 2.711112e-72 1.256083e-17
+#confInt.1          3.387897e+00  3.606980e+00 2.887856e+00 1.625644e+00 2.633570e+00 3.267953e+00 2.404351e+00 2.361264e+00 1.888094e+00 1.159525e+00 2.669316e+00 1.091598e+00
+#confInt.2          4.042022e+00  4.195976e+00 3.532414e+00 2.289795e+00 3.340488e+00 3.902115e+00 3.037256e+00 2.912224e+00 2.518475e+00 1.806760e+00 3.280602e+00 1.724431e+00
+#estMeans.mean of x 5.286683e+00  5.356375e+00 4.895850e+00 4.254455e+00 4.613535e+00 5.000000e+00 4.296610e+00 4.155541e+00 3.794194e+00 3.487688e+00 4.519787e+00 3.645562e+00
+#estMeans.mean of y 1.571723e+00  1.454897e+00 1.685714e+00 2.296736e+00 1.626506e+00 1.414966e+00 1.575806e+00 1.518797e+00 1.590909e+00 2.004545e+00 1.544828e+00 2.237548e+00
+#max                1.500000e+01  1.700000e+01 6.000000e+00 1.300000e+01 1.600000e+01 1.600000e+01 1.200000e+01 1.500000e+01 8.000000e+00 1.000000e+01 6.000000e+00 1.300000e+01
+#median             1.000000e+00  1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00
+#sd                 1.487991e+00  1.299340e+00 1.204571e+00 2.013590e+00 1.554721e+00 1.242305e+00 1.333935e+00 1.301030e+00 1.197020e+00 1.729406e+00 9.645041e-01 1.870080e+00
 
-# Annotate editing sites to features in the genome
-txdb = loadDb("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
-features = list(CDS = cdsBy(txdb, by="tx", use.names=T), Introns = intronsByTranscript(txdb, use.names=T), 
-                UTR5 = fiveUTRsByTranscript(txdb, use.names=T), UTR3 = threeUTRsByTranscript(txdb, use.names=T))
-features = lapply(features, function(x) unlist(x, recursive = TRUE, use.names = TRUE))
-lapply(features, head)
 
-grediting = makeGRangesFromDataFrame(editingres_df, keep.extra.columns = T)
-annotation = lapply(features, function(y) findOverlaps(grediting, y))
+## What about at the exon level?
 
-grediting$rnum = 1:length(grediting)
-grediting$cds = ifelse(grediting$rnum %in% queryHits(annotation[["CDS"]]), "CDS", NA)
-grediting$intron = ifelse(grediting$rnum %in% queryHits(annotation[["Introns"]]), "Intron", NA)
-grediting$UTR5 = ifelse(grediting$rnum %in% queryHits(annotation[["UTR5"]]), "UTR5", NA)
-grediting$UTR3 = ifelse(grediting$rnum %in% queryHits(annotation[["UTR3"]]), "UTR3", NA)
-grediting$anno = paste0(grediting$cds,":",grediting$intron, ":", grediting$UTR5, ":", grediting$UTR3)
+exonMap$exonID = rownames(exonMap)
+exonMap_gr = makeGRangesFromDataFrame(exonMap, keep.extra.columns = T)
+editing_anno_gr = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
+ov = findOverlaps(editing_anno_gr, exonMap_gr)
+tog = cbind(editing_anno[queryHits(ov),], exonMap[subjectHits(ov),])
+unique_exons = lapply(unique, function(x) tog[(editingID %in% x$editingID),,])
+all_exons = lapply(all, function(x) tog[(editingID %in% x$editingID),,])
 
-editing = as.data.frame(grediting)
-editing[which(editing$anno == "NA:NA:NA:NA"),"annotation"] = "Other" 
-editing[grep("CDS", editing$cds),"annotation"] = "CDS"
-editing[which(is.na(editing$annotation) & editing$UTR3 == "UTR3"),"annotation"] = "UTR3"
-editing[which(is.na(editing$annotation) & editing$UTR5 == "UTR5"),"annotation"] = "UTR5"
-editing[which(is.na(editing$annotation) & editing$intron == "Intron"),"annotation"] = "Intron"
+numsites_byexon = lapply(unique_exons, function(x) x[,length(unique(editingID)),by="exonID"])
+numsites_byexon_all = lapply(all_exons, function(x) x[,length(unique(editingID)),by="exonID"])
+numsites_byexon = lapply(numsites_byexon,as.data.frame)
+numsites_byexon_all = lapply(numsites_byexon_all, as.data.frame)
+elementNROWS(numsites_byexon)
+elementNROWS(numsites_byexon_all)
 
-# Mapping editing sites to nearest gene
-geneMapGR = makeGRangesFromDataFrame(geneMap, start.field="Start",end.field="End",strand.field="Strand",keep=TRUE)
-dA = distanceToNearest(grediting, geneMapGR)
-editing$nearestSymbol = geneMapGR$Symbol[subjectHits(dA)]
-editing$nearestID = names(geneMapGR)[subjectHits(dA)]
-editing$distToGene = mcols(dA)$distance
-editing$EntrezID = geneMapGR$EntrezID[subjectHits(dA)]
-editing_anno = data.table(editing)
+t.num.byexon = t.editedexons.numsites = list()
+for (i in 1:length(numsites_byexon)){
+  t.num.byexon[[i]] = t.test(x = numsites_byexon[[group[i]]][,"V1"], y = numsites_byexon_all[[allgroup[i]]][-which(numsites_byexon_all[[allgroup[i]]][,"exonID"] %in% numsites_byexon[[group[i]]][,"exonID"]),"V1"])
+  t.editedexons.numsites[[i]] = t.test(x = numsites_byexon_all[[allgroup[i]]][which(numsites_byexon_all[[allgroup[i]]][,"exonID"] %in% numsites_byexon[[group[i]]][,"exonID"]),"V1"], 
+                                       y = numsites_byexon_all[[allgroup[i]]][-which(numsites_byexon_all[[allgroup[i]]][,"exonID"] %in% numsites_byexon[[group[i]]][,"exonID"]),"V1"])
+}
+names(t.num.byexon) = names(t.editedexons.numsites) = group
+t.num.byexon.editing = rbind(Tstat = data.frame(lapply(t.num.byexon, function(x) round(x$statistic,3))), pval = data.frame(lapply(t.num.byexon, function(x) x$p.value)),
+                             confInt = data.frame(lapply(t.num.byexon, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(t.num.byexon, function(x) round(x$estimate,3))),
+                             max = data.frame(lapply(numsites_byexon, function(x) max(x$V1))), median = data.frame(lapply(numsites_byexon, function(x) median(x$V1))), 
+                             sd = data.frame(lapply(numsites_byexon, function(x) round(sd(x$V1),3))))
+#                    cytosolOnly  nucleusOnly    adultOnly prenatalOnly      ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN     PNnotAN
+#Tstat              1.129400e+01 1.800700e+01 1.424000e+01    0.3970000 9.041000e+00 1.673000e+01 6.770000e+00 1.046800e+01 9.638000e+00  2.773000000 1.286600e+01 -1.68100000
+#pval               7.021997e-29 9.704584e-69 4.599877e-44    0.6917896 3.745307e-19 2.216909e-59 1.749433e-11 5.726088e-25 5.569381e-21  0.005686943 9.356659e-36  0.09327819
+#confInt.1          5.490000e-01 1.108000e+00 1.150000e+00   -0.1680000 4.700000e-01 1.266000e+00 3.370000e-01 5.570000e-01 7.940000e-01  0.086000000 1.060000e+00 -0.39000000
+#confInt.2          7.800000e-01 1.378000e+00 1.517000e+00    0.2520000 7.300000e-01 1.602000e+00 6.110000e-01 8.140000e-01 1.199000e+00  0.501000000 1.442000e+00  0.03000000
+#estMeans.mean of x 2.040000e+00 2.504000e+00 2.788000e+00    2.0950000 1.982000e+00 2.694000e+00 1.908000e+00 2.028000e+00 2.398000e+00  2.039000000 2.675000e+00  1.86800000
+#estMeans.mean of y 1.375000e+00 1.261000e+00 1.455000e+00    2.0520000 1.382000e+00 1.260000e+00 1.434000e+00 1.343000e+00 1.402000e+00  1.746000000 1.424000e+00  2.04800000
+#max                1.900000e+01 3.200000e+01 4.800000e+01   42.0000000 1.900000e+01 3.700000e+01 1.600000e+01 1.900000e+01 3.400000e+01 36.000000000 4.500000e+01 28.00000000
+#median             1.000000e+00 1.000000e+00 1.000000e+00    1.0000000 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00  1.000000000 1.000000e+00  1.00000000
+#sd                 1.966000e+00 3.067000e+00 4.058000e+00    2.8080000 1.837000e+00 3.310000e+00 1.763000e+00 1.949000e+00 3.137000e+00  2.607000000 3.759000e+00  2.22200000
+t.editedexons.numsites.df = rbind(Tstat = data.frame(lapply(t.editedexons.numsites, function(x) x$statistic)), pval = data.frame(lapply(t.editedexons.numsites, function(x) x$p.value)),
+                                  confInt = data.frame(lapply(t.editedexons.numsites, function(x) x$conf.int)), estMeans = data.frame(lapply(t.editedexons.numsites, function(x) x$estimate)),
+                                  max = mapply(function(x,y) max(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
+                                  median = mapply(function(x,y) median(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
+                                  sd = mapply(function(x,y) sd(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup))
+#                    cytosolOnly   nucleusOnly    adultOnly prenatalOnly      ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#Tstat              2.040378e+01  2.292049e+01 1.792096e+01 8.340680e+00 1.648868e+01 2.045878e+01 1.520728e+01 1.715550e+01 1.306292e+01 8.051233e+00 1.646333e+01 5.332036e+00
+#pval               1.495286e-82 2.820381e-105 2.623490e-68 1.320516e-16 3.116779e-55 2.107017e-84 1.278989e-47 6.325068e-60 4.068688e-37 1.848075e-15 1.895994e-57 1.147852e-07
+#confInt.1          2.973827e+00  2.889545e+00 2.087489e+00 8.776632e-01 2.567003e+00 2.762602e+00 1.964866e+00 1.967063e+00 1.470248e+00 7.631079e-01 1.836466e+00 4.392564e-01
+#confInt.2          3.606387e+00  3.430232e+00 2.600397e+00 1.417254e+00 3.260386e+00 3.348405e+00 2.546999e+00 2.475003e+00 1.989789e+00 1.254803e+00 2.333139e+00 9.506463e-01
+#estMeans.mean of x 4.665565e+00  4.420959e+00 3.798754e+00 3.199795e+00 4.295660e+00 4.315551e+00 3.689834e+00 3.563953e+00 3.131593e+00 2.754464e+00 3.509045e+00 2.742690e+00
+#estMeans.mean of y 1.375458e+00  1.261071e+00 1.454810e+00 2.052336e+00 1.381966e+00 1.260047e+00 1.433902e+00 1.342920e+00 1.401575e+00 1.745509e+00 1.424242e+00 2.047739e+00
+#max                1.700000e+01  1.700000e+01 6.000000e+00 1.500000e+01 1.600000e+01 1.600000e+01 1.200000e+01 1.500000e+01 1.000000e+01 8.000000e+00 6.000000e+00 1.300000e+01
+#median             1.000000e+00  1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00 1.000000e+00
+#sd                 1.220897e+00  9.434672e-01 9.688867e-01 1.991807e+00 1.155724e+00 9.771287e-01 1.251851e+00 1.011394e+00 1.164426e+00 1.514066e+00 9.003001e-01 1.846839e+00
 
-## Editing sites present in one group but not another
-AGonly = editing_anno[collapsedconversion=="A:G / T:C",,]
-cyt = AGonly[Fraction=="Cytosol",,]
-nuc = AGonly[Fraction=="Nucleus",,]
-ad = AGonly[Age=="Adult",,]
-pren = AGonly[Age=="Prenatal",,]
-AC = AGonly[Group=="Adult:Cytosol",,]
-AN = AGonly[Group=="Adult:Nucleus",,]
-PC = AGonly[Group=="Prenatal:Cytosol",,]
-PN = AGonly[Group=="Prenatal:Nucleus",,]
 
-unique = list(cytosolOnly = cyt[!(editingID %in% nuc$editingID),,], nucleusOnly = nuc[!(editingID %in% cyt$editingID),,], 
-              adultOnly = ad[!(editingID %in% pren$editingID),,], prenatalOnly = pren[!(editingID %in% ad$editingID),,], 
-              ANnotAC = AN[!(editingID %in% AC$editingID),,], ACnotAN = AC[!(editingID %in% AN$editingID),,], 
-              ANnotPN = AN[!(editingID %in% PN$editingID),,], PNnotAN = PN[!(editingID %in% AN$editingID),,],
-              ACnotPC = AC[!(editingID %in% PC$editingID),,], PCnotAC = PC[!(editingID %in% AC$editingID),,], 
-              PCnotPN = PC[!(editingID %in% PN$editingID),,], PNnotPC = PN[!(editingID %in% PC$editingID),,])
-all = list(cytosolAll = cyt, nucleusAll = nuc, adultAll = ad, prenatalAll = pren, allAC = AC, allAN = AN, allPC = PC, allPN = PN)
+
+### Compare the proportion of editing site in each annotation in sites unique to a specific group and those that aren't
+# Using whether the site overlaps an annotation group at all rather than the CDS -> UTR -> Intron -> Other heirarchy
+
+anno.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+allgroup = c("cytosolAll","nucleusAll","adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+for (i in 1:length(unique)){
+  anno.site[[i]] = list(
+    data.frame(Unique = c(nrow(unique[[group[i]]][grep("CDS", anno),list(unique(editingID)),]), nrow(unique[[group[i]]][-grep("CDS", anno),list(unique(editingID)),])),
+               notUnique = c(nrow(all[[allgroup[i]]][grep("CDS", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][grep("CDS", anno),list(unique(editingID)),]),
+                             nrow(all[[allgroup[i]]][-grep("CDS", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][-grep("CDS", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
+    data.frame(Unique = c(nrow(unique[[group[i]]][grep("Intron", anno),list(unique(editingID)),]), nrow(unique[[group[i]]][-grep("Intron", anno),list(unique(editingID)),])),
+               notUnique = c(nrow(all[[allgroup[i]]][grep("Intron", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][grep("Intron", anno),list(unique(editingID)),]),
+                             nrow(all[[allgroup[i]]][-grep("Intron", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][-grep("Intron", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
+    data.frame(Unique = c(nrow(unique[[group[i]]][grep("UTR5", anno),list(unique(editingID)),]), nrow(unique[[group[i]]][-grep("UTR5", anno),list(unique(editingID)),])),
+               notUnique = c(nrow(all[[allgroup[i]]][grep("UTR5", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][grep("UTR5", anno),list(unique(editingID)),]),
+                             nrow(all[[allgroup[i]]][-grep("UTR5", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][-grep("UTR5", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
+    data.frame(Unique = c(nrow(unique[[group[i]]][grep("UTR3", anno),list(unique(editingID)),]), nrow(unique[[group[i]]][-grep("UTR3", anno),list(unique(editingID)),])),
+               notUnique = c(nrow(all[[allgroup[i]]][grep("UTR3", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][grep("UTR3", anno),list(unique(editingID)),]),
+                             nrow(all[[allgroup[i]]][-grep("UTR3", anno),list(unique(editingID)),])-nrow(unique[[group[i]]][-grep("UTR3", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
+    data.frame(Unique = c(nrow(unique[[group[i]]][(annotation=="Other"),list(unique(editingID)),]), nrow(unique[[group[i]]][(annotation!="Other"),list(unique(editingID)),])),
+               notUnique = c(nrow(all[[allgroup[i]]][(annotation=="Other"),list(unique(editingID)),])-nrow(unique[[group[i]]][(annotation=="Other"),list(unique(editingID)),]),
+                             nrow(all[[allgroup[i]]][(annotation!="Other"),list(unique(editingID)),])-nrow(unique[[group[i]]][(annotation!="Other"),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")))
+  names(anno.site[[i]]) = c("CDS","Intron","UTR5","UTR3","Other")
+}
+names(anno.site) = group
+fisher.anno.site = lapply(anno.site, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.anno.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#        cytosolOnly   nucleusOnly    adultOnly prenatalOnly      ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#CDS    7.479212e-09  9.405109e-15 7.640423e-01 4.052958e-01 7.396955e-06 2.295851e-11 4.904124e-08 3.257281e-10 2.589635e-01 4.558662e-01 3.486063e-01 5.587548e-01
+#Intron 3.448633e-01  9.082804e-49 5.026308e-01 2.981328e-07 3.900058e-01 2.494848e-40 9.781940e-01 2.658615e-20 7.697652e-01 6.756008e-08 5.847943e-01 2.231538e-03
+#UTR5   5.218612e-01  1.206456e-01 6.383796e-02 4.035939e-04 2.957170e-01 1.183810e-01 7.895968e-01 7.367531e-01 6.147130e-01 7.729938e-02 1.279998e-01 1.855744e-03
+#UTR3   1.751213e-10 6.379695e-135 1.415903e-30 5.001359e-61 5.254058e-07 1.221598e-98 6.873078e-05 1.496410e-44 2.251906e-06 2.422827e-29 2.486909e-25 9.635696e-45
+#Other  1.991734e-08  7.062937e-05 3.416870e-12 9.000582e-11 1.130273e-08 1.184954e-04 2.047083e-03 1.129417e-01 4.471699e-05 9.645687e-05 1.437100e-12 3.490934e-12
+anno.site.props = lapply(anno.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 
 ### Characterize the overlap with differentially expressed genes
 
-editing_ranges = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
-DEG_hits = findOverlaps(geneMapGR, reduce(editing_ranges))
-editing_anno = as.data.frame(editing_anno)
-DEG_editing = lapply(sig, function(x) editing_anno[which(editing_anno$collapsedconversion=="A:G / T:C" & 
-                                                           editing_anno$nearestID %in% as.character(x$geneID)),])
-
-## Are cytosolic-specific editing sites enriched for DEG Fraction?
-names(unique)
-cyt = unique[["cytosolOnly"]]
-dim(cyt) #4285
-cytonly.deg = lapply(sig, function(x) cyt[which(cyt$collapsedconversion=="A:G / T:C" & cyt$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cytonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.056533 2.167616
-#sample estimates:
-#  odds ratio 
-#1.508694 
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.206004 1.761161
-#sample estimates:
-#  odds ratio 
-#1.455631
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5209447 0.9903415
-#sample estimates:
-#  odds ratio 
-#0.7196827 
-
-names(all)
-cytosolAll = all[["cytosolAll"]]
-dim(cytosolAll) #16513
-cytosolAll.deg = lapply(sig, function(x) cytosolAll[which(cytosolAll$collapsedconversion=="A:G / T:C" & cytosolAll$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(cytosolAll.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#425           653            82          1851            76           588 
-elementNROWS(lapply(cytonly.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#128           219            34           645            30           212 
-
-fisher.test(data.frame(c(128,425-128), c(219,653-219))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.257
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6500174 1.1202317
-#sample estimates:
-#  odds ratio 
-#0.8542065 
-fisher.test(data.frame(c(128+645,425+1851-(128+645)), c(219+212,653+588-(219+212)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.6555
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8335815 1.1213151
-#sample estimates:
-#  odds ratio 
-#0.966544 
-fisher.test(data.frame(c(128+34,425+82-(128+34)), c(219+30,653+76-(219+30)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.4256
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7054002 1.1603049
-#sample estimates:
-#  odds ratio 
-#0.9052591 
-
-
-## Are nuclear-specific editing sites enriched for DEG Fraction?
-nuc = unique[["nucleusOnly"]]
-nuconly.deg = lapply(sig, function(x) nuc[which(nuc$collapsedconversion=="A:G / T:C" & nuc$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuconly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#167           112            47           546            19           136
-
-fisher.test(data.frame(c(167,975-167), c(112,1010-112))) # both ages: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 0.0001323
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.271346 2.164859
-#sample estimates:
-#  odds ratio 
-#1.656712
-fisher.test(data.frame(c(167+546,975+3427-(167+546)), c(112+136,1010+2442-(112+136)))) # adult: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.140855 2.919265
-#sample estimates:
-#  odds ratio 
-#2.496752
-fisher.test(data.frame(c(167+47,975+354-(167+47)), c(112+19,1010+350-(112+19)))) # prenatal: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 6.311e-07
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.419394 2.289464
-#sample estimates:
-#  odds ratio 
-#1.800193
-
-names(all)
-nucleusAll = all[["nucleusAll"]]
-dim(nucleusAll) #24407
-nucleusAll.deg = lapply(sig, function(x) nucleusAll[which(nucleusAll$collapsedconversion=="A:G / T:C" & nucleusAll$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(nucleusAll.deg[1:6], function(x) unique(x$editingID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported
-#1013           775           200          3376           116           812
-elementNROWS(lapply(nuconly.deg[1:6], function(x) unique(x$editingID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported
-#716           341           152          2170            70           436
-
-fisher.test(data.frame(c(716,1013-716), c(341,775-341))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.509839 3.751007
-#sample estimates:
-#  odds ratio 
-#3.06619
-fisher.test(data.frame(c(716+2170,1013+3376-(716+2170)), c(341+436,775+812-(341+436)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-# p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.778337 2.252998
-#sample estimates:
-#  odds ratio 
-#2.001491
-fisher.test(data.frame(c(716+152,1013+200-(716+152)), c(341+70,775+116-(341+70)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.440620 3.537815
-#sample estimates:
-#  odds ratio 
-#2.936724 
-
-## Are adult-specific editing sites enriched for DEG Fraction?
-ad = unique[["adultOnly"]]
-adonly.deg = lapply(sig, function(x) ad[which(ad$collapsedconversion=="A:G / T:C" & ad$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(adonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#154           127            44           509            18           157 
-
-fisher.test(data.frame(c(154,975-154), c(127,1010-127))) # both ages: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 0.04576
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.004371 1.695185
-#sample estimates:
-#  odds ratio 
-#1.303989
-fisher.test(data.frame(c(154+509,975+3427-(154+509)), c(127+157,1010+2442-(127+157)))) # adult: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.704538 2.299308
-#sample estimates:
-#  odds ratio 
-#1.977819 
-fisher.test(data.frame(c(154+44,975+354-(154+44)), c(127+18,1010+350-(127+18)))) # prenatal: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 0.001182
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.159608 1.858403
-#sample estimates:
-#  odds ratio 
-#1.466712
-
-names(all)
-adultAll = all[["adultAll"]]
-dim(adultAll) # 23144
-adultAll.deg = lapply(sig, function(x) adultAll[which(adultAll$collapsedconversion=="A:G / T:C" & adultAll$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(adultAll.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#770           758           160          2627            98           699 
-elementNROWS(lapply(adonly.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#582           545           138          1939            68           530 
-
-fisher.test(data.frame(c(582,770-582), c(545,758-545))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.1038
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9566833 1.5305059
-#sample estimates:
-#  odds ratio 
-#1.209741
-fisher.test(data.frame(c(582+1939,770+2627-(582+1939)), c(545+530,758+699-(545+530)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-# p-value = 0.775
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.886572 1.178452
-#sample estimates:
-#  odds ratio 
-#1.022653
-fisher.test(data.frame(c(582+138,770+160-(582+138)), c(545+68,758+98-(545+68)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.005474
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.091273 1.693146
-#sample estimates:
-#  odds ratio 
-#1.358873
-
-
-## Are prenatal-specific editing sites enriched for DEG Fraction?
-pren = unique[["prenatalOnly"]]
-prenonly.deg = lapply(sig, function(x) pren[which(pren$collapsedconversion=="A:G / T:C" & pren$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(prenonly.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#104           105            24           380            15           106 
-
-fisher.test(data.frame(c(104,975-104), c(105,1010-105))) # both ages: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.8838
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7643917 1.3854113
-#sample estimates:
-#  odds ratio 
-#1.029133
-fisher.test(data.frame(c(104+380,975+3427-(104+380)), c(105+106,1010+2442-(105+106)))) # adult: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 2.018e-14
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.599683 2.256263
-#sample estimates:
-#  odds ratio 
-#1.897326
-fisher.test(data.frame(c(104+24,975+354-(104+24)), c(105+15,1010+350-(105+15)))) # prenatal: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.5052
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8406777 1.4434121
-#sample estimates:
-#  odds ratio 
-#1.101264
-
-names(all)
-prenatalAll = all[["prenatalAll"]]
-dim(prenatalAll) # 23144
-prenatalAll.deg = lapply(sig, function(x) prenatalAll[which(prenatalAll$collapsedconversion=="A:G / T:C" & prenatalAll$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(prenatalAll.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          559           449            96          2082            78           494 
-elementNROWS(lapply(prenonly.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          371           236            74          1394            48           325
-
-fisher.test(data.frame(c(371,559-371), c(236,449-236))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 1.037e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.368608 2.317642
-#sample estimates:
-#  odds ratio 
-#1.780072
-fisher.test(data.frame(c(371+1394,559+2082-(371+1394)), c(236+325,449+494-(236+325)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 5.91e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.173150 1.603399
-#sample estimates:
-#  odds ratio 
-#1.371788
-fisher.test(data.frame(c(371+74,559+96-(371+74)), c(236+48,449+78-(236+48)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 1.036e-06
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.420105 2.314834
-#sample estimates:
-#  odds ratio 
-#1.812226
-
-## In Adult: Are cytosolic-specific editing sites enriched for DEG Fraction?
-names(unique)
-ACnotAN = unique[["ACnotAN"]]
-dim(ACnotAN) #2725
-ACnotAN.deg = lapply(sig, function(x) ACnotAN[which(ACnotAN$collapsedconversion=="A:G / T:C" & ACnotAN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#32            64            15           170             9            70            
-
-fisher.test(data.frame(c(32+170,975+3427-(32+170)), c(64+70,1010+2442-(64+70)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-# p-value = 0.1295
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9477982 1.5000514
-#sample estimates:
-#  odds ratio 
-#1.190869
-fisher.test(data.frame(c(32+15,975+354-(32+15)), c(64+9,1010+350-(64+9)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-# p-value = 0.0247
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4345620 0.9538287
-#sample estimates:
-#  odds ratio 
-#0.6464544
-
-names(all)
-allAC = all[["allAC"]]
-dim(allAC) #16513
-allAC.deg = lapply(sig, function(x) allAC[which(allAC$collapsedconversion=="A:G / T:C" & allAC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allAC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          204           462            61           929            41           369
-elementNROWS(lapply(ACnotAN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           58           157            28           314            17           148
-
-fisher.test(data.frame(c(58+314,204+929-(58+314)), c(157+148,462+369-(157+148)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-# p-value = 0.07567
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.69569 1.02199
-#sample estimates:
-#  odds ratio 
-#0.8431107
-fisher.test(data.frame(c(58+28,204+61-(58+28)), c(157+17,462+41-(157+17)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-# p-value = 0.5751
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6528906 1.2599697
-#sample estimates:
-#  odds ratio 
-#0.9085604 
-
-
-## Are nuclear-specific editing sites enriched for DEG Fraction?
-ANnotAC = unique[["ANnotAC"]]
-ANnotAC.deg = lapply(sig, function(x) ANnotAC[which(ANnotAC$collapsedconversion=="A:G / T:C" & ANnotAC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          132            88            34           429            17           109 
-
-fisher.test(data.frame(c(132+429,975+3427-(132+429)), c(88+109,1010+2442-(88+109)))) # adult: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.033639 2.872376
-#sample estimates:
-#  odds ratio 
-#2.412831
-fisher.test(data.frame(c(132+34,975+354-(132+34)), c(88+17,1010+350-(88+17)))) # prenatal: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 3.968e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.309963 2.228546
-#sample estimates:
-#  odds ratio 
-#1.705658
-
-allAN = all[["allAN"]]
-dim(allAN) #24407
-allAN.deg = lapply(sig, function(x) allAN[which(allAN$collapsedconversion=="A:G / T:C" & allAN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allAN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#712           601           132          2313            81           551
-elementNROWS(lapply(ANnotAC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#566           296            99          1698            57           330 
-
-fisher.test(data.frame(c(566+1698,712+2313-(566+1698)), c(296+330,601+551-(296+330)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.162781 2.888352
-#sample estimates:
-#  odds ratio 
-#2.499002
-fisher.test(data.frame(c(566+99,712+132-(566+99)), c(296+57,601+81-(296+57)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.753205 4.356842
-#sample estimates:
-#  odds ratio 
-#3.459475 
-
-## In Prenatal: Are cytosolic-specific editing sites enriched for DEG Fraction?
-names(unique)
-PCnotPN = unique[["PCnotPN"]]
-dim(PCnotPN) #2725
-PCnotPN.deg = lapply(sig, function(x) PCnotPN[which(PCnotPN$collapsedconversion=="A:G / T:C" & PCnotPN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           45            57             3           192            12            61            
-
-fisher.test(data.frame(c(45+192,975+3427-(45+192)), c(57+61,1010+2442-(57+61)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 3.013e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.277397 2.032065
-#sample estimates:
-#  odds ratio 
-#1.607646
-fisher.test(data.frame(c(45+3,975+354-(45+3)), c(57+12,1010+350-(57+12)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.07221
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4707109 1.0372880
-#sample estimates:
-#  odds ratio 
-#0.701178
-
-names(all)
-allPC = all[["allPC"]]
-allPC.deg = lapply(sig, function(x) allPC[which(allPC$collapsedconversion=="A:G / T:C" & allPC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allPC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          262           324            26          1155            52           305
-elementNROWS(lapply(PCnotPN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          100           129             8           471            22           117
-
-fisher.test(data.frame(c(100+471,262+1155-(100+471)), c(129+117,324+305-(129+117)))) # adult: # sites within retained or exported DEG PNd cytosolic-specific or non-specific status
-#p-value = 0.625
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8634059 1.2799323
-#sample estimates:
-#  odds ratio 
-#1.050815
-fisher.test(data.frame(c(100+8,262+26-(100+8)), c(129+22,324+52-(129+22)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.521
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6438427 1.2402827
-#sample estimates:
-#  odds ratio 
-#0.8941912
-
-
-## In prenatal: Are nuclear-specific editing sites enriched for DEG Fraction?
-PNnotPC = unique[["PNnotPC"]]
-PNnotPC.deg = lapply(sig, function(x) PNnotPC[which(PNnotPC$collapsedconversion=="A:G / T:C" & PNnotPC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           84            67            22           303             8            68 
-
-fisher.test(data.frame(c(84+303,975+3427-(84+303)), c(67+68,1010+2442-(67+68)))) # adult: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.930785 2.918211
-#sample estimates:
-#  odds ratio 
-#2.367956
-fisher.test(data.frame(c(84+22,975+354-(84+22)), c(67+8,1010+350-(67+8)))) # prenatal: retained or exported DEG and presence or absence of nuclear-specific editing site
-#p-value = 0.01111
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.082317 2.045061
-#sample estimates:
-#  odds ratio 
-#1.484753
-
-allPN = all[["allPN"]]
-dim(allPN) #24407
-allPN.deg = lapply(sig, function(x) allPN[which(allPN$collapsedconversion=="A:G / T:C" & allPN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allPN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          459           320            88          1611            56           377
-elementNROWS(lapply(PNnotPC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          297           125            70           927            26           189 
-
-fisher.test(data.frame(c(297+927,459+1611-(297+927)), c(125+189,320+377-(125+189)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 1.134e-10
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.478673 2.106195
-#sample estimates:
-#  odds ratio 
-#1.764408 
-fisher.test(data.frame(c(297+70,459+88-(297+70)), c(125+26,320+56-(125+26)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 6.179e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.291805 4.027934
-#sample estimates:
-#  odds ratio 
-#3.03419 
-
-## In cytosol: Are adult-specific editing sites enriched for DEG Fraction?
-ACnotPC = unique[["ACnotPC"]]
-ACnotPC.deg = lapply(sig, function(x) ACnotPC[which(ACnotPC$collapsedconversion=="A:G / T:C" & ACnotPC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442 
-elementNROWS(lapply(ACnotPC.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           69            88            24           269            10            94
-
-fisher.test(data.frame(c(69+269,975+3427-(69+269)), c(88+94,1010+2442-(88+94)))) # adult: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 2.031e-05
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.236623 1.810051
-#sample estimates:
-#  odds ratio 
-#1.494227 
-fisher.test(data.frame(c(69+24,975+354-(69+24)), c(88+10,1010+350-(88+10)))) # prenatal: retained or exported DEG and presence or absence of adult-specific editing site
-#p-value = 0.8807
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7135514 1.3150579
-#sample estimates:
-#  odds ratio 
-#0.9689459
-
-names(all)
-allAC = all[["allAC"]]
-allAC.deg = lapply(sig, function(x) allAC[which(allAC$collapsedconversion=="A:G / T:C" & allAC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allAC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          204           462            61           929            41           369  
-elementNROWS(lapply(ACnotPC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          163           329            56           696            24           283 
-
-fisher.test(data.frame(c(163+696,204+929-(163+696)), c(329+283,462+369-(329+283)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.2922
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.908016 1.385111
-#sample estimates:
-#  odds ratio 
-#1.121783 
-fisher.test(data.frame(c(163+56,204+61-(163+56)), c(329+24,462+41-(329+24)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0001712
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.379538 3.000998
-#sample estimates:
-#  odds ratio 
-#2.021264
-
-
-## In cytosol: Are prenatal-specific editing sites enriched for DEG Fraction?
-PCnotAC = unique[["PCnotAC"]]
-PCnotAC.deg = lapply(sig, function(x) PCnotAC[which(PCnotAC$collapsedconversion=="A:G / T:C" & PCnotAC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           69            85            10           283            12            82 
-
-fisher.test(data.frame(c(69+283,975+3427-(69+283)), c(85+82,1010+2442-(85+82)))) # adult: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 1.606e-08
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.409500 2.079881
-#sample estimates:
-#  odds ratio 
-#1.709529
-fisher.test(data.frame(c(69+10,975+354-(69+10)), c(85+12,1010+350-(85+12)))) # prenatal: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.2421
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5971791 1.1313507
-#sample estimates:
-#  odds ratio 
-#0.8229641
-
-names(all)
-allPC = all[["allPC"]]
-allPC.deg = lapply(sig, function(x) allPC[which(allPC$collapsedconversion=="A:G / T:C" & allPC$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allPC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          262           324            26          1155            52           305  
-elementNROWS(lapply(PCnotAC.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          221           191            21           922            35           219 
-
-fisher.test(data.frame(c(221+922,262+1155-(221+922)), c(191+219,324+305-(191+219)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 1.486e-13
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.794137 2.764096
-#sample estimates:
-#  odds ratio 
-#2.227265 
-fisher.test(data.frame(c(221+21,262+26-(221+21)), c(191+35,324+52-(191+35)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 1.298e-11
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  2.363788 5.207554
-#sample estimates:
-#  odds ratio 
-#3.485251
-
-
-## In nucleus: Are adult-specific editing sites enriched for DEG Fraction?
-ANnotPN = unique[["ANnotPN"]]
-ANnotPN.deg = lapply(sig, function(x) ANnotPN[which(ANnotPN$collapsedconversion=="A:G / T:C" & ANnotPN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442 
-elementNROWS(lapply(ANnotPN.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          148           111            39           472            16           135 
-
-fisher.test(data.frame(c(148+472,975+3427-(148+472)), c(111+135,1010+2442-(111+135)))) # adult: retained or exported DEG and presence or absence of adult-specific editing site
-# p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.825913 2.505054
-#sample estimates:
-#  odds ratio 
-#2.136273
-fisher.test(data.frame(c(148+39,975+354-(148+39)), c(111+16,1010+350-(111+16)))) # prenatal: retained or exported DEG and presence or absence of adult-specific editing site
-# p-value = 0.000149
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.243399 2.036752
-#sample estimates:
-#  odds ratio 
-#1.58948
-
-allAN = all[["allAN"]]
-allAN.deg = lapply(sig, function(x) allAN[which(allAN$collapsedconversion=="A:G / T:C" & allAN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allAN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          712           601           132          2313            81           551  
-elementNROWS(lapply(ANnotPN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          554           455           112          1765            60           435 
-
-fisher.test(data.frame(c(554+1765,712+2313-(554+1765)), c(455+435,601+551-(455+435)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.712
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8193136 1.1392673
-#sample estimates:
-#  odds ratio 
-#0.9669628
-fisher.test(data.frame(c(554+112,712+132-(554+112)), c(455+60,601+81-(455+60)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.1239
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9467356 1.5542015
-#sample estimates:
-#  odds ratio 
-#1.213125
-
-
-## In nucleus: Are prenatal-specific editing sites enriched for DEG Fraction?
-PNnotAN = unique[["PNnotAN"]]
-PNnotAN.deg = lapply(sig, function(x) PNnotAN[which(PNnotAN$collapsedconversion=="A:G / T:C" & PNnotAN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#           95            86            23           346             9            88 
-
-fisher.test(data.frame(c(95+346,975+3427-(95+346)), c(86+88,1010+2442-(86+88)))) # adult: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.744678 2.529655
-#sample estimates:
-#  odds ratio 
-#2.097265
-fisher.test(data.frame(c(95+23,975+354-(95+23)), c(86+9,1010+350-(86+9)))) # prenatal: retained or exported DEG and presence or absence of prenatal-specific editing site
-#p-value = 0.07423
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.970067 1.738612
-#sample estimates:
-#  odds ratio 
-#1.297361
-
-allPN = all[["allPN"]]
-allPN.deg = lapply(sig, function(x) allPN[which(allPN$collapsedconversion=="A:G / T:C" & allPN$nearestID %in% as.character(x$geneID)),])
-elementNROWS(lapply(allPN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          459           320            88          1611            35           377   
-elementNROWS(lapply(PNnotAN.deg[1:6], function(x) unique(x$editingID)))
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#          301           174            68          1063            35           261 
-
-fisher.test(data.frame(c(301+1063,459+1611-(301+1063)), c(174+261,320+377-(174+261)))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value = 0.09846
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9692207 1.3955462
-#sample estimates:
-#  odds ratio 
-#1.163575
-fisher.test(data.frame(c(301+68,459+88-(301+68)), c(174+35,320+35-(174+35)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0105
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.086809 1.927998
-#sample estimates:
-#  odds ratio 
-#1.4475
-
-## Looking into gene expression by age and editing sites
-AgeList = list(Cres = as.data.frame(Cres.down), Nres = as.data.frame(Nres))
-AgeList = Map(cbind, AgeList, lapply(AgeList, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
-SigAgeList = lapply(AgeList, function(x) x[which(x$padj<=0.05 & abs(x$log2FoldChange) >=1),])
-elementNROWS(SigAgeList)
-SigAgeList = Map(cbind, SigAgeList, Sign = lapply(SigAgeList, function(x) ifelse(x$log2FoldChange > 0,"UpPrenatal", "DownPrenatal")))
-SigAgeList = lapply(SigAgeList, function(x) split(x, x$Sign))
-SigList = unlist(SigAgeList, recursive = F) 
-lapply(SigList, head)
-DEG_editing = lapply(SigList, function(x) editing_anno[which(editing_anno$collapsedconversion=="A:G / T:C" & 
-                                                               editing_anno$nearestID %in% rownames(x)),])
-elementNROWS(DEG_editing)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5642              8525              5597              6189 
-elementNROWS(lapply(DEG_editing, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#2815              3764              2854              2693 
-elementNROWS(lapply(DEG_editing, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#641               760               661               607 
-
-
-## Are cytosolic-specific editing sites enriched for DEG Age?
-cytonly.deg = lapply(SigList, function(x) cyt[which(cyt$collapsedconversion=="A:G / T:C" & cyt$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cytonly.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.3622105 0.5144960
-#sample estimates:
-#  odds ratio 
-#0.432008
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4221270 0.6132562
-#sample estimates:
-#  odds ratio 
-#0.5089893
-
-cytosolAll.deg = lapply(SigList, function(x) cytosolAll[which(cytosolAll$collapsedconversion=="A:G / T:C" & cytosolAll$nearestID %in% rownames(x)),])
-elementNROWS(lapply(cytosolAll.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#1360              2192              1293              1648 
-elementNROWS(lapply(cytonly.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#481               854               437               649 
-
-fisher.test(data.frame(c(481,1360-481), c(854,2192-854))) # cytosol: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-# p-value = 0.03254
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7429849 0.9889736
-#sample estimates:
-#  odds ratio 
-#0.857381
-fisher.test(data.frame(c(437,1293-437), c(649,1648-649))) # nucleus: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-#p-value = 0.002069
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6730767 0.9172312
-#sample estimates:
-#  odds ratio 
-#0.7858987
-
-
-## Are nuclear-specific editing sites enriched for DEG Age?
-nuconly.deg = lapply(SigList, function(x) nuc[which(nuc$collapsedconversion=="A:G / T:C" & nuc$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuconly.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#430               513               459               383
-
-fisher.test(data.frame(c(430,5634-430), c(513,4019-513))) # cytosol: increasing or decreasing age DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.492096 0.647859
-#sample estimates:
-#  odds ratio 
-#0.5647625
-fisher.test(data.frame(c(459,5137-459), c(383,3347-383))) # nucleus: increasing or decreasing age DEG and  presence or absence of nuclear-specific editing site
-#p-value = 0.0001743
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6563835 0.8788090
-#sample estimates:
-#  odds ratio 
-#0.7593713
-
-nucleusAll.deg = lapply(SigList, function(x) nucleusAll[which(nucleusAll$collapsedconversion=="A:G / T:C" & nucleusAll$nearestID %in% rownames(x)),])
-elementNROWS(lapply(nucleusAll.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#2334              2910              2417              2044
-elementNROWS(lapply(nuconly.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#1455              1572              1561              1045
-
-fisher.test(data.frame(c(1455,2334-1455), c(1572,2910-1572))) # cytosol: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value = 1.445e-09
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.258900 1.576871
-#sample estimates:
-#  odds ratio 
-#1.408778
-fisher.test(data.frame(c(1561,2417-1561), c(1045,2044-1045))) # nucleus: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.542882 1.969795
-#sample estimates:
-#  odds ratio 
-#1.743135
-
-## Are adult-specific editing sites enriched for DEG Age?
-adonly.deg = lapply(SigList, function(x) ad[which(ad$collapsedconversion=="A:G / T:C" & ad$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347 
-elementNROWS(lapply(adonly.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#562               323               584               229 
-
-fisher.test(data.frame(c(562,5634-562), c(323,4019-323))) # cytosol: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-#p-value = 0.001126
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.096405 1.467928
-#sample estimates:
-#  odds ratio 
-#1.267873
-fisher.test(data.frame(c(584,5137-584), c(229,3347-229))) # nucleus: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-# p-value = 1.853e-12
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.485841 2.057601
-#sample estimates:
-#  odds ratio 
-#1.746337
-
-adultAll.deg = lapply(SigList, function(x) adultAll[which(adultAll$collapsedconversion=="A:G / T:C" & adultAll$nearestID %in% rownames(x)),])
-elementNROWS(lapply(adultAll.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#2592              1514              2624               987 
-elementNROWS(lapply(adonly.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#2320               879              2376               583 
-
-fisher.test(data.frame(c(2320,2592-2320), c(879,1514-879))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  5.225823 7.272376
-#sample estimates:
-#  odds ratio 
-#6.158586
-fisher.test(data.frame(c(2376,2624-2376), c(583,987-583))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  5.509525 7.999610
-#sample estimates:
-#  odds ratio 
-#6.634573
-
-
-## Are prenatal-specific editing sites enriched for DEG Age?
-prenonly.deg = lapply(SigList, function(x) pren[which(pren$collapsedconversion=="A:G / T:C" & pren$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(prenonly.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#130               582               131               465 
-
-fisher.test(data.frame(c(130,5634-130), c(582,4019-582))) # cytosol: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1138996 0.1698730
-#sample estimates:
-#  odds ratio 
-#0.1395105
-fisher.test(data.frame(c(131,5137-131), c(465,3347-465))) # nucleus: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1318666 0.1984455
-#sample estimates:
-#  odds ratio 
-#0.1622252
-
-prenatalAll.deg = lapply(SigList, function(x) prenatalAll[which(prenatalAll$collapsedconversion=="A:G / T:C" & prenatalAll$nearestID %in% rownames(x)),])
-elementNROWS(lapply(prenatalAll.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#495              2885               478              2110 
-elementNROWS(lapply(prenonly.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#223              2250               230              1706
-
-fisher.test(data.frame(c(223,495-223), c(2250,2885-2250))) # cytosol: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1889044 0.2834098
-#sample estimates:
-#  odds ratio 
-#0.2315041 
-fisher.test(data.frame(c(230,478-230), c(1706,2110-1706))) # nucleus: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1771500 0.2724677
-#sample estimates:
-#  odds ratio 
-#0.2197838
-
-
-## In adult: Are cytosolic-specific editing sites enriched for DEG Age?
-ACnotAN.deg = lapply(SigList, function(x) ACnotAN[which(ACnotAN$collapsedconversion=="A:G / T:C" & ACnotAN$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             5634              4019              5137              3347 
-elementNROWS(lapply(ACnotAN.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              208               156               202               126 
-
-fisher.test(data.frame(c(208,5634-208), c(156,4019-156))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.6262
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7643087 1.1809113
-#sample estimates:
-#  odds ratio 
-#0.9492834 
-fisher.test(data.frame(c(202,5137-202), c(126,3347-126))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.7297
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8296287 1.3236924
-#sample estimates:
-#  odds ratio 
-#1.046368
-
-allAC.deg = lapply(SigList, function(x) allAC[which(allAC$collapsedconversion=="A:G / T:C" & allAC$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allAC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             1214               665              1144               508
-elementNROWS(lapply(ACnotAN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              452               281               398               227
-
-fisher.test(data.frame(c(452,1214-452), c(281,665-281))) # cytosol: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-#p-value = 0.03358
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6653819 0.9880163
-#sample estimates:
-#  odds ratio 
-#0.8107035
-fisher.test(data.frame(c(398,1144-398), c(227,508-227))) # nucleus: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-#p-value = 0.0001478
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5308015 0.8222648
-#sample estimates:
-#  odds ratio 
-#0.6606228
-
-
-## In adult: Are nuclear-specific editing sites enriched for DEG Age?
-ANnotAC.deg = lapply(SigList, function(x) ANnotAC[which(ANnotAC$collapsedconversion=="A:G / T:C" & ANnotAC$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              399               266               429               172
-
-fisher.test(data.frame(c(399,5634-399), c(266,4019-266))) # cytosol: increasing or decreasing age DEG and presence or absence of nuclear-specific editing site
-#p-value = 0.3921
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9132039 1.2678446
-#sample estimates:
-#  odds ratio 
-#1.075369
-fisher.test(data.frame(c(429,5137-429), c(172,3347-172))) # nucleus: increasing or decreasing age DEG and  presence or absence of nuclear-specific editing site
-#p-value = 9.9e-09
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.397662 2.031085
-#sample estimates:
-#  odds ratio 
-#1.681939
-
-allAN.deg = lapply(SigList, function(x) allAN[which(allAN$collapsedconversion=="A:G / T:C" & allAN$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allAN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             2140              1233              2226               760
-elementNROWS(lapply(ANnotAC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#            1378               849              1480               479
-
-fisher.test(data.frame(c(1378,2140-1378), c(849,1233-849))) # cytosol: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value = 0.009186
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7020910 0.9523032
-#sample estimates:
-#  odds ratio 
-#0.8179831 
-fisher.test(data.frame(c(1480,2226-1480), c(479,760-479))) # nucleus: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value = 0.08473
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9761705 1.3862375
-#sample estimates:
-#  odds ratio 
-#1.163773 
-
-
-## In prenatal: Are cytosolic-specific editing sites enriched for DEG Age?
-PCnotPN.deg = lapply(SigList, function(x) PCnotPN[which(PCnotPN$collapsedconversion=="A:G / T:C" & PCnotPN$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             5634              4019              5137              3347 
-elementNROWS(lapply(PCnotPN.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#               67               304                64               232
-
-fisher.test(data.frame(c(67,5634-67), c(304,4019-304))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1108179 0.1928972
-#sample estimates:
-#  odds ratio 
-#0.1470929 
-fisher.test(data.frame(c(64,5137-64), c(232,3347-232))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1259313 0.2252244
-#sample estimates:
-#  odds ratio 
-#0.1694239
-
-allPC.deg = lapply(SigList, function(x) allPC[which(allPC$collapsedconversion=="A:G / T:C" & allPC$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allPC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              278              1817               262              1364 
-elementNROWS(lapply(PCnotPN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              103               749                98               557 
-
-fisher.test(data.frame(c(103,278-103), c(749,1817-749))) # cytosol: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-#p-value = 0.1906
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6398391 1.0969241
-#sample estimates:
-#  odds ratio 
-#0.8393145
-fisher.test(data.frame(c(98,262-98), c(557,1364-557))) # nucleus: # sites within increasing or decreasing age DEG and cytosolic-specific or non-specific status
-#p-value = 0.3357
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6518035 1.1459588
-#sample estimates:
-#  odds ratio 
-#0.8658424 
-
-
-## In prenatal: Are nuclear-specific editing sites enriched for DEG Age?
-PNnotPC.deg = lapply(SigList, function(x) PNnotPC[which(PNnotPC$collapsedconversion=="A:G / T:C" & PNnotPC$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              107               398               102               311
-
-fisher.test(data.frame(c(107,5634-107), c(398,4019-398))) # cytosol: increasing or decreasing age DEG and presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.140369 0.219578
-#sample estimates:
-#  odds ratio 
-#0.1761634
-fisher.test(data.frame(c(102,5137-102), c(311,3347-311))) # nucleus: increasing or decreasing age DEG and  presence or absence of nuclear-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1558625 0.2493482
-#sample estimates:
-#  odds ratio 
-#0.197801
-
-allPN.deg = lapply(SigList, function(x) allPN[which(allPN$collapsedconversion=="A:G / T:C" & allPN$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allPN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              392              2136               380              1553 
-elementNROWS(lapply(PNnotPC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              217              1068               216               746 
-
-fisher.test(data.frame(c(217,392-217), c(1068,2136-1068))) # cytosol: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value = 0.05442
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9930726 1.5496486
-#sample estimates:
-#  odds ratio 
-#1.239891
-fisher.test(data.frame(c(216,380-216), c(746,1553-746))) # nucleus: # sites within increasing or decreasing age DEG and nuclear-specific or non-specific status
-#p-value = 0.002392
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.129529 1.798900
-#sample estimates:
-#  odds ratio 
-#1.424493 
-
-
-## in Cytosol: Are adult-specific editing sites enriched for DEG Age?
-ACnotPC.deg = lapply(SigList, function(x) ACnotPC[which(ACnotPC$collapsedconversion=="A:G / T:C" & ACnotPC$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              344               186               344               144 
-
-fisher.test(data.frame(c(344,5634-344), c(186,4019-186))) # cytosol: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-#p-value = 0.001744
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.112245 1.618421
-#sample estimates:
-#  odds ratio 
-#1.340033
-fisher.test(data.frame(c(344,5137-344), c(144,3347-144))) # nucleus: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-#p-value = 2.767e-06
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.303285 1.963161
-#sample estimates:
-#  odds ratio 
-#1.596328
-
-allAC.deg = lapply(SigList, function(x) allAC[which(allAC$collapsedconversion=="A:G / T:C" & allAC$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allAC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             1214               665              1144               508 
-elementNROWS(lapply(ACnotPC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             1082               375              1031               284
-
-fisher.test(data.frame(c(1082,1214-1082), c(375,665-375))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  4.969351 8.096762
-#sample estimates:
-#  odds ratio 
-#6.331615
-fisher.test(data.frame(c(1031,1144-1031), c(284,508-284))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  5.495315 9.433971
-#sample estimates:
-#  odds ratio 
-#7.184923
-
-
-## in Cytosol: Are prenatal-specific editing sites enriched for DEG Age?
-PCnotAC.deg = lapply(SigList, function(x) PCnotAC[which(PCnotAC$collapsedconversion=="A:G / T:C" & PCnotAC$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#               87               430                90               338
-
-fisher.test(data.frame(c(87,5634-87), c(430,4019-430))) # cytosol: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1023394 0.1658913
-#sample estimates:
-#  odds ratio 
-#0.1309208
-fisher.test(data.frame(c(90,5137-90), c(338,3347-338))) # nucleus: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1238817 0.2018565
-#sample estimates:
-#  odds ratio 
-#0.1587847
-
-allPC.deg = lapply(SigList, function(x) allPC[which(allPC$collapsedconversion=="A:G / T:C" & allPC$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allPC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              278              1817               262              1364 
-elementNROWS(lapply(PCnotAC.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             146              1527               149              1140 
-
-fisher.test(data.frame(c(146,278-146), c(1527,1817-1527))) # cytosol: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1595685 0.2770385
-#sample estimates:
-#  odds ratio 
-#0.2102651
-fisher.test(data.frame(c(149,262-149), c(1140,1364-1140))) # nucleus: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1934672 0.3480022
-#sample estimates:
-#  odds ratio 
-#0.2593643
-
-## in Nucleus: Are adult-specific editing sites enriched for DEG Age?
-ANnotPN.deg = lapply(SigList, function(x) ANnotPN[which(ANnotPN$collapsedconversion=="A:G / T:C" & ANnotPN$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347 
-elementNROWS(lapply(ANnotPN.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              500               280               526               189 
-
-fisher.test(data.frame(c(500,5634-500), c(280,4019-280))) # cytosol: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-#p-value = 0.0007392
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.114289 1.520040
-#sample estimates:
-#  odds ratio 
-#1.300468
-fisher.test(data.frame(c(526,5137-526), c(189,3347-189))) # nucleus: increasing or decreasing age DEG and presence or absence of adult-specific editing site
-#p-value = 2.988e-14
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.600780 2.276763
-#sample estimates:
-#  odds ratio 
-#1.905928
-
-allAN.deg = lapply(SigList, function(x) allAN[which(allAN$collapsedconversion=="A:G / T:C" & allAN$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allAN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             2140              1233              2226               760 
-elementNROWS(lapply(ANnotPN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#             1942               774              2037               491 
-
-fisher.test(data.frame(c(1942,2140-1942), c(774,1233-774))) # both ages: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  4.809596 7.044141
-#sample estimates:
-#  odds ratio 
-#5.81295
-fisher.test(data.frame(c(2037,2226-2037), c(491,760-491))) # adult: # sites within retained or exported DEG and cytosolic-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  4.756517 7.329345
-#sample estimates:
-#  odds ratio 
-#5.90018
-
-
-## in Nucleus: Are prenatal-specific editing sites enriched for DEG Age?
-PNnotAN.deg = lapply(SigList, function(x) PNnotAN[which(PNnotAN$collapsedconversion=="A:G / T:C" & PNnotAN$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              117               500               119               407 
-
-fisher.test(data.frame(c(117,5634-117), c(500,4019-500))) # cytosol: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1204461 0.1837764
-#sample estimates:
-#  odds ratio 
-#0.1492844 
-fisher.test(data.frame(c(119,5137-119), c(407,3347-407))) # nucleus: increasing/decreasing age DEG and presence or absence of prenatal-specific editing site
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1377963 0.2118020
-#sample estimates:
-#  odds ratio 
-#0.1713415
-
-allPN.deg = lapply(SigList, function(x) allPN[which(allPN$collapsedconversion=="A:G / T:C" & allPN$nearestID %in% rownames(x)),])
-elementNROWS(lapply(allPN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              392              2136               380              1553
-elementNROWS(lapply(PNnotAN.deg, function(x) unique(x$editingID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#              194              1677               191              1284 
-
-fisher.test(data.frame(c(194,392-194), c(1677,2136-1677))) # cytosol: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.2132424 0.3375627
-#sample estimates:
-#  odds ratio 
-#0.2683435
-fisher.test(data.frame(c(191,380-191), c(1284,1553-1284))) # nucleus: # sites within increasing/decreasing age DEG and prenatal-specific or non-specific status
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.1653845 0.2713496
-#sample estimates:
-#  odds ratio 
-#0.2119319
-
-
-## Assess DEG patterns by annotation of editing site and whether the site is unique to a specific group
-split.anno = lapply(unique, function(x) split(x, f = x$annotation))
-cytosolOnly = split.anno[["cytosolOnly"]]
-nucleusOnly = split.anno[["nucleusOnly"]] 
-adultOnly = split.anno[["adultOnly"]]   
-prenatalOnly = split.anno[["prenatalOnly"]]
-ANnotAC = split.anno[["ANnotAC"]]   
-ACnotAN = split.anno[["ACnotAN"]]     
-ANnotPN = split.anno[["ANnotPN"]]     
-PNnotAN = split.anno[["PNnotAN"]]     
-ACnotPC = split.anno[["ACnotPC"]]     
-PCnotAC = split.anno[["PCnotAC"]]    
-PCnotPN = split.anno[["PCnotPN"]]
-PNnotPC = split.anno[["PNnotPC"]]
-
-
-## Are cytosolic-specific editing sites in 3'UTR enriched for DEG Fraction?
-cyt.UTR3 = cytosolOnly[["UTR3"]]
-cyt.UTR3.deg = lapply(sig, function(x) cyt.UTR3[which(cyt.UTR3$collapsedconversion=="A:G / T:C" & cyt.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cyt.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-
-cyt.UTR5 = cytosolOnly[["UTR5"]]
-cyt.UTR5.deg = lapply(sig, function(x) cyt.UTR5[which(cyt.UTR5$collapsedconversion=="A:G / T:C" & cyt.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cyt.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-
-cyt.Intron = cytosolOnly[["Intron"]]
-cyt.Intron.deg = lapply(sig, function(x) cyt.Intron[which(cyt.Intron$collapsedconversion=="A:G / T:C" & cyt.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cyt.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-
-cyt.Other = cytosolOnly[["Other"]]
-cyt.Other.deg = lapply(sig, function(x) cyt.Other[which(cyt.Other$collapsedconversion=="A:G / T:C" & cyt.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cyt.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-
-cyt.CDS = cytosolOnly[["CDS"]]
-cyt.CDS.deg = lapply(sig, function(x) cyt.CDS[which(cyt.CDS$collapsedconversion=="A:G / T:C" & cyt.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(cyt.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of cytosolic-specific editing site
-#p-value = 0.0429
-
-
-## Are nuclear-specific editing sites enriched for DEG Fraction?
-nuc.UTR3 = nucleusOnly[["UTR3"]]
-nuc.UTR3.deg = lapply(sig, function(x) nuc.UTR3[which(nuc.UTR3$collapsedconversion=="A:G / T:C" & nuc.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuc.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.0429
-
-nuc.UTR5 = nucleusOnly[["UTR5"]]
-nuc.UTR5.deg = lapply(sig, function(x) nuc.UTR5[which(nuc.UTR5$collapsedconversion=="A:G / T:C" & nuc.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuc.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.0429
-
-nuc.Intron = nucleusOnly[["Intron"]]
-nuc.Intron.deg = lapply(sig, function(x) nuc.Intron[which(nuc.Intron$collapsedconversion=="A:G / T:C" & nuc.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuc.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.0429
-
-nuc.Other = nucleusOnly[["Other"]]
-nuc.Other.deg = lapply(sig, function(x) nuc.Other[which(nuc.Other$collapsedconversion=="A:G / T:C" & nuc.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuc.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.0429
-
-nuc.CDS = nucleusOnly[["CDS"]]
-nuc.CDS.deg = lapply(sig, function(x) nuc.CDS[which(nuc.CDS$collapsedconversion=="A:G / T:C" & nuc.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(nuc.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of nucosolic-specific editing site
-#p-value = 0.0429
-
-
-## Are adult-specific editing sites enriched for DEG Fraction?
-ad.UTR3 = adultOnly[["UTR3"]]
-ad.UTR3.deg = lapply(sig, function(x) ad.UTR3[which(ad.UTR3$collapsedconversion=="A:G / T:C" & ad.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ad.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ad.UTR5 = adultOnly[["UTR5"]]
-ad.UTR5.deg = lapply(sig, function(x) ad.UTR5[which(ad.UTR5$collapsedconversion=="A:G / T:C" & ad.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ad.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ad.Intron = adultOnly[["Intron"]]
-ad.Intron.deg = lapply(sig, function(x) ad.Intron[which(ad.Intron$collapsedconversion=="A:G / T:C" & ad.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ad.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ad.Other = adultOnly[["Other"]]
-ad.Other.deg = lapply(sig, function(x) ad.Other[which(ad.Other$collapsedconversion=="A:G / T:C" & ad.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ad.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ad.CDS = adultOnly[["CDS"]]
-ad.CDS.deg = lapply(sig, function(x) ad.CDS[which(ad.CDS$collapsedconversion=="A:G / T:C" & ad.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ad.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-
-## Are prenatal-specific editing sites enriched for DEG Fraction?
-pren = unique[["prenatalOnly"]]
-prenonly.deg = lapply(sig, function(x) pren[which(pren$collapsedconversion=="A:G / T:C" & pren$nearestID %in% as.character(x$geneID)),])
-pren.UTR3 = prenatalOnly[["UTR3"]]
-pren.UTR3.deg = lapply(sig, function(x) pren.UTR3[which(pren.UTR3$collapsedconversion=="A:G / T:C" & pren.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(pren.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-pren.UTR5 = prenatalOnly[["UTR5"]]
-pren.UTR5.deg = lapply(sig, function(x) pren.UTR5[which(pren.UTR5$collapsedconversion=="A:G / T:C" & pren.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(pren.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-pren.Intron = prenatalOnly[["Intron"]]
-pren.Intron.deg = lapply(sig, function(x) pren.Intron[which(pren.Intron$collapsedconversion=="A:G / T:C" & pren.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(pren.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-pren.Other = prenatalOnly[["Other"]]
-pren.Other.deg = lapply(sig, function(x) pren.Other[which(pren.Other$collapsedconversion=="A:G / T:C" & pren.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(pren.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-pren.CDS = prenatalOnly[["CDS"]]
-pren.CDS.deg = lapply(sig, function(x) pren.CDS[which(pren.CDS$collapsedconversion=="A:G / T:C" & pren.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(pren.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## In Adult: Are cytosolic-specific editing sites enriched for DEG Fraction?
-names(unique)
-ACnotAN = unique[["ACnotAN"]]
-ACnotAN.UTR3 = ACnotAN[["UTR3"]]
-ACnotAN.UTR3.deg = lapply(sig, function(x) ACnotAN.UTR3[which(ACnotAN.UTR3$collapsedconversion=="A:G / T:C" & ACnotAN.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotAN.UTR5 = ACnotAN[["UTR5"]]
-ACnotAN.UTR5.deg = lapply(sig, function(x) ACnotAN.UTR5[which(ACnotAN.UTR5$collapsedconversion=="A:G / T:C" & ACnotAN.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotAN.Intron = ACnotAN[["Intron"]]
-ACnotAN.Intron.deg = lapply(sig, function(x) ACnotAN.Intron[which(ACnotAN.Intron$collapsedconversion=="A:G / T:C" & ACnotAN.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotAN.Other = ACnotAN[["Other"]]
-ACnotAN.Other.deg = lapply(sig, function(x) ACnotAN.Other[which(ACnotAN.Other$collapsedconversion=="A:G / T:C" & ACnotAN.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotAN.CDS = ACnotAN[["CDS"]]
-ACnotAN.CDS.deg = lapply(sig, function(x) ACnotAN.CDS[which(ACnotAN.CDS$collapsedconversion=="A:G / T:C" & ACnotAN.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotAN.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-
-## In Adult: Are nuclear-specific editing sites enriched for DEG Fraction?
-ANnotAC = unique[["ANnotAC"]]
-ANnotAC.deg = lapply(sig, function(x) ANnotAC[which(ANnotAC$collapsedconversion=="A:G / T:C" & ANnotAC$nearestID %in% as.character(x$geneID)),])
-ANnotAC.UTR3 = ANnotAC[["UTR3"]]
-ANnotAC.UTR3.deg = lapply(sig, function(x) ANnotAC.UTR3[which(ANnotAC.UTR3$collapsedconversion=="A:G / T:C" & ANnotAC.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotAC.UTR5 = ANnotAC[["UTR5"]]
-ANnotAC.UTR5.deg = lapply(sig, function(x) ANnotAC.UTR5[which(ANnotAC.UTR5$collapsedconversion=="A:G / T:C" & ANnotAC.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotAC.Intron = ANnotAC[["Intron"]]
-ANnotAC.Intron.deg = lapply(sig, function(x) ANnotAC.Intron[which(ANnotAC.Intron$collapsedconversion=="A:G / T:C" & ANnotAC.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotAC.Other = ANnotAC[["Other"]]
-ANnotAC.Other.deg = lapply(sig, function(x) ANnotAC.Other[which(ANnotAC.Other$collapsedconversion=="A:G / T:C" & ANnotAC.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotAC.CDS = ANnotAC[["CDS"]]
-ANnotAC.CDS.deg = lapply(sig, function(x) ANnotAC.CDS[which(ANnotAC.CDS$collapsedconversion=="A:G / T:C" & ANnotAC.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotAC.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-
-## In Prenatal: Are cytosolic-specific editing sites enriched for DEG Fraction?
-PCnotPN = unique[["PCnotPN"]]
-PCnotPN.deg = lapply(sig, function(x) PCnotPN[which(PCnotPN$collapsedconversion=="A:G / T:C" & PCnotPN$nearestID %in% as.character(x$geneID)),])
-PCnotPN.UTR3 = PCnotPN[["UTR3"]]
-PCnotPN.UTR3.deg = lapply(sig, function(x) PCnotPN.UTR3[which(PCnotPN.UTR3$collapsedconversion=="A:G / T:C" & PCnotPN.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotPN.UTR5 = PCnotPN[["UTR5"]]
-PCnotPN.UTR5.deg = lapply(sig, function(x) PCnotPN.UTR5[which(PCnotPN.UTR5$collapsedconversion=="A:G / T:C" & PCnotPN.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotPN.Intron = PCnotPN[["Intron"]]
-PCnotPN.Intron.deg = lapply(sig, function(x) PCnotPN.Intron[which(PCnotPN.Intron$collapsedconversion=="A:G / T:C" & PCnotPN.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotPN.Other = PCnotPN[["Other"]]
-PCnotPN.Other.deg = lapply(sig, function(x) PCnotPN.Other[which(PCnotPN.Other$collapsedconversion=="A:G / T:C" & PCnotPN.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotPN.CDS = PCnotPN[["CDS"]]
-PCnotPN.CDS.deg = lapply(sig, function(x) PCnotPN.CDS[which(PCnotPN.CDS$collapsedconversion=="A:G / T:C" & PCnotPN.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotPN.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## In prenatal: Are nuclear-specific editing sites enriched for DEG Fraction?
-PNnotPC = unique[["PNnotPC"]]
-PNnotPC.deg = lapply(sig, function(x) PNnotPC[which(PNnotPC$collapsedconversion=="A:G / T:C" & PNnotPC$nearestID %in% as.character(x$geneID)),])
-PNnotPC.UTR3 = PNnotPC.[["UTR3"]]
-PNnotPC.UTR3.deg = lapply(sig, function(x) PNnotPC.UTR3[which(PNnotPC.UTR3$collapsedconversion=="A:G / T:C" & PNnotPC.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotPC.UTR5 = PNnotPC.[["UTR5"]]
-PNnotPC.UTR5.deg = lapply(sig, function(x) PNnotPC.UTR5[which(PNnotPC.UTR5$collapsedconversion=="A:G / T:C" & PNnotPC.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotPC.Intron = PNnotPC.[["Intron"]]
-PNnotPC.Intron.deg = lapply(sig, function(x) PNnotPC.Intron[which(PNnotPC.Intron$collapsedconversion=="A:G / T:C" & PNnotPC.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotPC.Other = PNnotPC.[["Other"]]
-PNnotPC.Other.deg = lapply(sig, function(x) PNnotPC.Other[which(PNnotPC.Other$collapsedconversion=="A:G / T:C" & PNnotPC.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotPC.CDS = PNnotPC.[["CDS"]]
-PNnotPC.CDS.deg = lapply(sig, function(x) PNnotPC.CDS[which(PNnotPC.CDS$collapsedconversion=="A:G / T:C" & PNnotPC.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotPC.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## In cytosol: Are adult-specific editing sites enriched for DEG Fraction?
-ACnotPC = unique[["ACnotPC"]]
-ACnotPC.deg = lapply(sig, function(x) ACnotPC[which(ACnotPC$collapsedconversion=="A:G / T:C" & ACnotPC$nearestID %in% as.character(x$geneID)),])
-ACnotPC.UTR3 = ACnotPC[["UTR3"]]
-ACnotPC.UTR3.deg = lapply(sig, function(x) ACnotPC.UTR3[which(ACnotPC.UTR3$collapsedconversion=="A:G / T:C" & ACnotPC.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotPC.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotPC.UTR5 = ACnotPC[["UTR5"]]
-ACnotPC.UTR5.deg = lapply(sig, function(x) ACnotPC.UTR5[which(ACnotPC.UTR5$collapsedconversion=="A:G / T:C" & ACnotPC.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotPC.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotPC.Intron = ACnotPC[["Intron"]]
-ACnotPC.Intron.deg = lapply(sig, function(x) ACnotPC.Intron[which(ACnotPC.Intron$collapsedconversion=="A:G / T:C" & ACnotPC.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotPC.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotPC.Other = ACnotPC[["Other"]]
-ACnotPC.Other.deg = lapply(sig, function(x) ACnotPC.Other[which(ACnotPC.Other$collapsedconversion=="A:G / T:C" & ACnotPC.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotPC.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ACnotPC.CDS = ACnotPC[["CDS"]]
-ACnotPC.CDS.deg = lapply(sig, function(x) ACnotPC.CDS[which(ACnotPC.CDS$collapsedconversion=="A:G / T:C" & ACnotPC.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ACnotPC.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## In cytosol: Are prenatal-specific editing sites enriched for DEG Fraction?
-PCnotAC = unique[["PCnotAC"]]
-PCnotAC.deg = lapply(sig, function(x) PCnotAC[which(PCnotAC$collapsedconversion=="A:G / T:C" & PCnotAC$nearestID %in% as.character(x$geneID)),])
-PCnotAC.UTR3 = PCnotAC[["UTR3"]]
-PCnotAC.UTR3.deg = lapply(sig, function(x) PCnotAC.UTR3[which(PCnotAC.UTR3$collapsedconversion=="A:G / T:C" & PCnotAC.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotAC.UTR5 = PCnotAC[["UTR5"]]
-PCnotAC.UTR5.deg = lapply(sig, function(x) PCnotAC.UTR5[which(PCnotAC.UTR5$collapsedconversion=="A:G / T:C" & PCnotAC.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotAC.Intron = PCnotAC[["Intron"]]
-PCnotAC.Intron.deg = lapply(sig, function(x) PCnotAC.Intron[which(PCnotAC.Intron$collapsedconversion=="A:G / T:C" & PCnotAC.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotAC.Other = PCnotAC[["Other"]]
-PCnotAC.Other.deg = lapply(sig, function(x) PCnotAC.Other[which(PCnotAC.Other$collapsedconversion=="A:G / T:C" & PCnotAC.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PCnotAC.CDS = PCnotAC[["CDS"]]
-PCnotAC.CDS.deg = lapply(sig, function(x) PCnotAC.CDS[which(PCnotAC.CDS$collapsedconversion=="A:G / T:C" & PCnotAC.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PCnotAC.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## In nucleus: Are adult-specific editing sites enriched for DEG Fraction?
-ANnotPN = unique[["ANnotPN"]]
-ANnotPN.deg = lapply(sig, function(x) ANnotPN[which(ANnotPN$collapsedconversion=="A:G / T:C" & ANnotPN$nearestID %in% as.character(x$geneID)),])
-ANnotPN.UTR3 = ANnotPN[["UTR3"]]
-ANnotPN.UTR3.deg = lapply(sig, function(x) ANnotPN.UTR3[which(ANnotPN.UTR3$collapsedconversion=="A:G / T:C" & ANnotPN.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotPN.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotPN.UTR5 = ANnotPN[["UTR5"]]
-ANnotPN.UTR5.deg = lapply(sig, function(x) ANnotPN.UTR5[which(ANnotPN.UTR5$collapsedconversion=="A:G / T:C" & ANnotPN.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotPN.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotPN.Intron = ANnotPN[["Intron"]]
-ANnotPN.Intron.deg = lapply(sig, function(x) ANnotPN.Intron[which(ANnotPN.Intron$collapsedconversion=="A:G / T:C" & ANnotPN.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotPN.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotPN.Other = ANnotPN[["Other"]]
-ANnotPN.Other.deg = lapply(sig, function(x) ANnotPN.Other[which(ANnotPN.Other$collapsedconversion=="A:G / T:C" & ANnotPN.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotPN.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-ANnotPN.CDS = ANnotPN[["CDS"]]
-ANnotPN.CDS.deg = lapply(sig, function(x) ANnotPN.CDS[which(ANnotPN.CDS$collapsedconversion=="A:G / T:C" & ANnotPN.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(ANnotPN.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-
-## In nucleus: Are prenatal-specific editing sites enriched for DEG Fraction?
-PNnotAN = unique[["PNnotAN"]]
-PNnotAN.deg = lapply(sig, function(x) PNnotAN[which(PNnotAN$collapsedconversion=="A:G / T:C" & PNnotAN$nearestID %in% as.character(x$geneID)),])
-PNnotAN.UTR3 = PNnotAN[["UTR3"]]
-PNnotAN.UTR3.deg = lapply(sig, function(x) PNnotAN.UTR3[which(PNnotAN.UTR3$collapsedconversion=="A:G / T:C" & PNnotAN.UTR3$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.UTR3.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotAN.UTR5 = PNnotAN[["UTR5"]]
-PNnotAN.UTR5.deg = lapply(sig, function(x) PNnotAN.UTR5[which(PNnotAN.UTR5$collapsedconversion=="A:G / T:C" & PNnotAN.UTR5$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.UTR5.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotAN.Intron = PNnotAN[["Intron"]]
-PNnotAN.Intron.deg = lapply(sig, function(x) PNnotAN.Intron[which(PNnotAN.Intron$collapsedconversion=="A:G / T:C" & PNnotAN.Intron$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.Intron.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotAN.Other = PNnotAN[["Other"]]
-PNnotAN.Other.deg = lapply(sig, function(x) PNnotAN.Other[which(PNnotAN.Other$collapsedconversion=="A:G / T:C" & PNnotAN.Other$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.Other.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-PNnotAN.CDS = PNnotAN[["CDS"]]
-PNnotAN.CDS.deg = lapply(sig, function(x) PNnotAN.CDS[which(PNnotAN.CDS$collapsedconversion=="A:G / T:C" & PNnotAN.CDS$nearestID %in% as.character(x$geneID)),])
-elementNROWS(sig[1:6])
-#both_retained both_exported  Fet_retained   Ad_retained  Fet_exported   Ad_exported 
-#975          1010           354          3427           350          2442
-elementNROWS(lapply(PNnotAN.CDS.deg[1:6], function(x) unique(x$nearestID)))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported 
-#58             88             16            279             15             98            
-
-fisher.test(data.frame(c(88,1010-88), c(58,975-58))) # both ages: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.02011
-fisher.test(data.frame(c(58+279,975+3427-(58+279)), c(88+98,1010+2442-(88+98)))) # adult: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 5.862e-05
-fisher.test(data.frame(c(58+16,975+354-(58+16)), c(88+15,1010+350-(88+15)))) # prenatal: retained or exported DEG and presence or absence of adosolic-specific editing site
-#p-value = 0.0429
-
-## Are cytosolic-specific editing sites enriched for DEG Age?
-cyt.UTR3.deg = lapply(SigList, function(x) cyt.UTR3[which(cyt.UTR3$collapsedconversion=="A:G / T:C" & cyt.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cyt.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-
-cyt.UTR5.deg = lapply(SigList, function(x) cyt.UTR5[which(cyt.UTR5$collapsedconversion=="A:G / T:C" & cyt.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cyt.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-
-cyt.Intron.deg = lapply(SigList, function(x) cyt.Intron[which(cyt.Intron$collapsedconversion=="A:G / T:C" & cyt.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cyt.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-
-cyt.CDS.deg = lapply(SigList, function(x) cyt.CDS[which(cyt.CDS$collapsedconversion=="A:G / T:C" & cyt.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cyt.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-
-cyt.Other.deg = lapply(SigList, function(x) cyt.Other[which(cyt.Other$collapsedconversion=="A:G / T:C" & cyt.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(cyt.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # cytosol: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of cytosolic-specific editing site
-# p-value = 4.254e-13
-
-
-## Are nuclear-specific editing sites enriched for DEG Age?
-nuc.UTR3.deg = lapply(SigList, function(x) nuc.UTR3[which(nuc.UTR3$collapsedconversion=="A:G / T:C" & nuc.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuc.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # nucosol: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value = 4.254e-13
-
-nuc.UTR5.deg = lapply(SigList, function(x) nuc.UTR5[which(nuc.UTR5$collapsedconversion=="A:G / T:C" & nuc.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuc.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # nucosol: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value = 4.254e-13
-
-nuc.Intron.deg = lapply(SigList, function(x) nuc.Intron[which(nuc.Intron$collapsedconversion=="A:G / T:C" & nuc.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuc.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # nucosol: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value = 4.254e-13
-
-nuc.CDS.deg = lapply(SigList, function(x) nuc.CDS[which(nuc.CDS$collapsedconversion=="A:G / T:C" & nuc.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuc.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # nucosol: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value = 4.254e-13
-
-nuc.Other.deg = lapply(SigList, function(x) nuc.Other[which(nuc.Other$collapsedconversion=="A:G / T:C" & nuc.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(nuc.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # nucosol: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of nucosolic-specific editing site
-# p-value = 4.254e-13
-
-
-## Are adult-specific editing sites enriched for DEG Age?
-ad.UTR3.deg = lapply(SigList, function(x) ad.UTR3[which(ad.UTR3$collapsedconversion=="A:G / T:C" & ad.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ad.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # adosol: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value = 4.254e-13
-
-ad.UTR5.deg = lapply(SigList, function(x) ad.UTR5[which(ad.UTR5$collapsedconversion=="A:G / T:C" & ad.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ad.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # adosol: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value = 4.254e-13
-
-ad.Intron.deg = lapply(SigList, function(x) ad.Intron[which(ad.Intron$collapsedconversion=="A:G / T:C" & ad.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ad.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # adosol: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value = 4.254e-13
-
-ad.CDS.deg = lapply(SigList, function(x) ad.CDS[which(ad.CDS$collapsedconversion=="A:G / T:C" & ad.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ad.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # adosol: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value = 4.254e-13
-
-ad.Other.deg = lapply(SigList, function(x) ad.Other[which(ad.Other$collapsedconversion=="A:G / T:C" & ad.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ad.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # adosol: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of adosolic-specific editing site
-# p-value = 4.254e-13
-
-
-## Are prenatal-specific editing sites enriched for DEG Age?
-pren.UTR3.deg = lapply(SigList, function(x) pren.UTR3[which(pren.UTR3$collapsedconversion=="A:G / T:C" & pren.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(pren.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-pren.UTR5.deg = lapply(SigList, function(x) pren.UTR5[which(pren.UTR5$collapsedconversion=="A:G / T:C" & pren.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(pren.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-pren.Intron.deg = lapply(SigList, function(x) pren.Intron[which(pren.Intron$collapsedconversion=="A:G / T:C" & pren.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(pren.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-pren.CDS.deg = lapply(SigList, function(x) pren.CDS[which(pren.CDS$collapsedconversion=="A:G / T:C" & pren.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(pren.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-pren.Other.deg = lapply(SigList, function(x) pren.Other[which(pren.Other$collapsedconversion=="A:G / T:C" & pren.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(pren.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## In adult: Are cytosolic-specific editing sites enriched for DEG Age?
-ACnotAN.UTR3.deg = lapply(SigList, function(x) ACnotAN.UTR3[which(ACnotAN.UTR3$collapsedconversion=="A:G / T:C" & ACnotAN.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotAN.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotAN.UTR5.deg = lapply(SigList, function(x) ACnotAN.UTR5[which(ACnotAN.UTR5$collapsedconversion=="A:G / T:C" & ACnotAN.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotAN.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotAN.Intron.deg = lapply(SigList, function(x) ACnotAN.Intron[which(ACnotAN.Intron$collapsedconversion=="A:G / T:C" & ACnotAN.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotAN.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotAN.CDS.deg = lapply(SigList, function(x) ACnotAN.CDS[which(ACnotAN.CDS$collapsedconversion=="A:G / T:C" & ACnotAN.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotAN.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotAN.Other.deg = lapply(SigList, function(x) ACnotAN.Other[which(ACnotAN.Other$collapsedconversion=="A:G / T:C" & ACnotAN.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotAN.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## In adult: Are nuclear-specific editing sites enriched for DEG Age?
-ANnotAC.UTR3.deg = lapply(SigList, function(x) ANnotAC.UTR3[which(ANnotAC.UTR3$collapsedconversion=="A:G / T:C" & ANnotAC.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotAC.UTR5.deg = lapply(SigList, function(x) ANnotAC.UTR5[which(ANnotAC.UTR5$collapsedconversion=="A:G / T:C" & ANnotAC.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotAC.Intron.deg = lapply(SigList, function(x) ANnotAC.Intron[which(ANnotAC.Intron$collapsedconversion=="A:G / T:C" & ANnotAC.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotAC.CDS.deg = lapply(SigList, function(x) ANnotAC.CDS[which(ANnotAC.CDS$collapsedconversion=="A:G / T:C" & ANnotAC.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotAC.Other.deg = lapply(SigList, function(x) ANnotAC.Other[which(ANnotAC.Other$collapsedconversion=="A:G / T:C" & ANnotAC.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotAC.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## In prenatal: Are cytosolic-specific editing sites enriched for DEG Age?
-PCnotPN.UTR3.deg = lapply(SigList, function(x) PCnotPN.UTR3[which(PCnotPN.UTR3$collapsedconversion=="A:G / T:C" & PCnotPN.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotPN.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotPN.UTR5.deg = lapply(SigList, function(x) PCnotPN.UTR5[which(PCnotPN.UTR5$collapsedconversion=="A:G / T:C" & PCnotPN.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotPN.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotPN.Intron.deg = lapply(SigList, function(x) PCnotPN.Intron[which(PCnotPN.Intron$collapsedconversion=="A:G / T:C" & PCnotPN.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotPN.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotPN.CDS.deg = lapply(SigList, function(x) PCnotPN.CDS[which(PCnotPN.CDS$collapsedconversion=="A:G / T:C" & PCnotPN.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotPN.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotPN.Other.deg = lapply(SigList, function(x) PCnotPN.Other[which(PCnotPN.Other$collapsedconversion=="A:G / T:C" & PCnotPN.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotPN.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## In prenatal: Are nuclear-specific editing sites enriched for DEG Age?
-PNnotPC.UTR3.deg = lapply(SigList, function(x) PNnotPC.UTR3[which(PNnotPC.UTR3$collapsedconversion=="A:G / T:C" & PNnotPC.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotPC.UTR5.deg = lapply(SigList, function(x) PNnotPC.UTR5[which(PNnotPC.UTR5$collapsedconversion=="A:G / T:C" & PNnotPC.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotPC.Intron.deg = lapply(SigList, function(x) PNnotPC.Intron[which(PNnotPC.Intron$collapsedconversion=="A:G / T:C" & PNnotPC.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotPC.CDS.deg = lapply(SigList, function(x) PNnotPC.CDS[which(PNnotPC.CDS$collapsedconversion=="A:G / T:C" & PNnotPC.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotPC.Other.deg = lapply(SigList, function(x) PNnotPC.Other[which(PNnotPC.Other$collapsedconversion=="A:G / T:C" & PNnotPC.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotPC.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## in Cytosol: Are adult-specific editing sites enriched for DEG Age?
-ACnotPC.UTR3.deg = lapply(SigList, function(x) ACnotPC.UTR3[which(ACnotPC.UTR3$collapsedconversion=="A:G / T:C" & ACnotPC.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotPC.UTR5.deg = lapply(SigList, function(x) ACnotPC.UTR5[which(ACnotPC.UTR5$collapsedconversion=="A:G / T:C" & ACnotPC.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotPC.Intron.deg = lapply(SigList, function(x) ACnotPC.Intron[which(ACnotPC.Intron$collapsedconversion=="A:G / T:C" & ACnotPC.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotPC.CDS.deg = lapply(SigList, function(x) ACnotPC.CDS[which(ACnotPC.CDS$collapsedconversion=="A:G / T:C" & ACnotPC.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ACnotPC.Other.deg = lapply(SigList, function(x) ACnotPC.Other[which(ACnotPC.Other$collapsedconversion=="A:G / T:C" & ACnotPC.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ACnotPC.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-
-## in Cytosol: Are prenatal-specific editing sites enriched for DEG Age?
-PCnotAC.UTR3.deg = lapply(SigList, function(x) PCnotAC.UTR3[which(PCnotAC.UTR3$collapsedconversion=="A:G / T:C" & PCnotAC.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotAC.UTR5.deg = lapply(SigList, function(x) PCnotAC.UTR5[which(PCnotAC.UTR5$collapsedconversion=="A:G / T:C" & PCnotAC.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotAC.Intron.deg = lapply(SigList, function(x) PCnotAC.Intron[which(PCnotAC.Intron$collapsedconversion=="A:G / T:C" & PCnotAC.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotAC.CDS.deg = lapply(SigList, function(x) PCnotAC.CDS[which(PCnotAC.CDS$collapsedconversion=="A:G / T:C" & PCnotAC.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PCnotAC.Other.deg = lapply(SigList, function(x) PCnotAC.Other[which(PCnotAC.Other$collapsedconversion=="A:G / T:C" & PCnotAC.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PCnotAC.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-## in Nucleus: Are adult-specific editing sites enriched for DEG Age?
-ANnotPN.UTR3.deg = lapply(SigList, function(x) ANnotPN.UTR3[which(ANnotPN.UTR3$collapsedconversion=="A:G / T:C" & ANnotPN.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotPN.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotPN.UTR5.deg = lapply(SigList, function(x) ANnotPN.UTR5[which(ANnotPN.UTR5$collapsedconversion=="A:G / T:C" & ANnotPN.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotPN.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotPN.Intron.deg = lapply(SigList, function(x) ANnotPN.Intron[which(ANnotPN.Intron$collapsedconversion=="A:G / T:C" & ANnotPN.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotPN.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotPN.CDS.deg = lapply(SigList, function(x) ANnotPN.CDS[which(ANnotPN.CDS$collapsedconversion=="A:G / T:C" & ANnotPN.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotPN.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-ANnotPN.Other.deg = lapply(SigList, function(x) ANnotPN.Other[which(ANnotPN.Other$collapsedconversion=="A:G / T:C" & ANnotPN.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(ANnotPN.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-
-## in Nucleus: Are prenatal-specific editing sites enriched for DEG Age?
-PNnotAN.UTR3.deg = lapply(SigList, function(x) PNnotAN.UTR3[which(PNnotAN.UTR3$collapsedconversion=="A:G / T:C" & PNnotAN.UTR3$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.UTR3.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotAN.UTR5.deg = lapply(SigList, function(x) PNnotAN.UTR5[which(PNnotAN.UTR5$collapsedconversion=="A:G / T:C" & PNnotAN.UTR5$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.UTR5.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotAN.Intron.deg = lapply(SigList, function(x) PNnotAN.Intron[which(PNnotAN.Intron$collapsedconversion=="A:G / T:C" & PNnotAN.Intron$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.Intron.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotAN.CDS.deg = lapply(SigList, function(x) PNnotAN.CDS[which(PNnotAN.CDS$collapsedconversion=="A:G / T:C" & PNnotAN.CDS$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.CDS.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-PNnotAN.Other.deg = lapply(SigList, function(x) PNnotAN.Other[which(PNnotAN.Other$collapsedconversion=="A:G / T:C" & PNnotAN.Other$nearestID %in% rownames(x)),])
-elementNROWS(SigList)
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#5634              4019              5137              3347
-elementNROWS(lapply(PNnotAN.Other.deg, function(x) unique(x$nearestID)))
-#Cres.DownPrenatal   Cres.UpPrenatal Nres.DownPrenatal   Nres.UpPrenatal 
-#227               356               223               274 
-
-fisher.test(data.frame(c(227,5634-227), c(356,4019-356))) # prenosol: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value < 2.2e-16
-fisher.test(data.frame(c(223,5137-223), c(274,3347-274))) # nucleus: increasing or decreasing age DEG and presence or absence of prenosolic-specific editing site
-# p-value = 4.254e-13
-
-
-### does editing rate correlate with gene expression in the group the editing site appears?
-
-AGonly.DEG = as.data.frame(cbind(AGonly, LFC.Adult = Apres[match(AGonly$nearestID, rownames(Apres)), "log2FoldChange"],
-                                 padj.Adult = Apres[match(AGonly$nearestID, rownames(Apres)), "padj"],
-                                 LFC.Prenatal = Fpres[match(AGonly$nearestID, rownames(Fpres)), "log2FoldChange"],
-                                 padj.Prenatal = Fpres[match(AGonly$nearestID, rownames(Fpres)), "padj"]))
-cyt = AGonly[Fraction=="Cytosol",,]
-nuc = AGonly[Fraction=="Nucleus",,]
-ad = AGonly[Age=="Adult",,]
-pren = AGonly[Age=="Prenatal",,]
-AC = AGonly[Group=="Adult:Cytosol",,]
-AN = AGonly[Group=="Adult:Nucleus",,]
-PC = AGonly[Group=="Prenatal:Cytosol",,]
-PN = AGonly[Group=="Prenatal:Nucleus",,]
-
-
+## Are editing sites specific to a group more or less likely to fall in an exported or retained gene by fraction than chance?
+
+# number of editing sites falling within significantly retained or imported genes that are group-specific, or those found in the same group that aren't specific
+frac.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+allgroup = c("cytosolAll","nucleusAll","adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+for (i in 1:length(unique)){
+  frac.site[[i]] = list(
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),]),
+                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])-
+                              nrow(unique[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")))
+  names(frac.site[[i]]) = c("bothagesDEG","adultDEG","prenatalDEG")
+}
+names(frac.site) = group
+fisher.frac.site = lapply(frac.site, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.frac.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#            cytosolOnly  nucleusOnly adultOnly prenatalOnly      ACnotAN      ANnotAC    PCnotPN      PNnotPC   ACnotPC      PCnotAC   ANnotPN   PNnotAN
+#bothagesDEG 0.276452942 1.955890e-02 0.6962943    1.0000000 0.4254588350 6.685020e-03 0.54923469 4.330159e-01 0.4787456 1.727041e-01 0.5969333 1.0000000
+#adultDEG    0.000012599 2.497990e-15 0.7880560    0.8303155 0.0000342682 6.056706e-20 0.08030351 1.783635e-06 0.2637201 3.623602e-07 0.4599105 0.3268008
+#prenatalDEG 0.285831785 4.355389e-02 1.0000000    1.0000000 0.4483603415 1.492129e-02 0.28787879 5.528326e-01 0.3393518 1.549062e-01 0.5979982 1.0000000
+frac.site.props = lapply(frac.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
+
+
+# number of significantly retained or exported genes that either contain an editing site specific to a group, or don't
+frac.gene = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique)){
+  frac.gene[[i]] = list(
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained"),list(unique(nearestID)),]),
+                            length(unique(sig$both_retained$geneID))-nrow(unique[[group[i]]][(both_retained=="both_retained"),list(unique(nearestID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported"),list(unique(nearestID)),]),
+                            length(unique(sig$both_exported$geneID))-nrow(unique[[group[i]]][(both_exported=="both_exported"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(nearestID)),]),
+                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Ad_retained$geneID)))-
+                              nrow(unique[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(nearestID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(nearestID)),]),
+                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Ad_exported$geneID)))-
+                              nrow(unique[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
+    data.frame(retained = c(nrow(unique[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(nearestID)),]),
+                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Fet_retained$geneID)))-
+                              nrow(unique[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(nearestID)),])),
+               exported = c(nrow(unique[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(nearestID)),]),
+                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Fet_exported$geneID)))-
+                              nrow(unique[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")))
+  names(frac.gene[[i]]) = c("bothagesDEG","adultDEG","prenatalDEG")
+}
+names(frac.gene) = group
+fisher.frac.gene = lapply(frac.gene, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.frac.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#            cytosolOnly  nucleusOnly    adultOnly prenatalOnly   ACnotAN      ANnotAC   PCnotPN      PNnotPC    ACnotPC     PCnotAC      ANnotPN      PNnotAN
+#bothagesDEG   1.0000000 1.587033e-04 1.649457e-02 0.0364227926 0.7233423 4.783678e-04 1.0000000 1.361014e-02 1.00000000 0.264831900 2.836746e-03 3.584345e-02
+#adultDEG      0.5870878 4.332115e-16 6.047586e-12 0.0002520483 0.5136990 1.312404e-16 0.2282471 1.373863e-06 0.01142585 0.002617012 8.948925e-16 5.403304e-06
+#prenatalDEG   1.0000000 1.229956e-04 3.833183e-03 0.0234104005 1.0000000 8.478201e-05 1.0000000 1.596584e-02 0.64525008 0.187657965 5.464908e-04 3.528505e-02
+frac.gene.props = lapply(frac.gene, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
+
+
+## Are editing sites specific to a group more or less likely to fall in an increasing or decreasing genes by age than chance?
+
+# number of editing sites falling within significantly retained or imported genes that are specific and in all samples, or those found in the same group that aren't specific
+age.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique)){
+  age.site[[i]] = list(
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),]),
+                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])-
+                                nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")))
+  names(age.site[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG")
+}
+names(age.site) = group
+fisher.age.site = lapply(age.site, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.age.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#                  cytosolOnly  nucleusOnly     adultOnly prenatalOnly      ACnotAN   ANnotAC   PCnotPN    PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#bothfractionsDEG 0.0053083187 2.376585e-14 1.181044e-115 2.423966e-56 4.362771e-03 0.5434692 0.5755423 0.06343512 3.307034e-52 9.115417e-29 1.528439e-89 4.108609e-34
+#CytosolDEG       0.0253018141 1.226418e-11 1.076269e-105 1.252251e-55 1.305056e-01 0.7960983 0.5482321 0.01624782 2.116403e-46 3.822950e-35 4.220221e-84 2.453798e-29
+#NucleusDEG       0.0004868032 5.677654e-15 4.316760e-106 3.415726e-79 3.446854e-05 0.2585892 0.2740360 0.01718529 2.461866e-47 9.046786e-37 1.356967e-84 2.346243e-54
+age.site.props = lapply(age.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
+
+
+# number of significantly increasing or decreasing genesby age that either contain an editing site specific to a group and in all samples, or don't
+age.gene = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique)){
+  age.gene[[i]] = list(
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing"),list(unique(nearestID)),]),
+                              length(unique(age.sig$both_increasing$geneID))-nrow(unique[[group[i]]][(both_increasing=="both_increasing"),list(unique(nearestID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(nearestID)),]),
+                              length(unique(age.sig$both_decreasing$geneID))-nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(nearestID)),]),
+                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Cyt_increasing$geneID)))-
+                                nrow(unique[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(nearestID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(nearestID)),]),
+                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Cyt_decreasing$geneID)))-
+                                nrow(unique[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
+    data.frame(increasing = c(nrow(unique[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(nearestID)),]),
+                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Nuc_increasing$geneID)))-
+                                nrow(unique[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(nearestID)),])),
+               decreasing = c(nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(nearestID)),]),
+                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Nuc_decreasing$geneID)))-
+                                nrow(unique[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(nearestID)),])), row.names = c("ContainsUnique","NoUniquePresent")))
+  names(age.gene[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG")
+}
+names(age.gene) = group
+fisher.age.gene = lapply(age.gene, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#                  cytosolOnly  nucleusOnly    adultOnly prenatalOnly   ACnotAN      ANnotAC      PCnotPN      PNnotPC      ACnotPC      PCnotAC      ANnotPN      PNnotAN
+#bothfractionsDEG 1.071982e-12 1.416789e-04 3.179605e-10 2.219765e-79 0.5113259 1.578216e-06 3.116086e-40 3.687691e-47 2.697564e-06 7.560092e-63 1.156650e-11 1.960528e-66
+#CytosolDEG       1.930731e-16 4.453167e-10 2.452306e-04 5.576762e-90 0.6641030 1.629152e-01 2.696275e-49 1.728221e-52 4.118452e-04 2.444984e-74 1.809030e-04 1.431815e-72
+#NucleusDEG       4.747446e-10 1.437169e-02 6.882808e-15 4.294430e-75 0.2401903 3.649475e-10 7.579455e-35 2.023333e-42 1.666460e-08 2.548463e-54 3.034939e-16 3.952854e-64
+age.gene.props = lapply(age.gene, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
+
+
+
+### Does editing rate correlate with gene expression in the group the editing site appears?
 ## correlate LFC with editing rate in editing rates shared between fraction
 
-# Shared between nucleus and cytosol
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% as.character(nuc$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% as.character(nuc$editingID)),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% as.character(nuc$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% as.character(nuc$editingID)),"LFC.Prenatal"], use = "complete.obs")
-
-# Shared between nucleus and cytosol in adult
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% as.character(AN$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% as.character(AN$editingID)),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% as.character(AN$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% as.character(AN$editingID)),"LFC.Prenatal"], use = "complete.obs")
-
-# Shared between nucleus and cytosol in prenatal
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% as.character(PN$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% as.character(PN$editingID)),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% as.character(PN$editingID)),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% as.character(PN$editingID)),"LFC.Prenatal"], use = "complete.obs")
-
+corr.shared = list(list(),list(),list(),list(),list(),list())
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+allgroup = c("cytosolAll","nucleusAll","adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+unique_df = lapply(unique, as.data.frame)
+all_df = lapply(all, as.data.frame)
+for (i in 1:length(unique)){
+  corr.shared[[i]] = list(Adult = round(cor(x = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"rate"],
+                                            y = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"A.LFC"], use = "complete.obs"),3),
+                          Prenatal = round(cor(x = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"rate"],
+                                               y = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"P.LFC"], use = "complete.obs"),3),
+                          Cytosol = round(cor(x = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"rate"],
+                                              y = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"C.LFC"], use = "complete.obs"),3),
+                          Nucleus = round(cor(x = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"rate"],
+                                              y = all_df[[allgroup[i]]][-which(all_df[[allgroup[i]]][,"editingID"] %in% unique_df[[group[i]]][,"editingID"]),"N.LFC"], use = "complete.obs"),3))
+}
+names(corr.shared) = c("sharedbyFrac:inCyt","sharedbyFrac:inNuc","sharedbyAge:inAd","sharedbyAge:inPren","sharedbyFrac:inAC","sharedbyFrac:inAN","sharedbyFrac:inPC","sharedbyFrac:inPN",
+                       "sharedbyAge:inAC","sharedbyAge:inPC","sharedbyAge:inAN","sharedbyAge:inPN")
+data.frame(lapply(corr.shared, function(x) unlist(x, recursive=F)))
+#         sharedbyFrac.inCyt sharedbyFrac.inNuc sharedbyAge.inAd sharedbyAge.inPren sharedbyFrac.inAC sharedbyFrac.inAN sharedbyFrac.inPC sharedbyFrac.inPN sharedbyAge.inAC sharedbyAge.inPC
+#Adult                 0.009              0.004            0.071             -0.006             0.065             0.020            -0.036            -0.056            0.067           -0.018
+#Prenatal              0.070              0.039            0.094              0.063             0.074             0.023             0.054             0.020            0.087            0.079
+#Cytosol              -0.009              0.015            0.046             -0.036             0.056             0.066            -0.079            -0.074            0.069           -0.017
+#Nucleus               0.002              0.019            0.024             -0.008             0.034             0.054            -0.049            -0.041            0.047            0.020
+#         sharedbyAge.inAN sharedbyAge.inPN
+#Adult               0.067            0.031
+#Prenatal            0.069            0.061
+#Cytosol             0.049           -0.052
+#Nucleus             0.019           -0.059
+max(data.frame(lapply(corr.shared, function(x) unlist(x, recursive=F)))) # 0.094
+min(data.frame(lapply(corr.shared, function(x) unlist(x, recursive=F)))) # -0.079
 
 ## correlate LFC with editing rate in editing sites unique to a group
 
-ids = lapply(unique, function(x) as.character(x$editingID))
-# cytosolOnly
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"LFC.Prenatal"], use = "complete.obs")
-# nucleusOnly
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"LFC.Prenatal"], use = "complete.obs")
-# adultOnly
-cor(x = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"LFC.Prenatal"], use = "complete.obs")
-# prenatalOnly
-cor(x = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"LFC.Prenatal"], use = "complete.obs")
-# ANnotAC 
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"LFC.Prenatal"], use = "complete.obs")
-# ACnotAN
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"LFC.Prenatal"], use = "complete.obs")
-# ANnotPN 
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"LFC.Prenatal"], use = "complete.obs")
-# PNnotAN
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"LFC.Prenatal"], use = "complete.obs")
-# ACnotPC 
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"LFC.Prenatal"], use = "complete.obs")
-# PCnotAC
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"LFC.Prenatal"], use = "complete.obs")
-# PCnotPN
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"LFC.Prenatal"], use = "complete.obs")
-# PNnotPC
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"LFC.Adult"], use = "complete.obs")
-cor(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"rate"],
-    y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"LFC.Prenatal"], use = "complete.obs")
+corr.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique)){
+  corr.site[[i]] = list(Adult = round(cor(x = unique_df[[group[i]]][,"rate"], y = unique_df[[group[i]]][,"A.LFC"], use = "complete.obs"),3),
+                        Prenatal = round(cor(x = unique_df[[group[i]]][,"rate"], y = unique_df[[group[i]]][,"P.LFC"], use = "complete.obs"),3),
+                        Cytosol = round(cor(x = unique_df[[group[i]]][,"rate"], y = unique_df[[group[i]]][,"C.LFC"], use = "complete.obs"),3),
+                        Nucleus = round(cor(x = unique_df[[group[i]]][,"rate"], y = unique_df[[group[i]]][,"N.LFC"], use = "complete.obs"),3))
+}
+names(corr.site) = group
+data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))
+#         cytosolOnly nucleusOnly adultOnly prenatalOnly ACnotAN ANnotAC PCnotPN PNnotPC ACnotPC PCnotAC ANnotPN PNnotAN
+#Adult         -0.029      -0.005     0.036       -0.107  -0.117   0.052  -0.027  -0.015   0.039  -0.034   0.035  -0.153
+#Prenatal       0.065       0.038     0.068        0.001   0.034   0.072   0.086   0.061   0.091   0.059   0.070  -0.028
+#Cytosol        0.009      -0.044    -0.058       -0.131   0.079   0.005  -0.078  -0.130  -0.058  -0.112  -0.072  -0.145
+#Nucleus        0.034      -0.031    -0.062       -0.089   0.165  -0.002  -0.050  -0.111  -0.060  -0.086  -0.077  -0.079
+max(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # 0.165
+min(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # -0.153
+
 
 
 ### Is gene expression greater in the compartment/age exhibiting the editing site than in the compared group?
-
 ## t test of LFC between unique sites in both groups
 
-# by fraction
-t.test(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"LFC.Adult"])
-#t = -21.598, df = 9029, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.2518054 -0.2099014
-#sample estimates:
-#  mean of x    mean of y 
-#-0.001810615  0.229042752
-t.test(x = AGonly.DEG[which(AGonly.DEG$Fraction=="Cytosol" & AGonly.DEG$editingID %in% ids[["cytosolOnly"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Fraction=="Nucleus" & AGonly.DEG$editingID %in% ids[["nucleusOnly"]]),"LFC.Prenatal"])
-#t = -29.129, df = 9823.2, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.1350161 -0.1179904
-#sample estimates:
-#  mean of x   mean of y 
-#-0.04433652  0.08216672
+t.site = list(list(),list(),list(),list(),list(),list())
+comps = list(byFraction = c("cytosolOnly","nucleusOnly"), byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
+             byAgeInCytosol = c("ACnotPC","PCnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN"))
+for (i in 1:length(comps)){
+  t.site[[i]] = list(adult = t.test(x = unique_df[[comps[[i]][1]]][,"A.LFC"], y = unique_df[[comps[[i]][2]]][,"A.LFC"]),
+                     prenatal = t.test(x = unique_df[[comps[[i]][1]]][,"P.LFC"], y = unique_df[[comps[[i]][2]]][,"P.LFC"]),
+                     cytosol = t.test(x = unique_df[[comps[[i]][1]]][,"C.LFC"], y = unique_df[[comps[[i]][2]]][,"C.LFC"]),
+                     nucleus = t.test(x = unique_df[[comps[[i]][1]]][,"N.LFC"], y = unique_df[[comps[[i]][2]]][,"N.LFC"]))
+}
+names(t.site) = names(comps)
+t.LFC.editing = rbind(Tstat = data.frame(lapply(t.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
+                      pval = data.frame(lapply(t.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
+                      confInt = data.frame(lapply(t.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
+                      estMeans = data.frame(lapply(t.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F))))
+write.csv(t.LFC.editing, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.LFC.between.editing.sites.unique.to.group.csv", quote=F)
 
-# by fraction in adult
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"LFC.Adult"])
-#t = -25.049, df = 5594.1, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.3507228 -0.2998108
-#sample estimates:
-#  mean of x   mean of y 
-#-0.08080479  0.24446203
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotAN"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotAC"]]),"LFC.Prenatal"])
-#t = -24.673, df = 6010.6, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.1387849 -0.1183539
-#sample estimates:
-#  mean of x   mean of y 
-#-0.04841949  0.08014994
-
-# by fraction in prenatal
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"LFC.Adult"])
-#t = -8.3382, df = 5475.3, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.15082831 -0.09340605
-#sample estimates:
-#  mean of x  mean of y 
-#0.06780659 0.18992377
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotPN"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotPC"]]),"LFC.Prenatal"])
-#t = -17.865, df = 5949.7, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.12220644 -0.09803906
-#sample estimates:
-#  mean of x   mean of y 
-#-0.04134723  0.06877552
-
-# by age
-t.test(x = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"LFC.Adult"])
-#t = -4.4131, df = 20237, p-value = 1.024e-05
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.05149456 -0.01982028
-#sample estimates:
-#  mean of x mean of y 
-#0.1102599 0.1459173
-t.test(x = AGonly.DEG[which(AGonly.DEG$Age=="Adult" & AGonly.DEG$editingID %in% ids[["adultOnly"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Age=="Prenatal" & AGonly.DEG$editingID %in% ids[["prenatalOnly"]]),"LFC.Prenatal"])
-#t = 3.9966, df = 20245, p-value = 6.448e-05
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.006993799 0.020456280
-#sample estimates:
-#  mean of x  mean of y 
-#0.02441815 0.01069311 
-
-# by age in cytosol
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"LFC.Adult"])
-#t = 12.944, df = 10242, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.1220085 0.1655559
-#sample estimates:
-#  mean of x  mean of y 
-#0.1324222 -0.0113600
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Cytosol" & AGonly.DEG$editingID %in% ids[["PCnotAC"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Cytosol" & AGonly.DEG$editingID %in% ids[["ACnotPC"]]),"LFC.Prenatal"])
-#t = 2.9228, df = 10366, p-value = 0.003477
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.004401435 0.022327306
-#sample estimates:
-#  mean of x   mean of y 
-#-0.01388109 -0.02724546
-
-# by age in nucleus
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"LFC.Adult"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"LFC.Adult"])
-#t = -2.0137, df = 12699, p-value = 0.04406
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.0404629667 -0.0005450153
-#sample estimates:
-#  mean of x mean of y 
-#0.144934  0.165438
-t.test(x = AGonly.DEG[which(AGonly.DEG$Group=="Prenatal:Nucleus" & AGonly.DEG$editingID %in% ids[["PNnotAN"]]),"LFC.Prenatal"],
-       y = AGonly.DEG[which(AGonly.DEG$Group=="Adult:Nucleus" & AGonly.DEG$editingID %in% ids[["ANnotPN"]]),"LFC.Prenatal"])
-#t = -3.7779, df = 12588, p-value = 0.0001589
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.025051555 -0.007935934
-#sample estimates:
-#  mean of x  mean of y 
-#0.02931815 0.04581189
 
 
 ### In intronic editing sites, is the IR ratio greater in the compartment exhibiting the site than the compared group?
 
-names = scan("./Dropbox/NucVsCytosol/names.txt", what = "character")
+names = scan("./Dropbox/BrainRNACompartments/SampleIDs.txt", what = "character")
 shortenedNames = unique(gsub( "_.*$", "", names))
-path = "./Dropbox/sorted_figures/IRfinder/"
 IRres = list()
 for (i in 1:length(shortenedNames)){
-  IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
+  IRres[[i]] = read.table(paste0("./Dropbox/sorted_figures/IRfinder/PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
+  IRres[[i]][,"Chr"] = paste0("chr", IRres[[i]][,"Chr"])
 }
 names(IRres) = shortenedNames
-for (i in 1:length(IRres)){ 
-  tmp = IRres[[i]]
-  tmp$Chr = paste0("chr", tmp$Chr)
-  IRres[[i]] = tmp
-  }
-IRres_ranges = lapply(IRres, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr", 
-                                                                  start.field = "Start",
-                                                                  end.field = "End", 
-                                                                  strand.field = "Direction",
-                                                                  keep.extra.columns = T))
-ov = lapply(IRres_ranges, function(x) findOverlaps(editing_ranges, x))
-tog = list()
+IRres_gr = lapply(IRres, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr", start.field = "Start", end.field = "End", strand.field = "Direction", keep.extra.columns = T))
+ov = lapply(IRres_gr, function(x) findOverlaps(editing_anno_gr, x))
+togintron = list()
 for (i in 1:length(IRres)){
   tmp = IRres[[i]]
-  tog[[i]] = cbind(editing_anno[queryHits(ov[[i]]),], IRratio = tmp$IRratio[subjectHits(ov[[i]])],
+  togintron[[i]] = cbind(editing_anno[queryHits(ov[[i]]),], IRratio = tmp$IRratio[subjectHits(ov[[i]])],
                    sampleIDintron = names(IRres)[i])
 }
-tog = do.call(rbind, tog)
+togintron = do.call(rbind, togintron)
+IRratio_editing = lapply(unique_df, function(x) togintron[which(togintron$editingID %in% x$editingID),])
 
-## t test of IR ratio of introns with editing sites by group    
+t.IRratio = list()
+for (i in 1:length(comps)){
+  t.IRratio[[i]] = t.test(x = IRratio_editing[[comps[[i]][1]]][,"IRratio"], y = IRratio_editing[[comps[[i]][2]]][,"IRratio"])
+}
+names(t.IRratio) = names(comps)
+t.IRratio.editing = rbind(Tstat = data.frame(lapply(t.IRratio, function(x) x$statistic)), pval = data.frame(lapply(t.IRratio, function(x) x$p.value)),
+                          confInt = data.frame(lapply(t.IRratio, function(x) x$conf.int)), estMeans = data.frame(lapply(t.IRratio, function(x) x$estimate)))
+write.csv(t.IRratio.editing, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.IRratio.between.unique.editing.sites.to.group.csv", quote=F)
 
-# cytosol only vs nucleus only
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Fraction=="Cytosol" & tog$annotation=="Intron" & tog$editingID %in% ids[["cytosolOnly"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Fraction=="Nucleus" & tog$annotation=="Intron" & tog$editingID %in% ids[["nucleusOnly"]]),"IRratio"])
-#t = 10.412, df = 27155, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.02451516 0.03588493
-#sample estimates:
-#  mean of x mean of y 
-#0.245736  0.215536
-
-# cytosol only vs nucleus only in adult
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Adult:Cytosol" & tog$annotation=="Intron" & tog$editingID %in% ids[["ACnotAN"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Adult:Nucleus" & tog$annotation=="Intron" & tog$editingID %in% ids[["ANnotAC"]]),"IRratio"])
-#t = -7.7611, df = 13659, p-value = 9.015e-15
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.03575389 -0.02133546
-#sample estimates:
-#  mean of x mean of y 
-#0.1898456 0.2183903
-
-# cytosol only vs nucleus only in prenatal
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Prenatal:Cytosol" & tog$annotation=="Intron" & tog$editingID %in% ids[["PCnotPN"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Prenatal:Nucleus" & tog$annotation=="Intron" & tog$editingID %in% ids[["PNnotPC"]]),"IRratio"])
-#t = 10.064, df = 22215, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.03168217 0.04700698
-#sample estimates:
-#  mean of x mean of y 
-#0.2904688 0.2511242
-
-
-# adult only vs prenatal only
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Age=="Adult" & tog$annotation=="Intron" & tog$editingID %in% ids[["adultOnly"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Age=="Prenatal" & tog$annotation=="Intron" & tog$editingID %in% ids[["prenatalOnly"]]),"IRratio"])
-#t = -37.585, df = 116730, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.07793774 -0.07021209
-#sample estimates:
-#  mean of x mean of y 
-#0.1892185 0.2632934 
-
-# adult only vs prenatal only in cytosol
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Adult:Cytosol" & tog$annotation=="Intron" & tog$editingID %in% ids[["ACnotPC"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Prenatal:Cytosol" & tog$annotation=="Intron" & tog$editingID %in% ids[["PCnotAC"]]),"IRratio"])
-#t = -24.442, df = 35809, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.09489925 -0.08080893
-#sample estimates:
-#  mean of x mean of y 
-#0.2168146 0.3046687
-
-# adult only vs prenatal only in nucleus
-t.test(x = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Adult:Nucleus" & tog$annotation=="Intron" & tog$editingID %in% ids[["ANnotPN"]]),"IRratio"],
-       y = tog[which(tog$collapsedconversion=="A:G / T:C" & tog$Group=="Prenatal:Nucleus" & tog$annotation=="Intron" & tog$editingID %in% ids[["PNnotAN"]]),"IRratio"])
-#t = -22.329, df = 81832, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.05525209 -0.04633493
-#sample estimates:
-#  mean of x mean of y 
-#0.1932618 0.2440553
 
 
 ### in 3'UTR editing sites, is the exon differentially expressed by fraction or group?
 
-exonMap$exonID = rownames(exonMap)
-exonMap_ranges = makeGRangesFromDataFrame(exonMap, keep.extra.columns = T)
-ov = findOverlaps(editing_ranges, exonMap_ranges)
-tog = cbind(editing_anno[queryHits(ov),], exonMap[subjectHits(ov),])
-tog.3UTR = tog[which(tog$annotation=="UTR3"),]
+tog.3UTR = tog[which(tog$UTR3=="UTR3"),]
 counts3UTR = exonCounts.down[which(rownames(exonCounts.down) %in% tog.3UTR$exonID), grep("polyA", colnames(exonCounts.down))]
 match(rownames(pd[grep("polyA", rownames(pd)),]), colnames(counts3UTR))
 
@@ -3632,7 +510,7 @@ exonsC.res = results(exonsC)
 exonsN.res = results(exonsN)
 exonres = list(exonsA.res = results(exonsA), exonsF.res = results(exonsF), exonsC.res = results(exonsC), exonsN.res = results(exonsN))
 elementNROWS(exonres)
-lapply(exonres, function(x) dim(x[which(x$padj<=0.05),]))
+elementNROWS(lapply(exonres, function(x) x[which(x$padj<=0.05),]))
 
 tog.3UTR = cbind(tog.3UTR, A.LFC = exonsA.res[match(tog.3UTR$exonID, rownames(exonsA.res)),"log2FoldChange"],
                  A.padj = exonsA.res[match(tog.3UTR$exonID, rownames(exonsA.res)),"padj"],
@@ -3643,407 +521,75 @@ tog.3UTR = cbind(tog.3UTR, A.LFC = exonsA.res[match(tog.3UTR$exonID, rownames(ex
                  N.LFC = exonsN.res[match(tog.3UTR$exonID, rownames(exonsN.res)),"log2FoldChange"],
                  N.padj = exonsN.res[match(tog.3UTR$exonID, rownames(exonsN.res)),"padj"])
 
+
 ## Compare LFC and significance of groups of editing sites in 3'UTR
 
-# LFC between cytosol only and nucleus only 
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]]),"A.LFC"])
-#t = -20.725, df = 5993.1, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.2676177 -0.2213662
-#sample estimates:
-#  mean of x   mean of y 
-#-0.04224752  0.20224439
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]]),"P.LFC"])
-#t = -19.528, df = 6645.7, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.10307914 -0.08427196
-#sample estimates:
-#  mean of x   mean of y 
-#-0.05419901  0.03947654
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]]),"C.LFC"])
-#t = -0.02454, df = 5758.9, p-value = 0.9804
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.06697281  0.06531684
-#sample estimates:
-#  mean of x mean of y 
-#0.1549564 0.1557844
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]]),"N.LFC"])
-#t = 4.3936, df = 5861.1, p-value = 1.134e-05
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.07409559 0.19348591
-#sample estimates:
-#  mean of x  mean of y 
-#0.1126460 -0.0211448
-
-# LFC between cytosol only and nucleus only in adult
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]]),"A.LFC"])
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.3638747 -0.3107056
-#sample estimates:
-#  mean of x  mean of y 
-#-0.1270911  0.2101990
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]]),"P.LFC"])
-#t = -17.42, df = 4677, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.1065198 -0.0849698
-#sample estimates:
-#  mean of x   mean of y 
-#-0.05411592  0.04162890
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]]),"C.LFC"])
-#t = -8.8735, df = 4281.8, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.3565655 -0.2275174
-#sample estimates:
-#  mean of x   mean of y 
-#-0.30261834 -0.01057685 
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]]),"N.LFC"])
-#t = -1.5209, df = 4051.4, p-value = 0.1284
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.10773703  0.01360584
-#sample estimates:
-#  mean of x  mean of y 
-#-0.2418584 -0.1947928
-
-# LFC between cytosol only and nucleus only in prenatal
-
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]]),"A.LFC"])
-#t = -7.0904, df = 3371.9, p-value = 1.621e-12
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.14440399 -0.08184188
-#sample estimates:
-#  mean of x  mean of y 
-#0.06419681 0.17731974
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]]),"P.LFC"])
-#t = -13.369, df = 3481.1, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.10415322 -0.07751018
-#sample estimates:
-#  mean of x   mean of y 
-#-0.05733782  0.03349388
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]]),"C.LFC"])
-#t = 1.9146, df = 3405.1, p-value = 0.05563
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.002072212  0.174301025
-#sample estimates:
-#  mean of x mean of y 
-#0.7066692 0.6205548
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]]),"N.LFC"])
-#t = 2.0179, df = 3440.8, p-value = 0.04368
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.002274204 0.158174215
-#sample estimates:
-#  mean of x mean of y 
-#0.5345192 0.4542950
-
-# LFC between adult and prenatal only
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]]),"A.LFC"])
-#t = -19.584, df = 10008, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.1871397 -0.1530851
-#sample estimates:
-#  mean of x   mean of y 
-#0.003193738 0.173306155 
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]]),"P.LFC"])
-#t = 3.1428, df = 9761.9, p-value = 0.001679
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.004563779 0.019693498
-#sample estimates:
-#  mean of x    mean of y 
-#-0.005400458 -0.017529096
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]]),"C.LFC"])
-#t = -67.267, df = 7601.1, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.920432 -1.811672
-#sample estimates:
-#  mean of x  mean of y 
-#-0.4877324  1.3783193
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]]),"N.LFC"])
-#t = -66.34, df = 8017.8, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.691864 -1.594749
-#sample estimates:
-#  mean of x  mean of y 
-#-0.5006527  1.1426537
-
-# LFC between adult and prenatal only in cytosol
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]]),"A.LFC"])
-#t = -23.411, df = 6304.6, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.2918628 -0.2467609
-#sample estimates:
-#  mean of x   mean of y 
-#-0.08777889  0.18153293
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]]),"P.LFC"])
-#t = -2.4179, df = 6341.6, p-value = 0.01564
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.021885067 -0.002287071
-#sample estimates:
-#  mean of x   mean of y 
-#-0.02976957 -0.01768350 
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]]),"C.LFC"])
-#t = -53.593, df = 5396.2, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.847335 -1.716955
-#sample estimates:
-#  mean of x  mean of y 
-#-0.5237457  1.2583993
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]]),"N.LFC"])
-#t = -49.432, df = 5759.5, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.538207 -1.420856
-#sample estimates:
-#  mean of x  mean of y 
-#-0.4708156  1.0087154
-
-# LFC between adult and prenatal only in nucleus
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]]),"A.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]]),"A.LFC"])
-#t = -8.7875, df = 5748.6, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.12012272 -0.07630259
-#sample estimates:
-#  mean of x  mean of y 
-#0.06278712 0.16099977
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]]),"P.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]]),"P.LFC"])
-#t = 2.4273, df = 5687.2, p-value = 0.01524
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  0.002316646 0.021770384
-#sample estimates:
-#  mean of x    mean of y 
-#0.006403311 -0.005640204 
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]]),"C.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]]),"C.LFC"])
-#t = -46.789, df = 4409.4, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.706939 -1.569648
-#sample estimates:
-#  mean of x  mean of y 
-#-0.3954073  1.2428860
-t.test(x=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]]),"N.LFC"],
-       y=tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]]),"N.LFC"])
-#t = -48.008, df = 4611.4, p-value < 2.2e-16
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -1.56127 -1.43876
-#sample estimates:
-#  mean of x  mean of y 
-#-0.4587846  1.0412301
-
-# Compare the number of 3'UTRs with and without an editing site and whether or not they are significantly DE
-
-length(unique(tog.3UTR$editingID)) # 9837
-length(unique(tog.3UTR$exonID)) # 5133
-head(tog.3UTR)
-
-# between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in adult
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]] & tog.3UTR$A.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]] & tog.3UTR$A.padj<=0.05),"exonID"])))))
-#p-value = 0.6502
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8577487 1.2873497
-#sample estimates:
-#  odds ratio 
-#1.050377
-
-# between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in prenatal
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Cytosol" & tog.3UTR$editingID %in% ids[["cytosolOnly"]] & tog.3UTR$P.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Fraction=="Nucleus" & tog.3UTR$editingID %in% ids[["nucleusOnly"]] & tog.3UTR$P.padj<=0.05),"exonID"])))))
-#p-value = 0.01625
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.248422 371.081454
-#sample estimates:
-#  odds ratio 
-#8.621243
-
-# in adult: between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in adult
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]] & tog.3UTR$A.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]] & tog.3UTR$A.padj<=0.05),"exonID"])))))
-#p-value = 0.3465
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8900516 1.3945858
-#sample estimates:
-#  odds ratio 
-#1.113256
-
-# in adult: between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in prenatal
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotAN"]] & tog.3UTR$P.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotAC"]] & tog.3UTR$P.padj<=0.05),"exonID"])))))
-#p-value = 0.6459
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.170731 112.063929
-#sample estimates:
-#  odds ratio 
-#2.131672
-
-# in prenatal: between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in adult
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]] & tog.3UTR$A.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]] & tog.3UTR$A.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]] & tog.3UTR$A.padj<=0.05),"exonID"])))))
-#p-value = 0.2559
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6541991 1.1241311
-#sample estimates:
-#  odds ratio 
-#0.8575531
-
-# in prenatal: between cytosol-only and nucleus-only, compare proportion of differentially expressed 3'UTRs by fraction in prenatal
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotPN"]] & tog.3UTR$P.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]] & tog.3UTR$P.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotPC"]] & tog.3UTR$P.padj<=0.05),"exonID"])))))
-#p-value = 0.04178
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9488636 316.0353396
-#sample estimates:
-#  odds ratio 
-#7.112278
+unique_3UTR = lapply(unique, function(x) tog.3UTR[which(tog.3UTR$editingID %in% x$editingID),])
+t.3UTR.site = list(list())
+comps = list(byFraction = c("cytosolOnly","nucleusOnly"), byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
+             byAgeInCytosol = c("ACnotPC","PCnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN"))
+for (i in 1:length(comps)){
+  t.3UTR.site[[i]] = list(adult = t.test(x = unique_3UTR[[comps[[i]][1]]][,"A.LFC"], y = unique_3UTR[[comps[[i]][2]]][,"A.LFC"]),
+                          prenatal = t.test(x = unique_3UTR[[comps[[i]][1]]][,"P.LFC"], y = unique_3UTR[[comps[[i]][2]]][,"P.LFC"]),
+                          cytosol = t.test(x = unique_3UTR[[comps[[i]][1]]][,"C.LFC"], y = unique_3UTR[[comps[[i]][2]]][,"C.LFC"]),
+                          nucleus = t.test(x = unique_3UTR[[comps[[i]][1]]][,"N.LFC"], y = unique_3UTR[[comps[[i]][2]]][,"N.LFC"]))
+}
+names(t.3UTR.site) = names(comps)
+t.LFC.3UTR.editing = rbind(Tstat = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
+                           pval = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
+                           confInt = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
+                           estMeans = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F))))
+write.csv(t.LFC.3UTR.editing, 
+          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.3UTR.LFC.between.unique.editing.sites.to.group.csv", quote=F)
 
 
-# between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in cytosol
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]] & tog.3UTR$C.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]] & tog.3UTR$C.padj<=0.05),"exonID"])))))
-#p-value = 0.01603
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.034176 1.413109
-#sample estimates:
-#  odds ratio 
-#1.208582
-
-# between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in nucleus
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Adult" & tog.3UTR$editingID %in% ids[["adultOnly"]] & tog.3UTR$N.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Age=="Prenatal" & tog.3UTR$editingID %in% ids[["prenatalOnly"]] & tog.3UTR$N.padj<=0.05),"exonID"])))))
-#p-value = 0.1903
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9503293 1.2937844
-#sample estimates:
-#  odds ratio 
-#1.108671
-
-# in cytosol: between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in cytosol
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]] & tog.3UTR$C.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]] & tog.3UTR$C.padj<=0.05),"exonID"])))))
-#p-value = 0.01327
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.045332 1.483054
-#sample estimates:
-#  odds ratio 
-#1.24477
-
-# in cytosol: between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in nucleus
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Cytosol" & tog.3UTR$editingID %in% ids[["ACnotPC"]] & tog.3UTR$N.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Cytosol" & tog.3UTR$editingID %in% ids[["PCnotAC"]] & tog.3UTR$N.padj<=0.05),"exonID"])))))
-#p-value = 0.4903
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8959501 1.2659675
-#sample estimates:
-#  odds ratio 
-#1.064832
-
-# in nucleus: between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in cytosol
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]] & tog.3UTR$C.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]] & tog.3UTR$C.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]] & tog.3UTR$C.padj<=0.05),"exonID"])))))
-#p-value = 0.04166
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.003301 1.401989
-#sample estimates:
-#  odds ratio 
-#1.185712
-
-# in nucleus: between adult-only and prenatal-only, compare proportion of differentially expressed 3'UTRs by age in nucleus
-fisher.test(data.frame(c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Adult:Nucleus" & tog.3UTR$editingID %in% ids[["ANnotPN"]] & tog.3UTR$N.padj<=0.05),"exonID"]))),
-                       c(length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]] & tog.3UTR$N.padj>0.05),"exonID"])),
-                         length(unique(tog.3UTR[which(tog.3UTR$collapsedconversion=="A:G / T:C" & tog.3UTR$Group=="Prenatal:Nucleus" & tog.3UTR$editingID %in% ids[["PNnotAN"]] & tog.3UTR$N.padj<=0.05),"exonID"])))))
-#p-value = 0.7105
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.875978 1.218833
-#sample estimates:
-#  odds ratio 
-#1.033162
+## Correlate the LFC between age and fraction comparisons in different groups
+corr.3UTR.site = list(list())
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+for (i in 1:length(group)){
+  corr.3UTR.site[[i]] = list(fraction = cor(x = unique_3UTR[[group[i]]][,"A.LFC"], y = unique_3UTR[[group[i]]][,"P.LFC"], use = "complete.obs"),
+                             age = cor(x = unique_3UTR[[group[i]]][,"C.LFC"], y = unique_3UTR[[group[i]]][,"N.LFC"], use = "complete.obs"))
+}
+names(corr.3UTR.site) = group
+data.frame(lapply(corr.3UTR.site, function(x) unlist(x, recursive=F)))
+#         cytosolOnly nucleusOnly adultOnly prenatalOnly   ACnotAN   ANnotAC   PCnotPN   PNnotPC   ACnotPC   PCnotAC   ANnotPN   PNnotAN
+#fraction   0.5231701   0.6678311 0.7007121    0.5023542 0.5429321 0.7208554 0.6083703 0.6499986 0.6971967 0.6105784 0.7143684 0.5119560
+#age        0.9358370   0.9437012 0.9376431    0.9601124 0.9132981 0.9278078 0.9308891 0.9425266 0.9397684 0.9501729 0.9393015 0.9601277
 
 
+## Compare the number of edited 3'UTRs that are significantly and non-significantly up- and down-expressed per group
 
-## Are cytosolic/nuclear/adult/prenatal-specific editing sites enriched for DEG Fraction/Age overall, and broken down by group?
-# retained or exported DEG and presence or absence of cytosolic-specific editing site
-# sites within retained or exported DEG and cytosolic-specific or non-specific status
+fisher.3UTR = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique)){
+  fisher.3UTR[[i]] = list(
+    data.frame(exported = c(nrow(unique_3UTR[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
+                            nrow(unique_3UTR[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(unique_3UTR[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
+                            nrow(unique_3UTR[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(exported = c(nrow(unique_3UTR[[group[i]]][(A.LFC<0 & A.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(A.LFC<0 & A.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(unique_3UTR[[group[i]]][(A.LFC>0 & A.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(A.LFC>0 & A.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(exported = c(nrow(unique_3UTR[[group[i]]][(P.LFC<0 & P.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(P.LFC<0 & P.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(unique_3UTR[[group[i]]][(P.LFC>0 & P.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(P.LFC>0 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(unique_3UTR[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
+                              nrow(unique_3UTR[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(unique_3UTR[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
+                              nrow(unique_3UTR[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(unique_3UTR[[group[i]]][(C.LFC<0 & C.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(C.LFC<0 & C.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(unique_3UTR[[group[i]]][(C.LFC>0 & C.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(C.LFC>0 & C.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(unique_3UTR[[group[i]]][(N.LFC<0 & N.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(N.LFC<0 & N.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(unique_3UTR[[group[i]]][(N.LFC>0 & N.padj<=0.05),list(unique(exonID)),]),nrow(unique_3UTR[[group[i]]][(N.LFC>0 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")))
+  names(fisher.3UTR[[i]]) = c("bothagesDEG","AdultDEG","PrenatalDEG","bothfractionsDEG","CytosolDEG","NucleusDEG")
+}
+names(fisher.3UTR) = group
+fisher.3UTR.editing = lapply(fisher.3UTR, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) round(y$p.value,3)), recursive=F)))
+#                 cytosolOnly nucleusOnly adultOnly prenatalOnly ACnotAN ANnotAC PCnotPN PNnotPC ACnotPC PCnotAC ANnotPN PNnotAN
+#bothagesDEG            0.520       0.000     0.000        0.004   0.551   0.023   1.000   0.010   0.002   0.146   0.000   0.004
+#AdultDEG               0.005       0.947     0.331        0.097   0.007   0.887   0.010   0.636   0.113   0.321   0.688   0.755
+#PrenatalDEG            0.626       0.000     0.000        0.000   0.610   0.017   1.000   0.001   0.000   0.035   0.000   0.000
+#bothfractionsDEG       0.078       0.531     0.007        0.000   0.857   0.197   0.007   0.000   0.030   0.000   0.007   0.000
+#CytosolDEG             0.001       0.068     0.099        0.000   0.260   0.637   0.000   0.000   0.240   0.000   0.055   0.000
+#NucleusDEG             0.141       0.670     0.000        0.000   0.442   0.068   0.003   0.001   0.000   0.000   0.000   0.000
+fisher.3UTR.props = lapply(fisher.3UTR, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
-### Check gene enrichment by annotation,
-# retained or exported DEG and presence or absence of cytosolic-specific editing site
-# Is a nuclear-specific editing site higher expressed in nucleus, for both intronic and other annotations?
-# Is there a relationship between having an editing site and expression by fraction and age?
-# is this affected by where in the gene the editing site falls (annotation)?
