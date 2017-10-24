@@ -593,3 +593,4 @@ data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) 
 fisher.3UTR.props = lapply(fisher.3UTR, function(y) lapply(y, function(x) 
   c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
+# Are group-specific edited sequences present in an unedited state in other groups, or is expression sequestered to the group showing the site?
