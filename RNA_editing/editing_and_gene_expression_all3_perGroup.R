@@ -491,10 +491,6 @@ exonsA = DESeq(exonsA)
 exonsF = DESeq(exonsF)
 exonsC = DESeq(exonsC)
 exonsN = DESeq(exonsN)
-exonsA.res = results(exonsA)
-exonsF.res = results(exonsF)
-exonsC.res = results(exonsC)
-exonsN.res = results(exonsN)
 exonres = list(exonsA.res = results(exonsA), exonsF.res = results(exonsF), exonsC.res = results(exonsC), exonsN.res = results(exonsN))
 elementNROWS(exonres)
 elementNROWS(lapply(exonres, function(x) x[which(x$padj<=0.05),]))
@@ -577,6 +573,114 @@ data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) 
 #CytosolDEG       0.12935880    1.0000000 0.7063310 0.06733649       1 0.2450980 0.24832078 1.00000000 0.41151685 6.845838e-02
 #NucleusDEG       0.06206983    1.0000000 0.6945843 0.14689203       1 0.2745098 0.02171784 0.02936896 0.02182513 4.126946e-05
 fisher.3UTR.props = lapply(fisher.3UTR, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
+
+
+
+### in 3'UTR editing sites, is the exon differentially expressed by group?
+
+tog.CDS = tog[which(tog$cds=="CDS"),]
+countsCDS = exonCounts.down[which(rownames(exonCounts.down) %in% tog.CDS$exonID), grep("polyA", colnames(exonCounts.down))]
+match(rownames(pd[grep("polyA", rownames(pd)),]), colnames(countsCDS))
+
+## DESeq2 on exons, is the exon the last exon with the greatest count
+exonsA = DESeqDataSetFromMatrix(countData = countsCDS[,-grep("53", colnames(countsCDS))], 
+                                colData = pd[which(pd$Fetal == "Adult" & pd$Library =="polyA"),], design = ~ Zone)
+exonsF = DESeqDataSetFromMatrix(countData = countsCDS[,grep("53", colnames(countsCDS))], 
+                                colData = pd[which(pd$Fetal == "Prenatal" & pd$Library =="polyA"),], design = ~ Zone)
+exonsC = DESeqDataSetFromMatrix(countData = countsCDS[,grep("C", colnames(countsCDS))], 
+                                colData = pd[which(pd$Zone == "Cytosol" & pd$Library =="polyA"),], design = ~ Fetal)
+exonsN = DESeqDataSetFromMatrix(countData = countsCDS[,grep("N", colnames(countsCDS))], 
+                                colData = pd[which(pd$Zone == "Nucleus" & pd$Library =="polyA"),], design = ~ Fetal)
+exonsA = DESeq(exonsA)
+exonsF = DESeq(exonsF)
+exonsC = DESeq(exonsC)
+exonsN = DESeq(exonsN)
+exonres = list(exonsA.res = results(exonsA), exonsF.res = results(exonsF), exonsC.res = results(exonsC), exonsN.res = results(exonsN))
+elementNROWS(exonres)
+elementNROWS(lapply(exonres, function(x) x[which(x$padj<=0.05),]))
+tog.CDS = cbind(tog.CDS, A.LFC = exonsA.res[match(tog.CDS$exonID, rownames(exonsA.res)),"log2FoldChange"],
+                A.padj = exonsA.res[match(tog.CDS$exonID, rownames(exonsA.res)),"padj"],
+                P.LFC = exonsF.res[match(tog.CDS$exonID, rownames(exonsF.res)),"log2FoldChange"],
+                P.padj = exonsF.res[match(tog.CDS$exonID, rownames(exonsF.res)),"padj"],
+                C.LFC = exonsC.res[match(tog.CDS$exonID, rownames(exonsC.res)),"log2FoldChange"],
+                C.padj = exonsC.res[match(tog.CDS$exonID, rownames(exonsC.res)),"padj"],
+                N.LFC = exonsN.res[match(tog.CDS$exonID, rownames(exonsN.res)),"log2FoldChange"],
+                N.padj = exonsN.res[match(tog.CDS$exonID, rownames(exonsN.res)),"padj"],
+                A.basemean = exonsA.res[match(tog.CDS$exonID, rownames(exonsA.res)),"baseMean"],
+                P.basemean = exonsF.res[match(tog.CDS$exonID, rownames(exonsF.res)),"baseMean"],
+                C.basemean = exonsC.res[match(tog.CDS$exonID, rownames(exonsC.res)),"baseMean"],
+                N.basemean = exonsN.res[match(tog.CDS$exonID, rownames(exonsN.res)),"baseMean"])
+
+
+## Compare LFC and significance of groups of editing sites in 3'UTR
+
+uniqueAll_CDS = lapply(unique_all, function(x) tog.CDS[which(tog.CDS$editingID %in% x$editingID),])
+t.CDS.site = list(list())
+comps = list(byFractionInAdult = c("ACnotAN","ANnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN")) # not enough observations for byAge = c("adultOnly","prenatalOnly"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), byAgeInCytosol = c("ACnotPC","PCnotAC")
+for (i in 1:length(comps)){
+  t.CDS.site[[i]] = list(adult = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"A.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"A.LFC"]),
+                          prenatal = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"P.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"P.LFC"]),
+                          cytosol = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"C.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"C.LFC"]),
+                          nucleus = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"N.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"N.LFC"]))
+}
+names(t.CDS.site) = names(comps)
+t.LFC.CDS.editing = rbind(Tstat = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
+                           pval = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
+                           confInt = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
+                           estMeans = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F))))
+write.csv(t.LFC.CDS.editing, 
+          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.CDS.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+
+
+## Correlate the LFC between age and fraction comparisons in different groups
+corr.CDS.site = list(list())
+for (i in 1:length(group)){
+  corr.CDS.site[[i]] = list(fraction = cor(x = uniqueAll_CDS[[group[i]]][,"A.LFC"], y = uniqueAll_CDS[[group[i]]][,"P.LFC"], use = "complete.obs"),
+                             age = cor(x = uniqueAll_CDS[[group[i]]][,"C.LFC"], y = uniqueAll_CDS[[group[i]]][,"N.LFC"], use = "complete.obs"))
+}
+names(corr.CDS.site) = group
+data.frame(lapply(corr.CDS.site, function(x) unlist(x, recursive=F)))
+#         adultOnly ACnotAN   ANnotAC PNnotPC   ACnotPC   ANnotPN PNnotAN
+#fraction 0.9463874      NA 0.1542199      NA 0.9444664 0.8277404      NA
+#age      0.8829940      NA 0.8139241      NA 0.8841078 0.6899047      NA
+
+
+## Compare the number of edited CDSs that are significantly and non-significantly up- and down-expressed per group
+
+fisher.CDS = list(list(),list(),list(),list(),list(),list(),list())
+group = c("adultOnly","ACnotAN","ANnotAC","PNnotPC","ACnotPC","ANnotPN","PNnotAN") #not enough obs for "prenatalOnly","PCnotAC","PCnotPN"
+for (i in 1:length(group)){
+  fisher.CDS[[i]] = list(
+    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
+                            nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
+                            nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & A.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & A.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & A.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & A.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(P.LFC<0 & P.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(P.LFC<0 & P.padj>0.05),list(unique(exonID)),])),
+               retained = c(nrow(uniqueAll_CDS[[group[i]]][(P.LFC>0 & P.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(P.LFC>0 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
+                              nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
+                              nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & C.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & C.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & C.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & C.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
+    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.LFC<0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(N.LFC<0 & N.padj>0.05),list(unique(exonID)),])),
+               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.LFC>0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(N.LFC>0 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")))
+  names(fisher.CDS[[i]]) = c("bothagesDEG","AdultDEG","PrenatalDEG","bothfractionsDEG","CytosolDEG","NucleusDEG")
+}
+names(fisher.CDS) = group
+fisher.CDS.editing = lapply(fisher.CDS, function(x) lapply(x, fisher.test))
+data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
+#                  adultOnly ACnotAN    ANnotAC PNnotPC    ACnotPC    ANnotPN PNnotAN
+#bothagesDEG      0.10000000       1 1.00000000       1 0.10000000 0.06666667       1
+#AdultDEG         0.04274402       1 1.00000000       1 0.01805986 0.06636156       1
+#PrenatalDEG      1.00000000       1 1.00000000       1 1.00000000 0.49090909       1
+#bothfractionsDEG 0.30769231       1 0.33333333       1 0.40000000 0.35294118       1
+#CytosolDEG       0.47058824       1 0.04761905       1 1.00000000 0.10521739       1
+NucleusDEG       0.23529412       1 1.00000000       1 0.31578947 0.12000000       1
+fisher.CDS.props = lapply(fisher.CDS, function(y) lapply(y, function(x) 
   c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
