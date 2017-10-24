@@ -440,14 +440,14 @@ for (i in 1:length(shortenedNames)){
 names(IRres) = shortenedNames
 IRres_gr = lapply(IRres, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr",start.field = "Start",end.field = "End",strand.field = "Direction",keep.extra.columns = T))
 ov = lapply(IRres_gr, function(x,y) findOverlaps(x, editing_anno_gr))
-tog = list()
+togintron = list()
 for (i in 1:length(IRres)){
   tmp = IRres[[i]]
-  tog[[i]] = cbind(editing_anno[subjectHits(ov[[i]]),], IRratio = tmp$IRratio[queryHits(ov[[i]])],
+  togintron[[i]] = cbind(editing_anno[subjectHits(ov[[i]]),], IRratio = tmp$IRratio[queryHits(ov[[i]])],
                    sampleIDintron = names(IRres)[i])
 }
-tog = do.call(rbind, tog)
-IRratio_editing = lapply(unique_all_df, function(x) tog[which(tog$editingID %in% x$editingID),])
+togintron = do.call(rbind, togintron)
+IRratio_editing = lapply(unique_all_df, function(x) togintron[which(togintron$editingID %in% x$editingID),])
 
 t.IRratio = list()
 comps = list(byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
