@@ -237,6 +237,8 @@ data.frame(lapply(fisher.anno.site, function(x) unlist(lapply(x, function(y) y$p
 # UTR5   1.000000000  1.000000000 1.0000000 1.00000000 1.0000000 0.5472894 1.0000000 1.00000000 0.0625514485 0.4371744270
 # UTR3   0.009019958  0.000281643 0.1458043 0.31233307 0.3854719 0.2877337 0.2118689 0.03813118 0.0001286324 0.0008078246
 # Other  0.572627450  0.039140302 0.8199467 0.53044538 1.0000000 0.4044935 0.4195773 0.13451049 0.0978798584 0.0021495928
+anno.site.props = lapply(anno.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 
@@ -277,6 +279,8 @@ data.frame(lapply(fisher.frac.site, function(x) unlist(lapply(x, function(y) y$p
 #bothagesDEG 1.0000000            1 1.00000000 1.000000000       1 1.00000000 1.00000000 1.0000000 1.0000000 1.0000000
 #adultDEG    0.8614905            1 0.01806298 0.002091996       1 0.07770767 0.05007798 0.5867589 0.1335647 0.5643383
 #prenatalDEG 1.0000000            1 1.00000000 1.000000000       1 1.00000000 1.00000000 1.0000000 1.0000000 1.0000000
+frac.site.props = lapply(frac.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 # number of significantly retained or exported genes that either contain an editing site specific to a group and in all samples, or don't
@@ -308,6 +312,8 @@ data.frame(lapply(fisher.frac.gene, function(x) unlist(lapply(x, function(y) y$p
 # bothagesDEG 1.0000000     1.000000 1.00000000 0.5880699863       1 0.588069986 1.0000000 1.0000000 0.209325682 0.347362128
 # adultDEG    0.5133018     0.267304 0.01968468 0.0000379302       1 0.001106946 0.6018692 0.2511116 0.002154625 0.001230031
 # prenatalDEG 1.0000000     1.000000 1.00000000 0.5875735757       1 0.587573576 1.0000000 1.0000000 0.213019020 0.353090184
+frac.gene.props = lapply(frac.gene, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 
@@ -344,6 +350,8 @@ data.frame(lapply(fisher.age.site, function(x) unlist(lapply(x, function(y) y$p.
 #bothfractionsDEG 5.137825e-10 6.996984e-06 0.7623512 1.0000000       1 0.1032770 1.150492e-13 2.000945e-06 2.222938e-13 5.013174e-09
 #CytosolDEG       5.831627e-12 2.655909e-06 0.4651877 0.9124600       1 0.0120951 8.649887e-16 1.599953e-07 5.994252e-15 2.532017e-12
 #NucleusDEG       2.196999e-10 2.165893e-08 0.2525420 0.3934576       1 0.2781730 3.381863e-11 9.332538e-12 1.154839e-17 1.036203e-13
+age.site.props = lapply(age.site, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 # number of significantly increasing or decreasing genesby age that either contain an editing site specific to a group and in all samples, or don't
@@ -375,6 +383,8 @@ data.frame(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) y$p.
 #bothfractionsDEG 9.382517e-07 3.696026e-10 1.0000000 0.0077734607 0.2137893 1.736459e-05 1.677679e-07 8.024038e-19 5.908792e-10 7.191367e-19
 #CytosolDEG       5.071823e-06 1.363399e-10 1.0000000 0.1042451089 0.1098819 3.470043e-07 8.787733e-07 1.978561e-19 5.629772e-06 2.136388e-21
 #NucleusDEG       1.861462e-08 1.750548e-10 0.7667066 0.0003625822 0.2000911 2.170476e-04 1.525285e-07 7.439758e-21 3.063336e-14 1.452532e-20
+age.gene.props = lapply(age.gene, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 
@@ -501,7 +511,7 @@ tog.3UTR = cbind(tog.3UTR, A.LFC = exonsA.res[match(tog.3UTR$exonID, rownames(ex
 ## Compare LFC and significance of groups of editing sites in 3'UTR
 
 uniqueAll_3UTR = lapply(unique_all, function(x) tog.3UTR[which(tog.3UTR$editingID %in% x$editingID),])
-t.3UTR.site = t.age.site = list(list())
+t.3UTR.site = list(list())
 comps = list(byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
              byAgeInCytosol = c("ACnotPC","PCnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN"))
 for (i in 1:length(comps)){
@@ -566,6 +576,8 @@ data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) 
 #bothfractionsDEG 0.43214195    1.0000000 1.0000000 1.00000000       1 0.2727273 0.57219722 1.00000000 0.68865682 1.156235e-02
 #CytosolDEG       0.12935880    1.0000000 0.7063310 0.06733649       1 0.2450980 0.24832078 1.00000000 0.41151685 6.845838e-02
 #NucleusDEG       0.06206983    1.0000000 0.6945843 0.14689203       1 0.2745098 0.02171784 0.02936896 0.02182513 4.126946e-05
+fisher.3UTR.props = lapply(fisher.3UTR, function(y) lapply(y, function(x) 
+  c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
 
 
