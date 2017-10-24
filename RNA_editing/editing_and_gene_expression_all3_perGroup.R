@@ -679,7 +679,7 @@ data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y
 #PrenatalDEG      1.00000000       1 1.00000000       1 1.00000000 0.49090909       1
 #bothfractionsDEG 0.30769231       1 0.33333333       1 0.40000000 0.35294118       1
 #CytosolDEG       0.47058824       1 0.04761905       1 1.00000000 0.10521739       1
-NucleusDEG       0.23529412       1 1.00000000       1 0.31578947 0.12000000       1
+#NucleusDEG       0.23529412       1 1.00000000       1 0.31578947 0.12000000       1
 fisher.CDS.props = lapply(fisher.CDS, function(y) lapply(y, function(x) 
   c(row1prop = x[1,1]/rowSums(x[1,]), row2prop = x[2,1]/rowSums(x[2,]), col1prop = x[1,1]/sum(x[,1]), col2prop = x[1,2]/sum(x[,2]))))
 
