@@ -153,6 +153,7 @@ t.editedgenes.numsites.df = rbind(Tstat = data.frame(lapply(t.editedgenes.numsit
 
 exonMap$exonID = rownames(exonMap)
 exonMap_gr = makeGRangesFromDataFrame(exonMap, keep.extra.columns = T)
+editing_anno_gr = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
 ov = findOverlaps(editing_anno_gr, exonMap_gr)
 tog = cbind(editing_anno[queryHits(ov),], exonMap[subjectHits(ov),])
 unique_exons = lapply(unique_all, function(x) tog[(editingID %in% x$editingID),,])
@@ -380,25 +381,25 @@ data.frame(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) y$p.
 ### Does editing rate correlate with gene expression in the group the editing site appears?
 ## correlate LFC with editing rate in editing sites unique to a group
 
-corr.frac.site = corr.age.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+corr.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
 group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
 unique_all_df = lapply(unique_all, as.data.frame)
 for (i in 1:length(unique_all)){
-  corr.frac.site[[i]] = list(adult = cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Adult.LFC"], use = "complete.obs"),
-                        prenatal = cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Prenatal.LFC"], use = "complete.obs"))
+  corr.site[[i]] = list(Adult = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Adult.LFC"], use = "complete.obs"),3),
+                             Prenatal = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Prenatal.LFC"], use = "complete.obs"),3),
+                             Cytosol = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Cytosol.LFC"], use = "complete.obs"),3),
+                             Nucleus = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Nucleus.LFC"], use = "complete.obs"),3))
 }
-for (i in 1:length(unique_all)){
-  corr.age.site[[i]] = list(Cytosol = cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Cytosol.LFC"], use = "complete.obs"),
-                            Nucleus = cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Nucleus.LFC"], use = "complete.obs"))
-}
-names(corr.frac.site) = names(corr.age.site) = group
-rbind(data.frame(lapply(corr.frac.site, function(x) unlist(x, recursive=F))), data.frame(lapply(corr.age.site, function(x) unlist(x, recursive=F))))
-#          adultOnly prenatalOnly     ACnotAN      ANnotAC    PCnotPN     PNnotPC    ACnotPC      PCnotAC     ANnotPN     PNnotAN
-#adult     0.1409053  -0.22507201 -0.19216262  0.034408998 0.13834782  0.07130173  0.1680912 -0.113873117  0.08012612 -0.20436115
-#prenatal  0.2209948  -0.02185185 -0.01927067  0.059974832 0.04414051  0.07924216  0.2569526  0.008781275  0.12283898 -0.02181826
-#Cytosol  -0.4156988  -0.37605585 -0.03839012 -0.013892478 0.28897741 -0.03185245 -0.2679327 -0.239253283 -0.18962269 -0.23711016
-#Nucleus  -0.4174911  -0.34271984  0.04358014 -0.006717411 0.34601681 -0.02722223 -0.2764365 -0.222423049 -0.19601454 -0.16681766
-
+names(corr.site) = group
+data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))
+#         adultOnly prenatalOnly ACnotAN ANnotAC PCnotPN PNnotPC ACnotPC PCnotAC ANnotPN PNnotAN
+#Adult        0.141       -0.225  -0.192   0.034   0.138   0.071   0.168  -0.114   0.080  -0.204
+#Prenatal     0.221       -0.022  -0.019   0.060   0.044   0.079   0.257   0.009   0.123  -0.022
+#Cytosol     -0.416       -0.376  -0.038  -0.014   0.289  -0.032  -0.268  -0.239  -0.190  -0.237
+#Nucleus     -0.417       -0.343   0.044  -0.007   0.346  -0.027  -0.276  -0.222  -0.196  -0.167
+max(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # 0.346
+min(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # -0.417
+min(abs(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F))))) # 0.007
 
 
 ### Is gene expression greater in the compartment/age exhibiting the editing site than in the compared group?
@@ -438,7 +439,6 @@ for (i in 1:length(shortenedNames)){
 }
 names(IRres) = shortenedNames
 IRres_gr = lapply(IRres, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr",start.field = "Start",end.field = "End",strand.field = "Direction",keep.extra.columns = T))
-editing_anno_gr = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
 ov = lapply(IRres_gr, function(x,y) findOverlaps(x, editing_anno_gr))
 tog = list()
 for (i in 1:length(IRres)){
