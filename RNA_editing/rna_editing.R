@@ -525,6 +525,7 @@ fisher.test(data.frame(c(53,3830-53),c(116,8809-116))) # CDS
 #  odds ratio 
 #1.051571
 fisher.test(data.frame(c(1255,3830-1255),c(4237,8809-4237))) # Intron
+# more likely to be intron in nucleus-unique than cytosol-unique sites
 #p-value < 2.2e-16
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
@@ -541,6 +542,7 @@ fisher.test(data.frame(c(777,3830-777),c(1617,8809-1617))) # Other
 #  odds ratio 
 #1.131948
 fisher.test(data.frame(c(1710,3830-1710),c(2748,8809-2748))) # 3'UTR
+# more likely to be 3'UTR in cytosol-unique than nucleus-unique sites
 #p-value < 2.2e-16
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
@@ -567,6 +569,7 @@ fisher.test(data.frame(c(173,9539-173),c(132,6049-132))) # CDS
 #  odds ratio 
 #0.8279966
 fisher.test(data.frame(c(3635,9539-3635),c(2635,6049-2635))) # Intron
+# more likely to be in fetal than adult
 #p-value = 1.421e-11
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
@@ -583,6 +586,7 @@ fisher.test(data.frame(c(1799,9539-1799),c(1138,6049-1138))) # Other
 #  odds ratio 
 #1.003039
 fisher.test(data.frame(c(3854,9539-3854),c(2069,6049-2069))) # 3'UTR
+# more likely to be in adult than fetal
 #p-value = 7.539e-15
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
@@ -591,6 +595,7 @@ fisher.test(data.frame(c(3854,9539-3854),c(2069,6049-2069))) # 3'UTR
 #  odds ratio 
 #1.304049
 fisher.test(data.frame(c(78,9539-78),c(75,6049-75))) # 5'UTR
+# more likely to be in fetal than adult
 #p-value = 0.01212
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
