@@ -87,11 +87,11 @@ unique = list(cytosolOnly = cyt[!(editingID %in% nuc$editingID),,], nucleusOnly 
               ANnotPN = AN[!(editingID %in% PN$editingID),,], PNnotAN = PN[!(editingID %in% AN$editingID),,],
               ACnotPC = AC[!(editingID %in% PC$editingID),,], PCnotAC = PC[!(editingID %in% AC$editingID),,], 
               PCnotPN = PC[!(editingID %in% PN$editingID),,], PNnotPC = PN[!(editingID %in% PC$editingID),,])
+uniqueID = lapply(unique, function(x) as.data.frame(x[,list(unique(editingID)),]))
 unique = lapply(unique, function(x) as.data.frame(x))
-elementNROWS(unique)
+elementNROWS(uniqueID)
 all = list(cytosolAll = cyt, nucleusAll = nuc, adultAll = ad, prenatalAll = pren, allAC = AC, allAN = AN, allPC = PC, allPN = PN)
 
-uniqueID = lapply(unique, function(x) as.data.frame(x[,list(unique(editingID)),]))
 uniqueID = lapply(uniqueID, function(x) as.character(x$V1))
 unique_bySamp = Map(cbind, EditingID = uniqueID, Br1113C1=NA, Br1113N1=NA, Br2046C=NA, Br2046N=NA, Br2074C=NA, Br2074N=NA, 
                                                  Br5339N1=NA, Br5340N1=NA, Br5341C1=NA, Br5341N1=NA, Br5339C1=NA, Br5340C1=NA)
@@ -155,7 +155,7 @@ unique_bySamp = Map(cbind, unique_bySamp,
                                                                                        "Br1113N1","Br2046N","Br2074N","Br5339N1","Br5340N1","Br5341N1")])=="no")))
 lapply(unique_bySamp, head)
 
-save(unique_bySamp, editing_anno, geneMap, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
+save(unique_bySamp, all, editing_anno, geneMap, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 
 elementNROWS(lapply(unique_bySamp[1:4], function(x) x[which(x$nos<3),]))
 #cytosolOnly  nucleusOnly    adultOnly prenatalOnly 
