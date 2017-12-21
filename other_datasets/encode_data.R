@@ -202,12 +202,18 @@ H1hescdds = DESeqDataSetFromMatrix(countData = H1hescCounts, colData = H1hescpd,
 H1hescdds = DESeq(H1hescdds)
 H1hescres = results(H1hescdds)
 
-dim(SKNSHres[which(SKNSHres$padj<=0.05 & abs(SKNSHres$log2foldchange)>=1),])
-dim(H1hescres[which(H1hescres$padj<=0.05 & abs(H1hescres$log2foldchange)>=1),])
+dim(SKNSHres[which(SKNSHres$padj<=0.05 & abs(SKNSHres$log2FoldChange)>=1),]) # 14033
+dim(H1hescres[which(H1hescres$padj<=0.05 & abs(H1hescres$log2FoldChange)>=1),]) # 7 (!!!)
+
+plotMA(SKNSHres, alpha = 0.05, main="SK-N-SH: Nucleus vs.Cytosol", ylim=c(-6,6)) # SK-N-SH_Nucleus_vs_Cytosol_MAplot.pdf
+plotMA(H1hescres, alpha = 0.05, main="H1-HESC: Nucleus vs.Cytosol", ylim=c(-6,6)) # H1hesc_Nucleus_vs_Cytosol_MAplot.pdf
 
 # Check fractionation quality
+
 ens = c("ENSG00000075624","ENSG00000102081","ENSG00000229807","ENSG00000251562")
+gencode = geneMap[which(geneMap$ensemblID %in%ens),"gencodeID"] 
+encCounts[gencode,]
 
-
-
+SKNSHres[gencode,]
+H1hescres[gencode,]
 
