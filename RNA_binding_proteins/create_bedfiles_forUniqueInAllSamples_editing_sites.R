@@ -6,11 +6,12 @@ load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_edi
 ### write all sites in the RBP-Var2 format
 editing_annogr = editing_anno[collapsedconversion=="A:G / T:C",,]
 editing_annogr$start = editing_annogr$end
+editing_annogr$strand = ifelse(editing_annogr$conversion=="A:G","+","-")
 editing_annogr = makeGRangesFromDataFrame(editing_annogr)
 editing_annogr = reduce(editing_annogr)
 editing_annogr = as.data.frame(editing_annogr)
-editing_annogr = paste0(editing_annogr$seqnames, ":",editing_annogr$start,"-",editing_annogr$end)
-write.table(editing_annogr, quote=F, col.names= F, row.names = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BEDfiles/all_editingSites.txt")
+editing_annogr = data.frame(editing_annogr$seqnames,editing_annogr$start,editing_annogr$end, paste0("site",1:nrow(editing_annogr)), ".", editing_annogr$strand)
+write.table(editing_annogr, quote=F, col.names= F, row.names = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BEDfiles/all_editingSites_includingstrand.bed")
 
 ### Isolate the sites present in all samples in each group
 
