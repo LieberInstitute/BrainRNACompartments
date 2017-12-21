@@ -12,8 +12,8 @@ map = data.frame(ids = rownames(geneMap[which(geneMap$ensemblID %in% ens),]),
 testgenes = geneRpkm[which(rownames(geneRpkm) %in% map$ids),]
 rownames(testgenes)=geneMap[match(map$ids,rownames(geneMap)), "Symbol"]
 FracList = list(full = list(Apres = Apres, Fpres = Fpres, Arres = Arres, Frres = Frres),
-                downsampled = list(Apres= Apres.down, Fpres = Fpres.down, 
-                                   Arres = Arres.down, Frres = Frres.down))
+                downsampled = list(Apres= Apres, Fpres = Fpres.down, 
+                                   Arres = Arres, Frres = Frres))
 FracList = lapply(FracList, function(x) lapply(x, function(y) data.frame(y)))
 lfc = lapply(FracList, function(x) lapply(x, function(y) 
   y[which(rownames(y) %in% map[which(map$sym=="ACTB" | map$sym=="MALAT1"),"ids"]),]))
@@ -92,8 +92,8 @@ t.test(testnuc$MALAT1, testcyt$MALAT1, paired=TRUE, alternative = "greater")
 #103.8188
 
 # Plot the Log2 Fold Change and SE by library for these genes
-zone.res = list(list(Zpres = data.frame(Zpres), Zrres = data.frame(Zrres)), 
-                list(Zpres.down = data.frame(Zpres.down), Zrres.down = data.frame(Zrres.down)))
+zone.res = list("Not Downsampled" = list(Zpres = data.frame(Zpres), Zrres = data.frame(Zrres)), 
+                "Downsampled" = list(Zpres.down = data.frame(Zpres.down), Zrres.down = data.frame(Zrres)))
 zone.res = lapply(zone.res, function(x) lapply(x, function(y) y[which(rownames(y) %in% map$ids),]))
 zone.res[[1]][[1]]["Gene"] = zone.res[[2]][[1]]["Gene"] = 
   zone.res[[1]][[2]]["Gene"] = zone.res[[2]][[2]]["Gene"] = map$sym
@@ -102,6 +102,7 @@ zone.res[[1]]["Library"] = zone.res[[2]]["Library"] = c(rep.int("PolyA", 4), rep
 
 dodge <- position_dodge(width=0.9)
 limits <- aes(ymax = log2FoldChange + lfcSE, ymin=log2FoldChange - lfcSE)
+pdf("./Dropbox/sorted_figures/new/github_controlled/QC_section/figures/known_localizing_genes_ACTB_MALAT1_LFC.pdf")
 lapply(zone.res, function(x) {ggplot(x[which(x$Gene!="XIST" & x$Gene!="FMR1"),], 
        aes(x=Gene, y=log2FoldChange, fill=Library), color=Library) + 
   stat_summary(position=position_dodge(),geom="bar") +
@@ -115,3 +116,4 @@ lapply(zone.res, function(x) {ggplot(x[which(x$Gene!="XIST" & x$Gene!="FMR1"),],
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))})
+dev.off()
