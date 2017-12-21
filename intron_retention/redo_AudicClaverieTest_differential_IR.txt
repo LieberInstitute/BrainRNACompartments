@@ -1,0 +1,71 @@
+# Working Directory
+cd /dcl01/lieber/ajaffe/Amanda/NucVsCyt
+
+# Open screen and interactive session
+qrsh -l mem_free=50G,h_vmem=50G,h_fsize=50G
+
+
+
+### Copy over the filtered results files from “/Users/amanda/Dropbox/BrainRNACompartments/intron_retention/IRFinder_GLM.r”
+
+## scripts generated using 
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br1113C1/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br1113C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br1113N1/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br1113N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2046C/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2046C/  
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2046N/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2046N/ 
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2074C/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2074C/ 
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2074N/IRFinder-IR-nondir-cleanIntrons-adultShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2074N/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5339C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5339C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5339N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5339N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5340C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5340C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5340N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5340N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5341C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5341C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5341N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5341N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br1113C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br1113C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2046C/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2046C/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2074C/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2074C/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5339C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5339C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5340C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5340C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5341C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5341C1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br1113N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br1113N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2046N/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2046N/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br2074N/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br2074N/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5339N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5339N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5340N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5340N1/
+scp ./Dropbox/sorted_figures/IRfinder/PolyA/Br5341N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt aprice26@jhpce01.jhsph.edu:/dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/Br5341N1/
+
+
+
+module load samtools
+cd /dcl01/lieber/ajaffe/Amanda/NucVsCyt/11.29.17/
+
+### Test Adult PolyA Zone differences
+
+/users/aprice26/biotools/IRFinder-1.1.1/bin/analysisWithLowReplicates.pl \
+  -A APC_Pooled/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br1113C1/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br2046C/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br2074C/IRFinder-IR-nondir-cleanIntrons-adultShared.txt \
+  -B APN_Pooled/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br1113N1/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br2046N/IRFinder-IR-nondir-cleanIntrons-adultShared.txt Br2074N/IRFinder-IR-nondir-cleanIntrons-adultShared.txt \
+  > Adult_PolyA_Zone_cleanIntrons_adultShared.tab
+
+
+### Test Fetal PolyA Zone differences
+
+/users/aprice26/biotools/IRFinder-1.1.1/bin/analysisWithLowReplicates.pl \
+  -A FPC_Pooled/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5339C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5340C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5341C1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt \
+  -B FPN_Pooled/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5339N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5340N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt Br5341N1/IRFinder-IR-nondir-cleanIntrons-prenatalShared.txt \
+  > Fetal_PolyA_Zone_cleanIntrons_prenatalShared.tab 
+
+
+### Test Nuclear PolyA Age Differences
+
+/users/aprice26/biotools/IRFinder-1.1.1/bin/analysisWithLowReplicates.pl \
+  -A APN_Pooled/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br1113N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br2046N/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br2074N/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt  \
+  -B FPN_Pooled/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br5339N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br5340N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt Br5341N1/IRFinder-IR-nondir-cleanIntrons-nucleusShared.txt \
+  >  Nuclear_PolyA_Age_cleanIntrons_nucleusShared.tab
+
+
+### Test Cytosolic PolyA Age Differences
+
+/users/aprice26/biotools/IRFinder-1.1.1/bin/analysisWithLowReplicates.pl \
+  -A APC_Pooled/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br1113C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br2046C/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br2074C/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt \
+  -B FPC_Pooled/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br5339C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br5340C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt Br5341C1/IRFinder-IR-nondir-cleanIntrons-cytosolShared.txt \
+  >  Cytosol_PolyA_Age_cleanIntrons_cytosolShared.tab
