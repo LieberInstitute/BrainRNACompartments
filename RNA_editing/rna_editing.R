@@ -147,11 +147,18 @@ ggplot(editingres_df[which(editingres_df$collapsedconversion=="A:G / T:C"),],
 
 # Annotate editing sites to features in the genome
 txdb = loadDb("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
-features = list(CDS = cdsBy(txdb, by="tx", use.names=T), Introns = intronsByTranscript(txdb, use.names=T), 
+features = list(genes = genes(txdb), CDS = cdsBy(txdb, by="tx", use.names=T), Introns = intronsByTranscript(txdb, use.names=T), 
                 UTR5 = fiveUTRsByTranscript(txdb, use.names=T), UTR3 = threeUTRsByTranscript(txdb, use.names=T))
 features = lapply(features, function(x) unlist(x, recursive = TRUE, use.names = TRUE))
 lapply(features, head)
 
+editingres_df$strand = ifelse(editingres_df$conversion=="A:G","+","-")
+editingres_df[editingres_df$collapsedconversion!="A:G / T:C","strand"] = "*"
+grediting = makeGRangesFromDataFrame(editingres_df, keep.extra.columns = T)
+editedgenes = findOverlaps(grediting, features$genes)
+genes = as.data.frame(features$genes)
+x = cbind(editingres_df[queryHits(editedgenes),], overlappingGene = genes[subjectHits(editedgenes),"gene_id"])
+editingres_df = rbind(x, data.frame(editingres_df[-unique(queryHits(editedgenes)),], overlappingGene = "NA"))
 grediting = makeGRangesFromDataFrame(editingres_df, keep.extra.columns = T)
 annotation = lapply(features, function(y) findOverlaps(grediting, y))
 
@@ -175,11 +182,12 @@ dA = distanceToNearest(grediting, geneMapGR)
 editing$nearestSymbol = geneMapGR$Symbol[subjectHits(dA)]
 editing$nearestID = names(geneMapGR)[subjectHits(dA)]
 editing$distToGene = mcols(dA)$distance
-editing$EntrezID = geneMapGR$EntrezID[subjectHits(dA)]
+editing$EntrezID = ifelse(editing$overlappingGene!="NA", geneMap[match(editing$overlappingGene, geneMap$gencodeID),"EntrezID"], geneMapGR$EntrezID[subjectHits(dA)])
 editing_anno = data.table(editing)
 
 # What is the distribution of features edited across groups?
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_allSites.pdf")
 ggplot(editing_anno[,length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
@@ -189,8 +197,8 @@ ggplot(editing_anno[,length(unique(editingID)), by = c("annotation", "Fraction",
   ggtitle("Number of RNA Editing Sites\n by Feature and Group") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Genomic_features_editing_allSites.pdf
-
+dev.off()
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_AtoGOnly.pdf")
 ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
@@ -200,7 +208,7 @@ ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), 
   ggtitle("Number of RNA Editing Sites\nby Feature and Group") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Genomic_features_editing_AtoGOnly.pdf
+dev.off()
 
 intron = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="Intron",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
 utr3 = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="UTR3",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
@@ -259,29 +267,26 @@ head(na.omit(result[order(result$fdr.age),]))
 
 ## Plot the pvalue distributions
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Pvalue_distributions_RNAediting.pdf",height = 6,width = 8)
 ggplot(data=result, aes(result$pval.age)) + geom_histogram(bins=20) +
   ylab("Count") + 
   xlab("P-value") +
   ggtitle("P-value By Age") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Pvalue_ByAge_RNAediting.pdf
-
 ggplot(data=result, aes(result$pval.frac)) + geom_histogram(bins=20) +
   ylab("Count") + 
   xlab("P-value") +
   ggtitle("P-value By Fraction") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Pvalue_ByFrac_RNAediting.pdf
-
 ggplot(data=result, aes(result$pval.int)) + geom_histogram(bins=20) +
   ylab("Count") + 
   xlab("P-value") +
   ggtitle("P-value By Fraction and Age") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Pvalue_Interaction_RNAediting.pdf
+dev.off()
 
 editing.sig = list(byAge = result[which(result$fdr.age<=0.05),"id"],
                    byFrac = result[which(result$fdr.frac<=0.05),"id"],
@@ -393,21 +398,20 @@ for (i in 1:nrow(propmat[,7:12])) {
 result.prenatal$fdr.frac = p.adjust(result.prenatal$pval.frac, method = "fdr")
 
 # Plot 
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Pvalue_ByFrac_inAdultOnly_inPrenatalOnly_RNAediting.pdf", height = 6, width = 8)
 ggplot(data=result.adult, aes(result.adult$pval.frac)) + geom_histogram(bins=20) +
   ylab("Count") + 
   xlab("P-value") +
   ggtitle("P-value By Fraction in Adult") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Pvalue_ByFrac_AdultOnly_RNAediting.pdf
-
 ggplot(data=result.prenatal, aes(result.prenatal$pval.frac)) + geom_histogram(bins=20) +
   ylab("Count") + 
   xlab("P-value") +
   ggtitle("P-value By Fraction in Prenatal") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# Pvalue_ByFrac_PrenatalOnly_RNAediting.pdf
+dev.off()
 
 AandP.editing.sig = list(Adult.byFrac = result.adult[which(result.adult$fdr.frac<=0.05),"id"],
                          Prenatal.byFrac = result.prenatal[which(result.prenatal$fdr.frac<=0.05),"id"]) 
@@ -486,6 +490,7 @@ unique_dt = do.call(rbind, unique)
 unique_dt$Status = factor(unique_dt$Status, levels = c("cytosolOnly", "nucleusOnly", "adultOnly", "prenatalOnly", "ANnotAC",
                                                  "ACnotAN", "ANnotPN", "PNnotAN", "ACnotPC", "PCnotAC", "PCnotPN", "PNnotPC"))
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/valdepth_unique_editing_sites_byGroup_bySample.pdf", width = 24, height = 6)
 ggplot(unique_dt, aes(x = sampleID, y = valdepth, fill = Group)) + geom_boxplot() +
   facet_grid(. ~ Status, scales = "free") +
   labs(fill="") +
@@ -495,305 +500,40 @@ ggplot(unique_dt, aes(x = sampleID, y = valdepth, fill = Group)) + geom_boxplot(
   ggtitle("Validated Coverage Range By Group At Uniquely Edited Sites") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-# valdepth_unique_editing_sites_byGroup_bySample.pdf
+dev.off()
 
 
 ## Are editing sites in a specific annotation more likely to be unique to a group?
 
-elementNROWS(lapply(unique[1:4], function(x) unique(x$editingID)))
-#cytosolOnly  nucleusOnly    adultOnly prenatalOnly
-#   3830         8809         9539         6049
-x = lapply(unique, function(x) x[,length(unique(editingID)),by="annotation"])
-x = lapply(x, function(x) as.data.frame(x))
-x = lapply(x, function(x) x[order(x$annotation),])
-x = data.frame(annotation = x[[1]][,1], cyt = x[[1]][,2], nuc = x[[2]][,2], adult = x[[3]][,2], prenatal = x[[4]][,2])
-x
-#annotation  cyt  nuc adult prenatal
-#1        CDS   53  116   173      132
-#2     Intron 1255 4237  3635     2635
-#3      Other  777 1617  1799     1138
-#4       UTR3 1710 2748  3854     2069
-#5       UTR5   35   91    78       75
+x = lapply(unique, function(x) as.data.frame(cbind(x[,length(unique(editingID)),by="annotation"], total = length(unique(x$editingID)))))
+x = Map(cbind, x, diff = lapply(x, function(y) y$total - y$V1))
+comps = list(byFraction = c("cytosolOnly","nucleusOnly"), byAge = c("adultOnly","prenatalOnly"), byFracInAdult = c("ACnotAN","ANnotAC"),
+             byFracinPrenatal = c("PCnotPN","PNnotPC"), byAgeinCyt = c("ACnotPC","PCnotAC"), byAgeinNuc = c("ANnotPN", "PNnotAN"))
+anno = c("CDS","Intron","Other","UTR3","UTR5")
 
 ## Are  more likely to be in cyt over nuc or vice versa?
-fisher.test(data.frame(c(53,3830-53),c(116,8809-116))) # CDS
-#p-value = 0.8005
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7433125 1.4710638
-#sample estimates:
-#  odds ratio 
-#1.051571
-fisher.test(data.frame(c(1255,3830-1255),c(4237,8809-4237))) # Intron
-# more likely to be intron in nucleus-unique than cytosol-unique sites
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4853220 0.5697537
-#sample estimates:
-#  odds ratio 
-#0.5259342
-fisher.test(data.frame(c(777,3830-777),c(1617,8809-1617))) # Other
-#p-value = 0.01175
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.027431 1.246496
-#sample estimates:
-#  odds ratio 
-#1.131948
-fisher.test(data.frame(c(1710,3830-1710),c(2748,8809-2748))) # 3'UTR
-# more likely to be 3'UTR in cytosol-unique than nucleus-unique sites
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.644115 1.924855
-#sample estimates:
-#  odds ratio 
-#1.779005
-fisher.test(data.frame(c(35,3830-35),c(91,8809-91))) # 5'UTR
-#p-value = 0.5607
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5793647 1.3208958
-#sample estimates:
-#  odds ratio 
-#0.8835633
+anno.comps = list(list(),list(),list(),list(),list(),list())
+for (i in (1:length(comps))){
+  for (j in (1:length(anno))){
+    anno.comps[[i]][[j]] = data.frame(Cyt.Adult = c(x[[comps[[i]][1]]][which(x[[comps[[i]][1]]][,"annotation"]==anno[j]),"V1"],
+                                                    x[[comps[[i]][1]]][which(x[[comps[[i]][1]]][,"annotation"]==anno[j]),"diff"]),
+                                      Nuc.Prenatal = c(x[[comps[[i]][2]]][which(x[[comps[[i]][1]]][,"annotation"]==anno[j]),"V1"],
+                                                       x[[comps[[i]][2]]][which(x[[comps[[i]][1]]][,"annotation"]==anno[j]),"diff"]), row.names = c("inAnno","notAnno"))
+  }
+  names(anno.comps[[i]]) = anno
+}
+names(anno.comps) = names(comps)
+write.csv(rbind(pval = do.call(rbind, lapply(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)), data.frame)),
+                          OR = round(do.call(rbind, lapply(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$estimate)), data.frame)),2)),
+          quote=F, file= "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_byGroup.csv")
+names(unlist(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)))[unlist(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)))<=0.001923077])
+# 24 of 26 comparisons are significant
 
-## Are more likely to be in adult over prenatal or vice versa?
-fisher.test(data.frame(c(173,9539-173),c(132,6049-132))) # CDS
-#p-value = 0.1093
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6547078 1.0490527
-#sample estimates:
-#  odds ratio 
-#0.8279966
-fisher.test(data.frame(c(3635,9539-3635),c(2635,6049-2635))) # Intron
-# more likely to be in fetal than adult
-#p-value = 1.421e-11
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7467143 0.8521855
-#sample estimates:
-#  odds ratio 
-#0.7977237
-fisher.test(data.frame(c(1799,9539-1799),c(1138,6049-1138))) # Other
-#p-value = 0.9497
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9229963 1.0902577
-#sample estimates:
-#  odds ratio 
-#1.003039
-fisher.test(data.frame(c(3854,9539-3854),c(2069,6049-2069))) # 3'UTR
-# more likely to be in adult than fetal
-#p-value = 7.539e-15
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.218885 1.395338
-#sample estimates:
-#  odds ratio 
-#1.304049
-fisher.test(data.frame(c(78,9539-78),c(75,6049-75))) # 5'UTR
-# more likely to be in fetal than adult
-#p-value = 0.01212
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4712914 0.9155842
-#sample estimates:
-#  odds ratio 
-#0.6567312
-
-
-## Break the above down by age
-elementNROWS(lapply(unique[5:12], function(x) unique(x$editingID)))
-#ANnotAC ACnotAN ANnotPN PNnotAN ACnotPC PCnotAC PCnotPN PNnotPC 
-#6732    2469    8044    4688    4558    3972    2335    3828
-x = lapply(unique, function(x) x[,length(unique(editingID)),by="annotation"])
-x = lapply(x, function(x) as.data.frame(x))
-x = lapply(x, function(x) x[order(x$annotation),])
-y = data.frame(x[[5]][,1], x[[5]][,2], x[[6]][,2], x[[7]][,2], x[[8]][,2],x[[9]][,2],x[[10]][,2],x[[11]][,2],x[[12]][,2])
-colnames(y) = c("annotation", names(x)[5:12])
-y
-#annotation ANnotAC ACnotAN ANnotPN PNnotAN ACnotPC PCnotAC PCnotPN PNnotPC
-#1        CDS      84      35     150     114     107     100      30      50
-#2     Intron    3068     690    3214    2070    1244    1466     834    1846
-#3      Other    1200     507    1460     868     834     721     438     652
-#4       UTR3    2323    1218    3155    1577    2345    1644    1011    1239
-#5       UTR5      57      19      65      59      28      41      22      41
-
-# In Adult: Are  more likely to be in a cyt over nuc or vice versa?
-fisher.test(data.frame(c(84,6732-84),c(35,2469-35))) # CDS
-#p-value = 0.5325
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5840017 1.3472645
-#sample estimates:
-#  odds ratio 
-#0.8787258
-fisher.test(data.frame(c(3068,6732-3068),c(690,2469-690))) # Intron
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.951227 2.390122
-#sample estimates:
-#  odds ratio 
-#2.158708
-fisher.test(data.frame(c(1200,6732-1200),c(507,2469-507))) # Other
-#p-value = 0.003324
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7466130 0.9446533
-#sample estimates:
-#  odds ratio 
-#0.8394753
-fisher.test(data.frame(c(2323,6732-2323),c(1218,2469-1218))) # 3'UTR
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4922896 0.5949168
-#sample estimates:
-#  odds ratio 
-#0.5411784
-fisher.test(data.frame(c(57,6732-57),c(19,2469-19))) # 5'UTR
-#p-value = 0.7956
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6437852 1.9643228
-#sample estimates:
-#  odds ratio 
-#1.101111
-
-# In Prenatal: Are  more likely to be in a cyt over nuc or vice versa?
-fisher.test(data.frame(c(30,2335-30),c(50,3828-50))) # CDS
-#p-value = 1
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.601889 1.582234
-#sample estimates:
-#  odds ratio 
-#0.9834295
-fisher.test(data.frame(c(834,2335-834),c(1846,3828-1846))) # Intron
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5358590 0.6640308
-#sample estimates:
-#  odds ratio 
-#0.5966263
-fisher.test(data.frame(c(438,2335-438),c(652,3828-652))) # Other
-#p-value = 0.08547
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9812938 1.2882884
-#sample estimates:
-#  odds ratio 
-#1.124683 
-fisher.test(data.frame(c(1011,2335-1011),c(1239,3828-1239))) # 3'UTR
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.432615 1.776922
-#sample estimates:
-#  odds ratio 
-#1.595525
-fisher.test(data.frame(c(22,2335-22),c(41,3828-41))) # 5'UTR
-#p-value = 0.6962
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4970463 1.5141666
-#sample estimates:
-#  odds ratio 
-#0.8785313 
-
-# In Cytosol: Are  more likely to be in a adult over prenatal or vice versa?
-fisher.test(data.frame(c(107,4558-107),c(100,3972-100))) # CDS
-#p-value = 0.6221
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.6995324 1.2394529
-#sample estimates:
-#  odds ratio 
-#0.9308348
-fisher.test(data.frame(c(1244,4558-1244),c(1466,3972-1466))) # Intron
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5848471 0.7040080
-#sample estimates:
-#  odds ratio 
-#0.6417252
-fisher.test(data.frame(c(834,4558-834),c(721,3972-721))) # Other
-#p-value = 0.8661
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.9030578 1.1293151
-#sample estimates:
-#  odds ratio 
-#1.009806
-fisher.test(data.frame(c(2345,4558-2345),c(1644,3972-1644))) # 3'UTR
-#p-value < 2.2e-16
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.375856 1.636514
-#sample estimates:
-#  odds ratio 
-#1.500416
-fisher.test(data.frame(c(28,4558-28),c(41,3972-41))) # 5'UTR
-#p-value = 0.03877
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.3522574 0.9838893
-#sample estimates:
-#  odds ratio 
-#0.5926667
-     
-# In Nucleus: Are  more likely to be in a adult over prenatal or vice versa?
-fisher.test(data.frame(c(150,8044-150),c(114,4688-114))) # CDS
-#p-value = 0.03326
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.5919377 0.9841713
-#sample estimates:
-#  odds ratio 
-#0.7624387
-fisher.test(data.frame(c(3214,8044-3214),c(2070,4688-2070))) # Intron
-#p-value = 3.748e-06
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.7818745 0.9058926
-#sample estimates:
-#  odds ratio 
-#0.8416017
-fisher.test(data.frame(c(1460,8044-1460),c(868,4688-868))) # Other
-#p-value = 0.6177
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.8884259 1.0724153
-#sample estimates:
-#  odds ratio 
-#0.9758917 
-fisher.test(data.frame(c(3155,8044-3155),c(1577,4688-1577))) # 3'UTR
-#p-value = 3.072e-10
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  1.179875 1.373741
-#sample estimates:
-#  odds ratio 
-#1.273027
-fisher.test(data.frame(c(65,8044-65),c(59,4688-59))) # 5'UTR
-#p-value = 0.01478
-#alternative hypothesis: true odds ratio is not equal to 1
-#95 percent confidence interval:
-#  0.4414743 0.9270061
-#sample estimates:
-#  odds ratio 
-#0.639198
 
 
 ## Gene ontology of different groups of editing sites
 
-entrez.editing = lapply(unique, function(x) as.character(na.omit(x$EntrezID)))
+entrez.editing = lapply(unique, function(x) as.character(unique(na.omit(x$EntrezID))))
 
 split.anno = lapply(unique, function(x) split(x, f = x$annotation))
 cytosolOnly = split.anno[["cytosolOnly"]]
@@ -809,18 +549,18 @@ PCnotAC = split.anno[["PCnotAC"]]
 PCnotPN = split.anno[["PCnotPN"]]
 PNnotPC = split.anno[["PNnotPC"]]
 
-cytosolOnly = lapply(cytosolOnly, function(x) as.character(na.omit(x$EntrezID)))
-nucleusOnly = lapply(nucleusOnly, function(x) as.character(na.omit(x$EntrezID)))
-adultOnly = lapply(adultOnly, function(x) as.character(na.omit(x$EntrezID)))
-prenatalOnly = lapply(prenatalOnly, function(x) as.character(na.omit(x$EntrezID)))
-ANnotAC = lapply(ANnotAC, function(x) as.character(na.omit(x$EntrezID)))
-ACnotAN = lapply(ACnotAN, function(x) as.character(na.omit(x$EntrezID)))
-ANnotPN = lapply(ANnotPN, function(x) as.character(na.omit(x$EntrezID)))
-PNnotAN = lapply(PNnotAN, function(x) as.character(na.omit(x$EntrezID))) 
-ACnotPC = lapply(ACnotPC, function(x) as.character(na.omit(x$EntrezID)))
-PCnotAC = lapply(PCnotAC, function(x) as.character(na.omit(x$EntrezID)))
-PCnotPN = lapply(PCnotPN, function(x) as.character(na.omit(x$EntrezID)))
-PNnotPC = lapply(PNnotPC, function(x) as.character(na.omit(x$EntrezID)))
+cytosolOnly = lapply(cytosolOnly, function(x) unique(as.character(na.omit(x$EntrezID))))
+nucleusOnly = lapply(nucleusOnly, function(x) unique(as.character(na.omit(x$EntrezID))))
+adultOnly = lapply(adultOnly, function(x) unique(as.character(na.omit(x$EntrezID))))
+prenatalOnly = lapply(prenatalOnly, function(x) unique(as.character(na.omit(x$EntrezID))))
+ANnotAC = lapply(ANnotAC, function(x) unique(as.character(na.omit(x$EntrezID))))
+ACnotAN = lapply(ACnotAN, function(x) unique(as.character(na.omit(x$EntrezID))))
+ANnotPN = lapply(ANnotPN, function(x) unique(as.character(na.omit(x$EntrezID))))
+PNnotAN = lapply(PNnotAN, function(x) unique(as.character(na.omit(x$EntrezID))))
+ACnotPC = lapply(ACnotPC, function(x) unique(as.character(na.omit(x$EntrezID))))
+PCnotAC = lapply(PCnotAC, function(x) unique(as.character(na.omit(x$EntrezID))))
+PCnotPN = lapply(PCnotPN, function(x) unique(as.character(na.omit(x$EntrezID))))
+PNnotPC = lapply(PNnotPC, function(x) unique(as.character(na.omit(x$EntrezID))))
 
 ## Compare the enriched terms between the unsplit groups
 # KEGG
@@ -836,7 +576,7 @@ compareDO = compareCluster(entrez.editing, fun="enrichDO",  ont = "DO", qvalueCu
 save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/interaction.kegg.GO.DO.objects.RNAediting.rda")
 # Plot
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/interaction.kegg.GO.DO_unsplit_by_annotation.pdf", width=18, height=10)
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/interaction.kegg.GO.DO_unsplit_by_annotation.pdf", width=22, height=14)
 plot(compareKegg,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment")
 plot(compareBP,colorBy="p.adjust",  showCategory = 45, title= "Biological Process GO Enrichment")
 plot(compareMF,colorBy="p.adjust",  showCategory = 45, title= "Molecular Function GO Enrichment")
@@ -845,138 +585,149 @@ plot(compareDO,colorBy="p.adjust",  showCategory = 45, title= "Disease Ontology 
 dev.off()
 
 ## Compare the enriched terms between the split groups
+group = c("cytosolOnly","nucleusOnly","adultOnly","prenatalOnly","ANnotAC","ACnotAN","ANnotPN","PNnotAN","ACnotPC","PCnotAC","PCnotPN","PNnotPC")
 # KEGG
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Kegg_split_by_annotation.pdf")
 Kegg.cytosolOnly = compareCluster(cytosolOnly, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: cytosolOnly")
 Kegg.nucleusOnly = compareCluster(nucleusOnly, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 Kegg.adultOnly = compareCluster(adultOnly, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: adultOnly")
 Kegg.prenatalOnly = compareCluster(prenatalOnly, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: prenatalOnly")
 Kegg.ANnotAC = compareCluster(ANnotAC, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ANnotAC")
 Kegg.ACnotAN = compareCluster(ACnotAN, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ACnotAN")
 Kegg.ANnotPN = compareCluster(ANnotPN, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ANnotPN")
 Kegg.PNnotAN = compareCluster(PNnotAN, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.PNnotAN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PNnotAN")
 Kegg.ACnotPC = compareCluster(ACnotPC, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ACnotPC")
 Kegg.PCnotAC = compareCluster(PCnotAC, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PCnotAC")
 Kegg.PCnotPN = compareCluster(PCnotPN, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PCnotPN")
 Kegg.PNnotPC = compareCluster(PNnotPC, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(Kegg.PNnotPC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PNnotPC")
-dev.off()
-save(Kegg.cytosolOnly,Kegg.adultOnly,Kegg.prenatalOnly,Kegg.ANnotAC,Kegg.ACnotAN,
-     Kegg.ANnotPN,Kegg.PNnotAN,Kegg.ACnotPC,Kegg.PCnotAC,Kegg.PCnotPN,Kegg.PNnotPC, 
+save(Kegg.cytosolOnly,Kegg.nucleusOnly,Kegg.adultOnly,Kegg.prenatalOnly,Kegg.ANnotAC,Kegg.ACnotAN,Kegg.ANnotPN,Kegg.PNnotAN,Kegg.ACnotPC,Kegg.PCnotAC,Kegg.PCnotPN,Kegg.PNnotPC, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/kegg.objects.RNAediting.SplitByAnnotation.rda")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Kegg_split_by_annotation.pdf", width = 10)
+plot(Kegg.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: cytosolOnly")
+plot(Kegg.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: adultOnly")
+plot(Kegg.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: prenatalOnly")
+plot(Kegg.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ANnotAC")
+plot(Kegg.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ACnotAN")
+plot(Kegg.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ANnotPN")
+plot(Kegg.PNnotAN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PNnotAN")
+plot(Kegg.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ACnotPC")
+plot(Kegg.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PCnotAC")
+plot(Kegg.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: PCnotPN")
+dev.off()
+
 # Biological Process
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/BP_split_by_annotation.pdf", height = 6, width = 10.5)
 BP.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: cytosolOnly")
 BP.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: nucleusOnly")
 BP.adultOnly = compareCluster(adultOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 BP.prenatalOnly = compareCluster(prenatalOnly, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: prenatalOnly")
 BP.ANnotAC = compareCluster(ANnotAC, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ANnotAC")
 BP.ACnotAN = compareCluster(ACnotAN, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ACnotAN")
 BP.ANnotPN = compareCluster(ANnotPN, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 BP.PNnotAN = compareCluster(PNnotAN, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 BP.ACnotPC = compareCluster(ACnotPC, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 BP.PCnotAC = compareCluster(PCnotAC, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: PCnotAC")
 BP.PCnotPN = compareCluster(PCnotPN, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(BP.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: PCnotPN")
 BP.PNnotPC = compareCluster(PNnotPC, fun="enrichGO", ont = "BP", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-dev.off()
-save(BP.cytosolOnly,BP.nucleusOnly,BP.prenatalOnly,BP.ANnotAC,BP.ACnotAN,BP.PCnotAC,BP.PCnotPN, 
+save(BP.cytosolOnly,BP.nucleusOnly,BP.adultOnly,BP.ANnotAC,BP.ACnotAN,BP.ANnotPN,BP.ACnotPC,BP.PCnotAC,BP.PCnotPN,BP.PNnotPC, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BP.objects.RNAediting.SplitByAnnotation.rda")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/BP_split_by_annotation.pdf", height = 6, width = 10.5)
+plot(BP.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: cytosolOnly")
+plot(BP.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: nucleusOnly")
+plot(BP.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: adultOnly")
+plot(BP.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ANnotAC")
+plot(BP.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ACnotAN")
+plot(BP.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ANnotPN")
+plot(BP.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: PCnotAC")
+plot(BP.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: PCnotPN")
+plot(BP.PNnotPC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: PNnotPC")
+dev.off()
+
 # Molecular Function
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/MF_split_by_annotation.pdf", height = 12, width = 8)
 MF.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: cytosolOnly")
 MF.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: nucleusOnly")
 MF.adultOnly = compareCluster(adultOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: adultOnly")
 MF.prenatalOnly = compareCluster(prenatalOnly, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 MF.ANnotAC = compareCluster(ANnotAC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ANnotAC")
 MF.ACnotAN = compareCluster(ACnotAN, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ACnotAN")
 MF.ANnotPN = compareCluster(ANnotPN, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ANnotPN")
 MF.PNnotAN = compareCluster(PNnotAN, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 MF.ACnotPC = compareCluster(ACnotPC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ACnotPC")
 MF.PCnotAC = compareCluster(PCnotAC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 MF.PCnotPN = compareCluster(PCnotPN, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: PCnotPN")
 MF.PNnotPC = compareCluster(PNnotPC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(MF.PNnotPC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: PNnotPC")
-dev.off()
 save(MF.cytosolOnly,MF.nucleusOnly,MF.adultOnly,MF.ANnotAC,MF.ACnotAN,MF.ANnotPN,MF.ACnotPC,MF.PCnotPN,MF.PNnotPC, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/MF.objects.RNAediting.SplitByAnnotation.rda")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/MF_split_by_annotation.pdf", height = 8, width = 12)
+plot(MF.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: cytosolOnly")
+plot(MF.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: nucleusOnly")
+plot(MF.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: adultOnly")
+plot(MF.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ANnotAC")
+plot(MF.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ACnotAN")
+plot(MF.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ANnotPN")
+plot(MF.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ACnotPC")
+plot(MF.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: PCnotPN")
+plot(MF.PNnotPC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: PNnotPC")
+dev.off()
+
 # Cellular Component
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/CC_split_by_annotation.pdf", height = 8, width = 10)
 CC.cytosolOnly = compareCluster(cytosolOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: cytosolOnly")
 CC.nucleusOnly = compareCluster(nucleusOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: nucleusOnly")
 CC.adultOnly = compareCluster(adultOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: adultOnly")
 CC.prenatalOnly = compareCluster(prenatalOnly, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 CC.ANnotAC = compareCluster(ANnotAC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ANnotAC")
 CC.ACnotAN = compareCluster(ACnotAN, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ACnotAN")
 CC.ANnotPN = compareCluster(ANnotPN, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ANnotPN")
 CC.PNnotAN = compareCluster(PNnotAN, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 CC.ACnotPC = compareCluster(ACnotPC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ACnotPC")
 CC.PCnotAC = compareCluster(PCnotAC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PCnotAC")
 CC.PCnotPN = compareCluster(PCnotPN, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(CC.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PCnotPN")
 CC.PNnotPC = compareCluster(PNnotPC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
+save(CC.cytosolOnly,CC.nucleusOnly,CC.adultOnly,CC.prenatalOnly,CC.ANnotAC,CC.ACnotAN,CC.ANnotPN,CC.PNnotAN,CC.ACnotPC,CC.PCnotAC,CC.PCnotPN,CC.PNnotPC, 
+     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/CC.objects.RNAediting.SplitByAnnotation.rda")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/CC_split_by_annotation.pdf", height = 8, width = 10)
+plot(CC.cytosolOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: cytosolOnly")
+plot(CC.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: nucleusOnly")
+plot(CC.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: adultOnly")
+plot(CC.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: prenatalOnly")
+plot(CC.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ANnotAC")
+plot(CC.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ACnotAN")
+plot(CC.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ANnotPN")
+plot(CC.PNnotAN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PNnotAN")
+plot(CC.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ACnotPC")
+plot(CC.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PCnotAC")
+plot(CC.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PCnotPN")
 plot(CC.PNnotPC,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: PNnotPC")
 dev.off()
-save(CC.cytosolOnly,CC.nucleusOnly,CC.adultOnly,CC.ANnotAC,CC.ACnotAN,CC.ANnotPN,CC.ACnotPC,CC.PCnotAC,CC.PCnotPN,CC.PNnotPC, 
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/CC.objects.RNAediting.SplitByAnnotation.rda")
+
 # Disease Ontology
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/DO_split_by_annotation.pdf")
 DO.cytosolOnly = compareCluster(cytosolOnly, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 DO.nucleusOnly = compareCluster(nucleusOnly, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.nucleusOnly,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: nucleusOnly")
 DO.adultOnly = compareCluster(adultOnly, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: adultOnly")
 DO.prenatalOnly = compareCluster(prenatalOnly, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: prenatalOnly")
 DO.ANnotAC = compareCluster(ANnotAC, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 DO.ACnotAN = compareCluster(ACnotAN, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ACnotAN")
 DO.ANnotPN = compareCluster(ANnotPN, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ANnotPN")
 DO.PNnotAN = compareCluster(PNnotAN, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.PNnotAN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PNnotAN")
 DO.ACnotPC = compareCluster(ACnotPC, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ACnotPC")
 DO.PCnotAC = compareCluster(PCnotAC, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotAC")
 DO.PCnotPN = compareCluster(PCnotPN, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-plot(DO.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotPN")
 DO.PNnotPC = compareCluster(PNnotPC, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
-dev.off()
-save(DO.nucleusOnly,DO.adultOnly,DO.prenatalOnly,DO.ACnotAN,DO.ANnotPN,DO.PNnotAN,DO.ACnotPC,DO.PCnotAC,DO.PCnotPN, 
+save(DO.adultOnly,DO.prenatalOnly,DO.ACnotAN,DO.ANnotPN,DO.PNnotAN,DO.ACnotPC,DO.PCnotAC,DO.PCnotPN, 
      file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/DO.objects.RNAediting.SplitByAnnotation.rda")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/DO_split_by_annotation.pdf")
+plot(DO.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: adultOnly")
+plot(DO.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: prenatalOnly")
+plot(DO.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ACnotAN")
+plot(DO.ANnotPN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ANnotPN")
+plot(DO.PNnotAN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PNnotAN")
+plot(DO.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ACnotPC")
+plot(DO.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotAC")
+plot(DO.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotPN")
+dev.off()
 
 
 ### Characterize the overlap with retained introns
