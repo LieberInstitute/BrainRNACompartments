@@ -7,7 +7,7 @@ load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_edi
 
 ## Scan in master list of editing sites
 
-master = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BEDfiles/all_editingSites_includingstrand.bed")
+master = read.table("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/BEDfiles/all_editingSites_includingstrand.bed")
 colnames(master) = c("chromosome","start","end","siteName","space","strand")
 master_gr = makeGRangesFromDataFrame(master, keep.extra.columns = T)
 
@@ -30,6 +30,7 @@ hist(rbsnitch$pval)
 
 ## Match the results to editing site annotation
 
+editing_anno$start = editing_anno$end 
 editing_anno_gr = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
 rbsnitch_gr = makeGRangesFromDataFrame(rbsnitch,seqnames.field="EditingSite_chrom", start.field="EditingSite_start", end.field="EditingSite_end",
                                        strand.field="Transcript_strand", keep.extra.columns = T)

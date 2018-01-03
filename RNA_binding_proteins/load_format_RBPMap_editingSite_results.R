@@ -7,8 +7,8 @@ load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_edi
 ### For RNA Binding protein analysis, write coordinates in a way recognized by RBPMap
 
 atog = editing_anno[collapsedconversion=="A:G / T:C",,]
-rnacoord = paste0(atog$seqnames, ":", atog$end-25,"-", atog$end+25, ":", atog$strand)
-rnacoord = rnacoord[!duplicated(rnacoord)]
+rnacoord = paste0(atog$seqnames, ":", atog$start-10,"-", atog$end+10, ":", atog$strand)
+rnacoord = unique(rnacoord)
 length(rnacoord) # 18907 editing sites
 int = list(c(1:5000), c(5001:10000),c(10001:15000), c(15001:length(rnacoord))) 
 for (i in 1:length(int)) {
@@ -20,13 +20,13 @@ for (i in 1:length(int)) {
 
 ### load in RBPMap results
 
-x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch1_results.txt", 
+x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch1_results_highStringency.txt", 
                header = FALSE, sep = "\t", col.names = paste0("V",seq_len(6)), fill = TRUE)
 ast = grep("***", x$V1, fixed = T)
 sep = list()
 sep[[1]] = x[c(1:ast[1]-1),]
 for (i in 1:length(ast)) { sep[[i+1]] = x[c((ast[i]+1):(ast[i+1]-1)),] }
-sep = Map(cbind, sep[2:length(sep)], editingID = lapply(sep[2:length(sep)], function(x) x$V1[1]))
+sep = Map(cbind, sep[2:length(sep)], editingID = lapply(sep[2:length(sep)], function(x) as.character(x$V1[1])))
 sep = lapply(sep, function(x) x[3:nrow(x),])
 sep = do.call(rbind, sep)
 proteinIDs = grep("Protein", sep$V1, fixed = T)
@@ -39,7 +39,7 @@ batch1$proteinID = gsub("Protein: ","", batch1$proteinID)
 batch1$proteinID = gsub("(Hs/Mm)","", batch1$proteinID, fixed = T)
 colnames(batch1) = c("Sequence Position","Genomic Coordinate","Motif","K-mer","Z-score", "P-value", "editingID", "proteinID")
 
-x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch2_results.txt", 
+x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch2_results_highStringency.txt", 
                header = FALSE, sep = "\t", col.names = paste0("V",seq_len(6)), fill = TRUE)
 ast = grep("***", x$V1, fixed = T)
 sep = list()
@@ -59,7 +59,7 @@ batch2$proteinID = gsub("(Hs/Mm)","", batch2$proteinID, fixed = T)
 colnames(batch2) = c("Sequence Position","Genomic Coordinate","Motif","K-mer","Z-score", "P-value", "editingID", "proteinID")
 head(batch2)
 
-x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch3_results.txt", 
+x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch3_results_highStringency.txt", 
                header = FALSE, sep = "\t", col.names = paste0("V",seq_len(6)), fill = TRUE)
 ast = grep("***", x$V1, fixed = T)
 sep = list()
@@ -79,7 +79,7 @@ batch3$proteinID = gsub("(Hs/Mm)","", batch3$proteinID, fixed = T)
 colnames(batch3) = c("Sequence Position","Genomic Coordinate","Motif","K-mer","Z-score", "P-value", "editingID", "proteinID")
 head(batch3)
 
-x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch4_results.txt", 
+x = read.table("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/RBPMap_editingSites_Batch4_results_highStringency.txt", 
                header = FALSE, sep = "\t", col.names = paste0("V",seq_len(6)), fill = TRUE)
 ast = grep("***", x$V1, fixed = T)
 sep = list()
@@ -100,6 +100,6 @@ colnames(batch4) = c("Sequence Position","Genomic Coordinate","Motif","K-mer","Z
 head(batch4)
 
 rbpmap = rbind(batch1, batch2, batch3, batch4)
-rbpmap = rbind(rbpmap[1:445058,], batch4)
 dim(rbpmap)
-save(rbpmap, file = "./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_results_editing_sites.rda")
+length(unique(rbpmap$editingID))
+save(rbpmap, file = "./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_results_editing_sites_highStringency.rda")
