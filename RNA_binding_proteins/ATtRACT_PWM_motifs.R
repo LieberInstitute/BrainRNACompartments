@@ -3,6 +3,7 @@ library(GenomicFeatures)
 library(data.table)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(seqinr)
+library(PWMEnrich)
 
 load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 
@@ -83,6 +84,8 @@ pwms = toPWM(sep)
 res_all = lapply(sequence, function(x) motifEnrichment(x, pwms))
 save(res_all, file="./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/ATtRACT_res_all.rda")
 
+
+## Calculate enrichment for each single site
 res_ind = list()
 for (i in 1:length(sequence[[1]])) {
   res_ind[[i]] = lapply(sequence, function(x) motifEnrichment(x[i], pwms))
@@ -91,13 +94,13 @@ save(res_ind, compress = "gzip",
      file="./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/ATtRACT_res_ind.rda")
 
 
-report = lapply(res_all, function(x) groupReport(x), by.top.motifs=TRUE)
+## Explore results
+
+load("./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/ATtRACT_res_all.rda")
+
+report = lapply(res_all, groupReport)
 lapply(report, head)
 plot(report[1:10], fontsize=7, id.fontsize=5)
-
-
-## for a single site
-
 
 report = sequenceReport(res, 1)
 report

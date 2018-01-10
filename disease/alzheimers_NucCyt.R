@@ -1,46 +1,70 @@
 library(clusterProfiler)
 library(GenomicRanges)
 library(ggplot2)
+library(reshape2)
 
 
-load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.downsampled.rda")
+load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/interaction.kegg.GO.DO.objects.polyAonly.sig1.downsampled.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23_nodownsamp.rda")
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Disease Ontology
-plot(compareDO,colorBy="p.adjust",  showCategory = 45, title= "Disease Ontology Enrichment")
+plot(compareDO.noLFC,colorBy="p.adjust",  showCategory = 45, title= "Disease Ontology Enrichment")
 DO = as.data.frame(compareDO)
-DO.LFC1 = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Interaction.DO.downsampled.csv")
 
-disease = list(az = as.character(DO[which(DO$Description=="Alzheimer's disease"),"geneID"]),
-               als = as.character(DO[which(DO$Description=="amyotrophic lateral sclerosis"),"geneID"]),
-               ls = as.character(DO[which(DO$Description=="lateral sclerosis"),"geneID"]),
-               motor = as.character(DO[which(DO$Description=="motor neuron disease"),"geneID"]))
+disease = list(az = as.character(DO[which(DO$Description=="Alzheimer's disease" & DO$Cluster=="Interaction"),"geneID"]),
+               ls = as.character(DO[which(DO$Description=="lateral sclerosis" & DO$Cluster=="Interaction"),"geneID"]))
 
 disease = lapply(disease, function(x) strsplit(as.character(x), "/", fixed=TRUE))
-disease = lapply(disease, function(x) x[[1]])
+disease = unlist(disease, recursive=F)
 elementNROWS(disease)
 
 disease = lapply(disease, function(x) geneMap[which(geneMap$EntrezID %in% x),"gencodeID"])
 
 # make rpkm object for ggplot
-geneRpkm[1:5,1:5] 
-x= t(geneRpkm)
+azCounts = geneRpkm.down[rownames(geneRpkm.down) %in% disease$az,grep("poly",colnames(geneRpkm.down))] 
+x = t(azCounts)
 x = data.frame(x)
 match(rownames(x), pd$SampleID)
-x$Age = pd$Fetal 
-x$Fraction = pd$Zone
-x$Library = pd$Library
+x$Age = pd[match(rownames(x), pd$SampleID),"Fetal"] 
+x$Fraction = pd[match(rownames(x), pd$SampleID),"Zone"]
+x = melt(x)
+x$sym = as.character(geneMap[match(x$variable, geneMap$gencodeID),"Symbol"])
+x$Age = gsub("Prenatal", "P", x$Age)
+x$Age = gsub("Adult", "A", x$Age)
+head(x)
+x[x$variable=="ENSG00000126767.17_1",]
 
-diseaseRPKM = lapply(disease, function(y) x[,which(colnames(x) %in% y | 
-                                     colnames(x)=="Age" | colnames(x)== "Fraction"| colnames(x)== "Library")])
+# plot AZ genes
 
-sym = lapply(disease, function(a) geneMap[which(geneMap$gencodeID %in% a),"Symbol"])
-for (i in 1:length(disease)){
-  tmp = diseaseRPKM[[i]]
-  tmp[,1:length(disease[[i]])] = log(tmp[,1:length(disease[[i]])]+1)
-  diseaseRPKM[[i]] = tmp
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/AZ_rpkm_plots.pdf", width=4, height=3)
+for (i in 1:length(unique(x$sym))) {
+g = ggplot(x[x$sym == unique(x$sym)[i],], aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
+  geom_boxplot() +
+  ylab("Log(RPKM+1)") + xlab("") +
+  ggtitle(unique(x$sym)[i]) + 
+  theme(title = element_text(size = 16)) + theme(text = element_text(size = 16)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+print(g)
 }
+dev.off()
+
+## Plot interaction genes
+int = DO[which(DO$Cluster=="Interaction" & DO$Description!="pleural disease"
+               & DO$Description!="prion disease" & DO$Description!="tauopathy"),]
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/DO_interactionOnly.pdf", height = 3, width = 5)
+ggplot(int, aes(x = Description, y = -log(p.adjust))) + 
+  geom_bar(stat = "identity") +
+  geom_text(data=int, aes(x = Description, y = -log(p.adjust), label = GeneRatio), 
+            size=4, nudge_y = -1, color="white") +
+  coord_flip() + labs(fill="") + ylab("-log(Adjusted P-Value)") + xlab("") +
+  ggtitle("Disease Ontology") +
+  theme(title = element_text(size = 16)) +
+  theme(text = element_text(size = 16))
+dev.off()
+
 
 ### plot expression of disease-associated genes
 # Prader-Willi
