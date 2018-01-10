@@ -39,6 +39,7 @@ polya$quad = ifelse(polya$Sign.A==polya$Sign.F, "same","diff")
 polya.down$quad = ifelse(polya.down$Sign.A==polya.down$Sign.F, "same","diff")
 ribo$quad = ifelse(ribo$Sign.A==ribo$Sign.F, "same","diff")
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_allGenes.pdf", width=7, height=5)
 ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
   ylab("Prenatal") + 
   xlab("Adult") +
@@ -61,8 +62,11 @@ ggplot(ribo[which(ribo$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
+
 
 # in significant genes
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_sigGenes.pdf", width=7, height=5)
 ggplot(polya[which((polya$Sig.A=="YES" | polya$Sig.F=="YES") & polya$quad!="NA"),], 
        aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
   ylab("Prenatal") + 
@@ -87,6 +91,21 @@ ggplot(ribo[which((ribo$Sig.A=="YES" | ribo$Sig.F=="YES") & ribo$quad!="NA"),],
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
+
+
+# Calculate the correlation
+cor.test(x = polya.down$LFC.A, y = polya.down$LFC.F)
+#Pearson's product-moment correlation
+#data:  polya.down$LFC.A and polya.down$LFC.F
+#t = 125.91, df = 28961, p-value < 2.2e-16
+#alternative hypothesis: true correlation is not equal to 0
+#95 percent confidence interval:
+#0.5872882 0.6021739
+#sample estimates:
+#cor 
+#0.594782 
+
 
 ### By Age
 # Prepare significant genes in a list
@@ -126,6 +145,7 @@ polya$quad = ifelse(polya$Sign.C==polya$Sign.N, "same","diff")
 polya.down$quad = ifelse(polya.down$Sign.C==polya.down$Sign.N, "same","diff")
 ribo$quad = ifelse(ribo$Sign.C==ribo$Sign.N, "same","diff")
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_allGenes.pdf", width=7, height=5)
 ggplot(polya[which(polya$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
   ylab("Nuclear") + 
@@ -150,8 +170,10 @@ ggplot(polya.down[which(polya.down$quad!="NA"),],
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
 
 # in significant genes
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_sigGenes.pdf", width=7, height=5)
 ggplot(polya[which((polya$Sig.C=="YES" | polya$Sig.N=="YES") & polya$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
   ylab("Nuclear") + 
@@ -176,3 +198,18 @@ ggplot(polya.down[which((polya.down$Sig.C=="YES" | polya.down$Sig.N=="YES") & po
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
+dev.off()
+
+
+# calculate correlation
+
+cor.test(x = polya.down$LFC.C, y = polya.down$LFC.N)
+#	Pearson's product-moment correlation
+#data:  polya.down$LFC.C and polya.down$LFC.N
+#t = 335.78, df = 30560, p-value < 2.2e-16
+#alternative hypothesis: true correlation is not equal to 0
+#95 percent confidence interval:
+#  0.8845739 0.8893560
+#sample estimates:
+#  cor 
+#0.8869887 

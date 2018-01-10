@@ -159,3 +159,6 @@ save(geneRpkm, geneMap, metrics, pd, txMap, txNumReads, txTpm, exonRpkm, exonMap
      file="./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_combined_NucVSCyt_n23_nodownsamp.rda")
 
 # add back in geneRpkm.down, txNumReads.down, txTpm.down, exonRpkm.down,jRpkmD, after rerunning downsampled
+
+write.csv(metrics, file = "./Dropbox/sorted_figures/new/github_controlled/QC_section/data/metrics.csv")
+write.csv(pd, file = "./Dropbox/sorted_figures/new/github_controlled/QC_section/data/pd.csv")
