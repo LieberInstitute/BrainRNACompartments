@@ -33,17 +33,15 @@ load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_c
 
 head(dist)
 names = unique(totals$SampleID)
-dist[grep("C", dist$SampleID), "Fraction"] = "Cytosol"
+dist[grep("C", dist$SampleID), "Fraction"] = "Cytoplasm"
 dist[grep("N", dist$SampleID), "Fraction"] = "Nucleus"
 dist[grep("53", dist$SampleID), "Age"] = "Prenatal"
 dist[-grep("53", dist$SampleID), "Age"] = "Adult"
 dist[c(grep("poly", dist$SampleID),grep("down", dist$SampleID)), "Library"] = "polyA"
 dist[grep("Ribo", dist$SampleID), "Library"] = "RiboZero"
 dist$label = factor(paste(dist$Age, dist$Fraction, dist$Library, sep="\n"), 
-                    levels = c("Adult\nCytosol\npolyA","Prenatal\nCytosol\npolyA",
-                               "Adult\nNucleus\npolyA","Prenatal\nNucleus\npolyA",   
-                               "Adult\nCytosol\nRiboZero","Prenatal\nCytosol\nRiboZero",
-                               "Adult\nNucleus\nRiboZero","Prenatal\nNucleus\nRiboZero")) 
+                    levels = c("Prenatal\nCytoplasm\npolyA", "Prenatal\nNucleus\npolyA", "Adult\nCytoplasm\npolyA","Adult\nNucleus\npolyA",   
+                               "Prenatal\nCytoplasm\nRiboZero","Prenatal\nNucleus\nRiboZero","Adult\nCytoplasm\nRiboZero","Adult\nNucleus\nRiboZero")) 
 for (i in 1:nrow(dist)){
   dist[i,"Percent"] = dist[i,"Tag_count"] / totals[which(totals$total=="Total.Assigned.Tags" & totals$SampleID==dist[i,"SampleID"]),"values"] * 100   
 }
@@ -94,19 +92,20 @@ dev.off()
 # by intron counts
 
 ttests = list(introns.perc.both = t.test(x = dist[Fraction=="Nucleus" & Group =="Introns",list(Percent),], 
-                                         y = dist[Fraction=="Cytosol" & Group =="Introns",list(Percent),]),
+                                         y = dist[Fraction=="Cytoplasm" & Group =="Introns",list(Percent),]),
               introns.perc.polyA = t.test(x = dist[Library=="polyA" & Fraction=="Nucleus" & Group =="Introns",list(Percent),], 
-                                          y = dist[Library=="polyA" & Fraction=="Cytosol" & Group =="Introns",list(Percent),]),
+                                          y = dist[Library=="polyA" & Fraction=="Cytoplasm" & Group =="Introns",list(Percent),]),
               introns.perc.ribo = t.test(x = dist[Library=="RiboZero" & Fraction=="Nucleus" & Group =="Introns",list(Percent),], 
-                                         y = dist[Library=="RiboZero" & Fraction=="Cytosol" & Group =="Introns",list(Percent),]),
+                                         y = dist[Library=="RiboZero" & Fraction=="Cytoplasm" & Group =="Introns",list(Percent),]),
               introns.tags.kb.both = t.test(x = dist[Fraction=="Nucleus" & Group =="Introns",list(Tags.Kb),], 
-                                         y = dist[Fraction=="Cytosol" & Group =="Introns",list(Tags.Kb),]),
+                                         y = dist[Fraction=="Cytoplasm" & Group =="Introns",list(Tags.Kb),]),
               introns.tags.kb.polyA = t.test(x = dist[Library=="polyA" & Fraction=="Nucleus" & Group =="Introns",list(Tags.Kb),], 
-                                          y = dist[Library=="polyA" & Fraction=="Cytosol" & Group =="Introns",list(Tags.Kb),]),
+                                          y = dist[Library=="polyA" & Fraction=="Cytoplasm" & Group =="Introns",list(Tags.Kb),]),
               introns.tags.kb.ribo = t.test(x = dist[Library=="RiboZero" & Fraction=="Nucleus" & Group =="Introns",list(Tags.Kb),], 
-                                         y = dist[Library=="RiboZero" & Fraction=="Cytosol" & Group =="Introns",list(Tags.Kb),]))
-df = rbind(p.value = unlist(lapply(ttests, function(x) x$p.value)),
-           t.stat = unlist(lapply(ttests, function(x) x$statistic)),
-           mean.x = unlist(lapply(ttests, function(x) x$estimate[1])),
-           mean.y = unlist(lapply(ttests, function(x) x$estimate[2])))
-write.csv(df, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")
+                                         y = dist[Library=="RiboZero" & Fraction=="Cytoplasm" & Group =="Introns",list(Tags.Kb),]))
+df = data.frame(test = names(ttests), p.value = unlist(lapply(ttests, function(x) x$p.value)),
+                t.stat = unlist(lapply(ttests, function(x) x$statistic)),
+                mean.x = unlist(lapply(ttests, function(x) x$estimate[1])),
+                mean.y = unlist(lapply(ttests, function(x) x$estimate[2])), row.names = NULL)
+df$FDR = p.adjust(df$p.value, method = "fdr")
+write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")

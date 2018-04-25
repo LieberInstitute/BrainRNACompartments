@@ -96,9 +96,9 @@ age.sig = list(both_decreasing = Irres[which(rownames(Irres)%in%NucPos & rowname
                interacting = Irres[which(Irres$padj<=0.05),])
 
 age.data = data.frame(geneID = rownames(Irres), baseMean = Irres$baseMean, 
-                      Cytosol.LFC = Crres[match(rownames(Irres), rownames(Crres)), "log2FoldChange"], 
-                      Cytosol.SE = Crres[match(rownames(Irres), rownames(Crres)), "lfcSE"], 
-                      Cytosol.padj = Crres[match(rownames(Irres), rownames(Crres)), "padj"],
+                      Cytoplasm.LFC = Crres[match(rownames(Irres), rownames(Crres)), "log2FoldChange"], 
+                      Cytoplasm.SE = Crres[match(rownames(Irres), rownames(Crres)), "lfcSE"], 
+                      Cytoplasm.padj = Crres[match(rownames(Irres), rownames(Crres)), "padj"],
                       Nucleus.LFC = Nrres[match(rownames(Irres), rownames(Nrres)), "log2FoldChange"], 
                       Nucleus.SE = Nrres[match(rownames(Irres), rownames(Nrres)), "lfcSE"],
                       Nucleus.padj = Nrres[match(rownames(Irres), rownames(Nrres)), "padj"],
@@ -107,7 +107,7 @@ age.data = data.frame(geneID = rownames(Irres), baseMean = Irres$baseMean,
                       EntrezID = geneMap[match(as.character(rownames(Irres)),geneMap$gencodeID),"EntrezID"],
                       Type = geneMap[match(as.character(rownames(Irres)),geneMap$gencodeID),"gene_type"])
 age.sig = lapply(age.sig, function(x) age.data[which(age.data$geneID %in% rownames(x)),])
-age.sig.1 = lapply(age.sig, function(x) x[which(abs(x$Cytosol.LFC)>=1 | abs(x$Nucleus.LFC)>=1),])
+age.sig.1 = lapply(age.sig, function(x) x[which(abs(x$Cytoplasm.LFC)>=1 | abs(x$Nucleus.LFC)>=1),])
 save(Irres,Crres,Nrres,age.sig,age.sig.1,sig,sig.1,geneMap, 
      file = "./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.Ribozero.rda")
 
@@ -115,7 +115,7 @@ save(Irres,Crres,Nrres,age.sig,age.sig.1,sig,sig.1,geneMap,
 ### Annotate by fraction
 ## Limiting to 1 LFC
 
-freq = lapply(sig.1, function(x) count(x$Type))
+freq = lapply(sig.1, function(x) data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
 colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
@@ -166,17 +166,17 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
-group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
-          "Exported:\nPrenatal Only", "Exported:\nAdult Only",
-          "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-                                                    "Exported:\nAdult Only","Exported:\nPrenatal Only", 
-                                                    "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
+group = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nPrenatal Only", "Nuclear:\nAdult Only",
+          "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only",
+          "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction")
+type$Group = factor(x=rep.int(group, 4), levels = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nAdult Only", "Nuclear:\nPrenatal Only",
+                                                    "Cytoplasmic:\nAdult Only","Cytoplasmic:\nPrenatal Only", 
+                                                    "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction"))
 
 # Graph the Frequencies
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.ribozero.pdf", height = 6, width = 8)
-ggplot(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
-                    type$Group!="Retained: Prenatal/\nExported: Adult"),], 
+ggplot(type[which(type$Group!="Nuclear: Adult/\nCytoplasmic: Prenatal" &
+                    type$Group!="Nuclear: Prenatal/\nCytoplasmic: Adult"),], 
        aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
@@ -188,8 +188,8 @@ ggplot(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
 dev.off()
 
 
-type = data.table(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
-                               type$Group!="Retained: Prenatal/\nExported: Adult"),])
+type = data.table(type[which(type$Group!="Nuclear: Adult/\nCytoplasmic: Prenatal" &
+                               type$Group!="Nuclear: Prenatal/\nCytoplasmic: Adult"),])
 x = data.frame(type[,sum(Count), by="Group"])
 type$sum = x[match(type$Group, x$Group),"V1"]
 type$perc = round(type$Count/type$sum*100,1)
@@ -210,7 +210,7 @@ dev.off()
 
 ## Annotation of age genes: Limiting to 1 LFC
 
-freq = lapply(age.sig.1, function(x) count(x$Type))
+freq = lapply(age.sig.1, function(x) data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
 colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
@@ -261,17 +261,17 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
-group = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytosol Only", "Decreasing:\nNucleus Only",
-          "Increasing:\nCytosol Only", "Increasing:\nNucleus Only",
-          "Decreasing: Nucleus/\nIncreasing: Cytosol", "Decreasing: Cytosol/\nIncreasing: Nucleus", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nNucleus Only", "Decreasing:\nCytosol Only",
-                                                    "Increasing:\nNucleus Only","Increasing:\nCytosol Only", 
-                                                    "Decreasing: Nucleus/\nIncreasing: Cytosol", "Decreasing: Cytosol/\nIncreasing: Nucleus", "Interaction"))
+group = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytoplasm Only", "Decreasing:\nNucleus Only",
+          "Increasing:\nCytoplasm Only", "Increasing:\nNucleus Only",
+          "Decreasing: Nucleus/\nIncreasing: Cytoplasm", "Decreasing: Cytoplasm/\nIncreasing: Nucleus", "Interaction")
+type$Group = factor(x=rep.int(group, 4), levels = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nNucleus Only", "Decreasing:\nCytoplasm Only",
+                                                    "Increasing:\nNucleus Only","Increasing:\nCytoplasm Only", 
+                                                    "Decreasing: Nucleus/\nIncreasing: Cytoplasm", "Decreasing: Cytoplasm/\nIncreasing: Nucleus", "Interaction"))
 
 # Graph the Frequencies
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_age-fraction_LFC1.ribozero.pdf", height = 6, width = 8)
-ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
-                    type$Group!="Decreasing: Cytosol/\nIncreasing: Nucleus"),],
+ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytoplasm" &
+                    type$Group!="Decreasing: Cytoplasm/\nIncreasing: Nucleus"),],
        aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
@@ -282,8 +282,8 @@ ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
   theme(text = element_text(size = 20))
 dev.off()
 
-type = data.table(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
-                               type$Group!="Decreasing: Cytosol/\nIncreasing: Nucleus"),])
+type = data.table(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytoplasm" &
+                               type$Group!="Decreasing: Cytoplasm/\nIncreasing: Nucleus"),])
 x = data.frame(type[,sum(Count), by="Group"])
 type$sum = x[match(type$Group, x$Group),"V1"]
 type$perc = round(type$Count/type$sum*100,1)

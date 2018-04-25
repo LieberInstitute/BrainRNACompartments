@@ -28,6 +28,7 @@ names(Names.AgeUP.down) = paste0(names(Names.AgeUP.down), "(", elementNROWS(Name
 Names.AgeD.down = DirList[dir[["down"]]]
 names(Names.AgeD.down) = gsub("Increasing", "", names(Names.AgeD.down))
 names(Names.AgeD.down) = paste0(names(Names.AgeD.down), "(", elementNROWS(Names.AgeD.down), ")")
+names(Names.Age.down) = gsub("Cytosol", "Cytoplasm", names(Names.Age.down))
 
 
 ### Which Age DEGs overlap? ###

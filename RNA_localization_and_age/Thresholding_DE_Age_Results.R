@@ -2,14 +2,14 @@ library(ggplot2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
-#Cpres = DE based on Age in Cytosol polyA
-plotMA(Cpres, alpha=0.05, main="Cytosol PolyA Samples", ylim=c(-10,10))
+#Cpres = DE based on Age in Cytoplasm polyA
+plotMA(Cpres, alpha=0.05, main="Cytoplasm PolyA Samples", ylim=c(-10,10))
 #Npres = DE based on Age in Nucleus polyA
 plotMA(Npres, alpha=0.05, main="Nucleus PolyA Samples", ylim=c(-10,10))
 #Cpres.down = DE based on Age in Nucleus polyA
-plotMA(Cpres.down, alpha=0.05, main="Cytosol PolyA Samples", ylim=c(-10,10))
-# Crres = DE based on Age in Cytosol RiboZero
-plotMA(Crres, alpha=0.05, main="Cytosol RiboZero Samples", ylim=c(-10,10))
+plotMA(Cpres.down, alpha=0.05, main="Cytoplasm PolyA Samples", ylim=c(-10,10))
+# Crres = DE based on Age in Cytoplasm RiboZero
+plotMA(Crres, alpha=0.05, main="Cytoplasm RiboZero Samples", ylim=c(-10,10))
 # Nrres = DE based on Age in Nucleus RiboZero
 plotMA(Nrres, alpha=0.05, main="Nucleus RiboZero Samples", ylim=c(-10,10))
 
@@ -40,9 +40,10 @@ DEbyAge = data.frame(Number = do.call(rbind,lapply(list, function(x) data.frame(
                                        levels=c("FDR: 0.05", "FDR: 0.01","FDR: 0.001")),
                           LFC = factor(c(rep.int("LFC: 1",12), rep.int("LFC: 2",12), rep.int("LFC: 1",12), rep.int("LFC: 2",12)), 
                                        levels=c("LFC: 1", "LFC: 2")),
-                          Group = factor(rep.int(c("Cytosol\nPolyA", "Nucleus\nPolyA", "Cytosol\nRiboZero", "Nucleus\nRiboZero"),12), 
-                                         levels=c("Cytosol\nPolyA", "Nucleus\nPolyA", "Cytosol\nRiboZero", "Nucleus\nRiboZero")))
+                          Group = factor(rep.int(c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero"),12), 
+                                         levels=c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero")))
 
+pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/age_DEG_different_LFC&FDR_downsampled.pdf", height = 6.5, width = 17)
 ggplot(DEbyAge, aes(x=Group, y=Number, fill=Direction), color=Direction) + 
   stat_summary(position=position_dodge(),geom="bar") +
   facet_grid(LFC ~ FDR) +
@@ -54,6 +55,7 @@ ggplot(DEbyAge, aes(x=Group, y=Number, fill=Direction), color=Direction) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
 
 DEbyAge.down = data.frame(Number = do.call(rbind,lapply(list, function(x) data.frame(Number=x[c(5,2:4),]))),
                      Direction = factor(c(rep.int("Decreasing",24), rep.int("Increasing",24)), levels=c("Decreasing", "Increasing")),
@@ -64,8 +66,8 @@ DEbyAge.down = data.frame(Number = do.call(rbind,lapply(list, function(x) data.f
                                   levels=c("FDR: 0.05", "FDR: 0.01","FDR: 0.001")),
                      LFC = factor(c(rep.int("LFC: 1",12), rep.int("LFC: 2",12), rep.int("LFC: 1",12), rep.int("LFC: 2",12)), 
                                   levels=c("LFC: 1", "LFC: 2")),
-                     Group = factor(rep.int(c("Cytosol\nPolyA", "Nucleus\nPolyA", "Cytosol\nRiboZero", "Nucleus\nRiboZero"),12), 
-                                    levels=c("Cytosol\nPolyA", "Nucleus\nPolyA", "Cytosol\nRiboZero", "Nucleus\nRiboZero")))
+                     Group = factor(rep.int(c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero"),12), 
+                                    levels=c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero")))
 
 ggplot(DEbyAge.down, aes(x=Group, y=Number, fill=Direction), color=Direction) + 
   stat_summary(position=position_dodge(),geom="bar") +

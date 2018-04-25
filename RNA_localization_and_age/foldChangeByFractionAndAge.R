@@ -40,7 +40,8 @@ polya.down$quad = ifelse(polya.down$Sign.A==polya.down$Sign.F, "same","diff")
 ribo$quad = ifelse(ribo$Sign.A==ribo$Sign.F, "same","diff")
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_allGenes.pdf", width=7, height=5)
-ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
@@ -48,16 +49,18 @@ ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colo
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(polya.down[which(polya.down$quad!="NA"),], 
-       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-ggplot(ribo[which(ribo$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+ggplot(ribo[which(ribo$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
   theme(title = element_text(size = 20)) +
@@ -68,25 +71,28 @@ dev.off()
 # in significant genes
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_sigGenes.pdf", width=7, height=5)
 ggplot(polya[which((polya$Sig.A=="YES" | polya$Sig.F=="YES") & polya$quad!="NA"),], 
-       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(polya.down[which((polya.down$Sig.A=="YES" | polya.down$Sig.F=="YES") & polya.down$quad!="NA"),], 
-       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(ribo[which((ribo$Sig.A=="YES" | ribo$Sig.F=="YES") & ribo$quad!="NA"),],
-       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad))) +
+       aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
   ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
   theme(title = element_text(size = 20)) +
@@ -147,25 +153,28 @@ ribo$quad = ifelse(ribo$Sign.C==ribo$Sign.N, "same","diff")
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_allGenes.pdf", width=7, height=5)
 ggplot(polya[which(polya$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(ribo[which(ribo$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (RiboZero)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(polya.down[which(polya.down$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +
@@ -175,25 +184,28 @@ dev.off()
 # in significant genes
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_sigGenes.pdf", width=7, height=5)
 ggplot(polya[which((polya$Sig.C=="YES" | polya$Sig.N=="YES") & polya$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(ribo[which((ribo$Sig.C=="YES" | ribo$Sig.N=="YES") & ribo$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (RiboZero)") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(polya.down[which((polya.down$Sig.C=="YES" | polya.down$Sig.N=="YES") & polya.down$quad!="NA"),],
-       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad))) +
-  ylab("Nuclear") + 
-  xlab("Cytosolic") +
+       aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
+  ylab("Nucleus") + 
+  xlab("Cytoplasm") +
+  scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
   ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
   theme(title = element_text(size = 20)) +

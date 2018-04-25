@@ -15,21 +15,29 @@ df$propJunc = df$sum / df$numMapped
 df = df[order(df$ID),]
 df = df[which(df$ID!="Br1113N1_RiboZero"),]
 match(df$ID, pd$SampleID)
-df$Label = pd$Label
-levels(df$Label) = levels = c("Adult\nCytosol\npolyA", "Prenatal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
-                              "Prenatal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Prenatal\nCytosol\nRiboZero",
-                              "Adult\nNucleus\nRiboZero", "Prenatal\nNucleus\nRiboZero")
+df$Label = pd[match(df$ID, pd$SampleID),"Label"]
+df$Label = gsub("Cytosol", "Cytoplasm", df$Label)
+df$Label = factor(df$Label, levels = c("Prenatal\nCytoplasm\npolyA", "Prenatal\nNucleus\npolyA", "Adult\nCytoplasm\npolyA", 
+                                       "Adult\nNucleus\npolyA", "Prenatal\nCytoplasm\nRiboZero", "Prenatal\nNucleus\nRiboZero",
+                                       "Adult\nCytoplasm\nRiboZero", "Adult\nNucleus\nRiboZero"))
+df$Library = pd[match(df$ID, pd$SampleID),"Library"]
+df$Age = pd[match(df$ID, pd$SampleID),"Fetal"]
+df$Age = factor(df$Age, levels = c("Prenatal", "Adult"))
+df$Fraction = pd[match(df$ID, pd$SampleID),"Zone"]
+df$Fraction = gsub("Cytosol", "Cytoplasm", df$Fraction)
+df$Fraction = factor(df$Fraction)
 
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_full.pdf", 
-    width = 12, height = 6)
-ggplot(df, aes(x=Label, y=propJunc)) + geom_boxplot() + 
-  geom_jitter() + 
+    width = 10, height = 4)
+ggplot(df, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
+  geom_jitter() + facet_grid(. ~ Library) +
+  scale_fill_brewer(palette="Dark2") +
   ylim(0, 0.4) +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
   xlab("") +
   ggtitle("Proportion of Reads Mapping to Splice Junctions") + 
-  theme(title = element_text(size = 20)) +
+  theme(title = element_text(size = 20), legend.title=element_blank()) +
   theme(text = element_text(size = 20))
 dev.off()
 
@@ -46,21 +54,28 @@ df.down$ID = gsub("downsamp", "polyA", df.down$ID)
 rownames(df.down) = gsub("downsamp", "polyA", rownames(df.down))
 df.down = df.down[order(df.down$ID),]
 match(df.down$ID, pd$SampleID)
-df.down$Label = pd$Label
-levels(df$Label) = levels = c("Adult\nCytosol\npolyA", "Prenatal\nCytosol\npolyA", "Adult\nNucleus\npolyA",
-                              "Prenatal\nNucleus\npolyA", "Adult\nCytosol\nRiboZero", "Prenatal\nCytosol\nRiboZero",
-                              "Adult\nNucleus\nRiboZero", "Prenatal\nNucleus\nRiboZero")
-
+df.down$Label = pd[match(df.down$ID, pd$SampleID),"Label"]
+df.down$Label = gsub("Cytosol", "Cytoplasm", df.down$Label)
+df.down$Label = factor(df.down$Label, levels = c("Prenatal\nCytoplasm\npolyA", "Prenatal\nNucleus\npolyA", "Adult\nCytoplasm\npolyA", 
+                                       "Adult\nNucleus\npolyA", "Prenatal\nCytoplasm\nRiboZero", "Prenatal\nNucleus\nRiboZero",
+                                       "Adult\nCytoplasm\nRiboZero", "Adult\nNucleus\nRiboZero"))
+df.down$Library = pd[match(df.down$ID, pd$SampleID),"Library"]
+df.down$Age = pd[match(df.down$ID, pd$SampleID),"Fetal"]
+df.down$Age = factor(df.down$Age, levels = c("Prenatal", "Adult"))
+df.down$Fraction = pd[match(df.down$ID, pd$SampleID),"Zone"]
+df.down$Fraction = gsub("Cytosol", "Cytoplasm", df.down$Fraction)
+df.down$Fraction = factor(df.down$Fraction)
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
-    width = 12, height = 6)
-ggplot(df.down, aes(x=Label, y=propJunc)) + geom_boxplot() + 
-  geom_jitter() + 
+    width = 10, height = 4)
+ggplot(df.down, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
+  geom_jitter() + facet_grid(. ~ Library) +
+  scale_fill_brewer(palette="Dark2") +
   ylim(0, 0.4) +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
   xlab("") +
   ggtitle("Proportion of Reads Mapping to Splice Junctions") + 
-  theme(title = element_text(size = 20)) +
+  theme(title = element_text(size = 20), legend.title=element_blank()) +
   theme(text = element_text(size = 20))
 dev.off()
 
@@ -68,28 +83,30 @@ dev.off()
 # t tests
 
 ttests = list(junctions.frac.both = t.test(x = df.down[c(grep("Prenatal\nNucleus", df.down$Label),grep("Adult\nNucleus", df.down$Label)),"propJunc"], 
-                                           y = df.down[c(grep("Prenatal\nCytosol", df.down$Label), grep("Adult\nCytosol", df.down$Label)),"propJunc"]),
+                                           y = df.down[c(grep("Prenatal\nCytoplasm", df.down$Label), grep("Adult\nCytoplasm", df.down$Label)),"propJunc"]),
               junctions.frac.polyA = t.test(x = df.down[c(grep("Prenatal\nNucleus\npolyA", df.down$Label),grep("Adult\nNucleus\npolyA", df.down$Label)), "propJunc"], 
-                                            y = df.down[c(grep("Prenatal\nCytosol\npolyA", df.down$Label), grep("Adult\nCytosol\npolyA", df.down$Label)),"propJunc"]),
+                                            y = df.down[c(grep("Prenatal\nCytoplasm\npolyA", df.down$Label), grep("Adult\nCytoplasm\npolyA", df.down$Label)),"propJunc"]),
               junctions.frac.ribo = t.test(x = df.down[c(grep("Prenatal\nNucleus\nRiboZero", df.down$Label),grep("Adult\nNucleus\nRiboZero", df.down$Label)),"propJunc"], 
-                                           y = df.down[c(grep("Prenatal\nCytosol\nRiboZero", df.down$Label), grep("Adult\nCytosol\nRiboZero", df.down$Label)),"propJunc"]),
+                                           y = df.down[c(grep("Prenatal\nCytoplasm\nRiboZero", df.down$Label), grep("Adult\nCytoplasm\nRiboZero", df.down$Label)),"propJunc"]),
               junctions.frac.adult.polyA = t.test(x = df.down[df.down$Label=="Adult\nNucleus\npolyA", "propJunc"], 
-                                            y = df.down[df.down$Label=="Adult\nCytosol\npolyA","propJunc"]),
+                                            y = df.down[df.down$Label=="Adult\nCytoplasm\npolyA","propJunc"]),
               junctions.frac.adult.ribo = t.test(x = df.down[df.down$Label=="Adult\nNucleus\nRiboZero","propJunc"], 
-                                           y = df.down[df.down$Label=="Adult\nCytosol\nRiboZero","propJunc"]),
+                                           y = df.down[df.down$Label=="Adult\nCytoplasm\nRiboZero","propJunc"]),
               junctions.frac.prenatal.polyA = t.test(x = df.down[df.down$Label=="Prenatal\nNucleus\npolyA", "propJunc"], 
-                                            y = df.down[df.down$Label=="Prenatal\nCytosol\npolyA","propJunc"]),
+                                            y = df.down[df.down$Label=="Prenatal\nCytoplasm\npolyA","propJunc"]),
               junctions.frac.prenatal.ribo = t.test(x = df.down[df.down$Label=="Prenatal\nNucleus\nRiboZero","propJunc"], 
-                                           y = df.down[df.down$Label=="Prenatal\nCytosol\nRiboZero","propJunc"]),
-              junctions.age.both = t.test(x = df.down[c(grep("Prenatal\nNucleus", df.down$Label),grep("Prenatal\nCytosol", df.down$Label)),"propJunc"], 
-                                          y = df.down[c(grep("Adult\nNucleus", df.down$Label), grep("Adult\nCytosol", df.down$Label)),"propJunc"]),
-              junctions.age.polyA = t.test(x = df.down[c(grep("Prenatal\nNucleus\npolyA", df.down$Label),grep("Prenatal\nCytosol\npolyA", df.down$Label)),"propJunc"], 
-                                           y = df.down[c(grep("Adult\nNucleus\npolyA", df.down$Label), grep("Adult\nCytosol\npolyA", df.down$Label)),"propJunc"]),
-              junctions.age.ribo = t.test(x = df.down[c(grep("Prenatal\nNucleus\nRiboZero", df.down$Label),grep("Prenatal\nCytosol\nRiboZero", df.down$Label)),"propJunc"], 
-                                          y = df.down[c(grep("Adult\nNucleus\nRiboZero", df.down$Label), grep("Adult\nCytosol\nRiboZero", df.down$Label)),"propJunc"]))
-df = rbind(p.value = unlist(lapply(ttests, function(x) x$p.value)),
-           t.stat = unlist(lapply(ttests, function(x) x$statistic)),
+                                           y = df.down[df.down$Label=="Prenatal\nCytoplasm\nRiboZero","propJunc"]),
+              junctions.age.both = t.test(x = df.down[c(grep("Prenatal\nNucleus", df.down$Label),grep("Prenatal\nCytoplasm", df.down$Label)),"propJunc"], 
+                                          y = df.down[c(grep("Adult\nNucleus", df.down$Label), grep("Adult\nCytoplasm", df.down$Label)),"propJunc"]),
+              junctions.age.polyA = t.test(x = df.down[c(grep("Prenatal\nNucleus\npolyA", df.down$Label),grep("Prenatal\nCytoplasm\npolyA", df.down$Label)),"propJunc"], 
+                                           y = df.down[c(grep("Adult\nNucleus\npolyA", df.down$Label), grep("Adult\nCytoplasm\npolyA", df.down$Label)),"propJunc"]),
+              junctions.age.ribo = t.test(x = df.down[c(grep("Prenatal\nNucleus\nRiboZero", df.down$Label),grep("Prenatal\nCytoplasm\nRiboZero", df.down$Label)),"propJunc"], 
+                                          y = df.down[c(grep("Adult\nNucleus\nRiboZero", df.down$Label), grep("Adult\nCytoplasm\nRiboZero", df.down$Label)),"propJunc"]))
+df = data.frame(Group = names(ttests), t.stat = unlist(lapply(ttests, function(x) x$statistic)),
            mean.x = unlist(lapply(ttests, function(x) x$estimate[1])),
-           mean.y = unlist(lapply(ttests, function(x) x$estimate[2])))
+           mean.y = unlist(lapply(ttests, function(x) x$estimate[2])),
+           p.value = unlist(lapply(ttests, function(x) x$p.value)))
+df$FDR = p.adjust(df$p.value, method="fdr")
+rownames(df) = NULL
 write.csv(df, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/junction_proportions_tstat.csv")
 

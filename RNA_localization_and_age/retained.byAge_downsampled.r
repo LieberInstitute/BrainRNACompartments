@@ -52,12 +52,12 @@ FetNeg = as.character(rownames(Fpres.down[which(Fpres.down$Sign=="Neg"),]))
 FetSig = as.character(rownames(Fpres.down[which(Fpres.down$padj<=0.05),]))
 FetLFC = as.character(rownames(Fpres.down[which(abs(Fpres.down$log2FoldChange)>=1),]))
 
-sig = list(both_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetPos 
+sig = list(both_Nuclear = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetPos 
                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
-           both_exported = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%FetNeg 
+           both_Cytoplasmic = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%FetNeg 
                                      & rownames(Ipres.down)%in%AdSig & rownames(Ipres.down)%in%FetSig),],
-           Fet_retained = Ipres.down[which(rownames(Ipres.down)%in%FetPos & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
-           Ad_retained = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
+           Fet_Nuclear = Ipres.down[which(rownames(Ipres.down)%in%FetPos & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
+           Ad_Nuclear = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
            Fet_exported = Ipres.down[which(rownames(Ipres.down)%in%FetNeg & !(rownames(Ipres.down)%in%AdSig) & rownames(Ipres.down)%in%FetSig),],
            Ad_exported = Ipres.down[which(rownames(Ipres.down)%in%AdNeg & rownames(Ipres.down)%in%AdSig & !(rownames(Ipres.down)%in%FetSig)),],
            ret_Ad_exp_Fet = Ipres.down[which(rownames(Ipres.down)%in%AdPos & rownames(Ipres.down)%in%FetNeg 
@@ -84,7 +84,7 @@ save(Ipres.down,Fpres.down,Apres,sig,sig.1,geneMap,
 
 # Annotate genes
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-freq = lapply(sig, function(x) count(x$Type))
+freq = lapply(sig, function(x) as.data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
 colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
@@ -147,12 +147,12 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
-group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
-          "Exported:\nPrenatal Only", "Exported:\nAdult Only",
-               "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-                                                    "Exported:\nAdult Only","Exported:\nPrenatal Only",
-                                                    "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
+group = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nPrenatal Only", "Nuclear:\nAdult Only",
+          "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only",
+               "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction")
+type$Group = factor(x=rep.int(group, 4), levels = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nAdult Only", "Nuclear:\nPrenatal Only",
+                                                    "Cytoplasmic:\nAdult Only","Cytoplasmic:\nPrenatal Only",
+                                                    "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction"))
 
 # Graph the Frequencies
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age.pdf", height = 7, width = 8)
@@ -168,7 +168,7 @@ dev.off()
 
 ## Limiting to 1 LFC
 
-freq = lapply(sig.1, function(x) count(x$Type))
+freq = lapply(sig.1, function(x) as.data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
 colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
@@ -219,16 +219,16 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
-group = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
-          "Exported:\nPrenatal Only", "Exported:\nAdult Only",
-          "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-                                                    "Exported:\nPrenatal Only", "Exported:\nAdult Only",
-                                                    "Retained: Adult/\nExported: Prenatal", "Retained: Prenatal/\nExported: Adult", "Interaction"))
+group = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nPrenatal Only", "Nuclear:\nAdult Only",
+          "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only",
+          "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction")
+type$Group = factor(x=rep.int(group, 4), levels = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nAdult Only", "Nuclear:\nPrenatal Only",
+                                                    "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only",
+                                                    "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction"))
 # Graph the Frequencies
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.pdf", height = 6, width = 8)
-ggplot(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
-                    type$Group!="Retained: Prenatal/\nExported: Adult"),], 
+ggplot(type[which(type$Group!="Nuclear: Adult/\nCytoplasmic: Prenatal" &
+                    type$Group!="Nuclear: Prenatal/\nCytoplasmic: Adult"),], 
        aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
@@ -240,8 +240,8 @@ ggplot(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
 dev.off()
 
 
-type = data.table(type[which(type$Group!="Retained: Adult/\nExported: Prenatal" &
-                           type$Group!="Retained: Prenatal/\nExported: Adult"),])
+type = data.table(type[which(type$Group!="Nuclear: Adult/\nCytoplasmic: Prenatal" &
+                           type$Group!="Nuclear: Prenatal/\nCytoplasmic: Adult"),])
 x = data.frame(type[,sum(Count), by="Group"])
 type$sum = x[match(type$Group, x$Group),"V1"]
 type$perc = round(type$Count/type$sum*100,1)
@@ -259,8 +259,8 @@ ggplot(type, aes(x = Group, y = perc, fill = RNA.Type)) +
   theme(text = element_text(size = 20))
 dev.off()
 
-r = type[grep("Retained:",type$Group),]
-e = type[grep("Exported:",type$Group),]
+r = type[grep("Nuclear:",type$Group),]
+e = type[grep("Cytoplasmic:",type$Group),]
 fisher.test(data.frame(c(sum(r[r$RNA.Type=="Protein-coding","Count"]), sum(r$Count)-sum(r[r$RNA.Type=="Protein-coding","Count"])),
                        c(sum(e[e$RNA.Type=="Protein-coding","Count"]), sum(e$Count)-sum(e[r$RNA.Type=="Protein-coding","Count"]))))
 #p-value < 2.2e-16
@@ -271,10 +271,13 @@ fisher.test(data.frame(c(sum(r[r$RNA.Type=="Protein-coding","Count"]), sum(r$Cou
 #  odds ratio 
 #0.2530526 
 
+sum(type[which(type$RNA.Type=="Protein-coding"),"Count"])/sum(type$Count)*100 # 83.5%
+
+
 ## Gene Ontology
-names(sig.1) = names(sig) = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only",
-                              "Exported:\nPrenatal Only", "Exported:\nAdult Only","Retained: Adult/\nExported: Prenatal",
-                              "Retained: Prenatal/\nExported: Adult", "Interaction")
+names(sig.1) = names(sig) = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nPrenatal Only", "Nuclear:\nAdult Only",
+                              "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only","Nuclear: Adult/\nCytoplasmic: Prenatal",
+                              "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction")
 entrezID = lapply(sig.1, function(x) na.omit(x$EntrezID))
 # Define universe as all genes expressed in each of the four groups
 GeneUniverse = as.character(unique(geneMap[match(rownames(Ipres.down),geneMap$gencodeID),"EntrezID"]))
@@ -345,16 +348,18 @@ AgebyFrac = AgebyFrac[which(AgebyFrac$padj!="NA"),]
 
 elementNROWS(sig)
 fracDevel = lapply(sig[elementNROWS(sig)>0], function(x) AgebyFrac[which(AgebyFrac$gencodeID %in% x$geneID),])
-names(fracDevel) = c("Retained: Both", "Exported: Both", "Retained:\nPrenatal Only", "Retained:\nAdult Only", 
-                     "Exported:\nPrenatal Only", "Exported:\nAdult Only","Retained: Adult/\nExported: Prenatal", "Interaction")
-fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(names(fracDevel))))
+fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nPrenatal Only", "Nuclear:\nAdult Only", 
+                                                                     "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only","Nuclear: Adult/\nCytoplasmic: Prenatal", "Interaction"))))
 fracDevel$fracReg = factor(fracDevel$fracReg, 
-                           levels = c("Retained: Both", "Exported: Both", "Retained:\nAdult Only", "Retained:\nPrenatal Only",
-                                      "Exported:\nAdult Only","Exported:\nPrenatal Only","Retained: Adult/\nExported: Prenatal", "Interaction"))
+                           levels = c("Nuclear: Both", "Cytoplasmic: Both", "Nuclear:\nAdult Only", "Nuclear:\nPrenatal Only",
+                                      "Cytoplasmic:\nAdult Only","Cytoplasmic:\nPrenatal Only","Nuclear: Adult/\nCytoplasmic: Prenatal", "Interaction"))
+fracDevel$Comparison = gsub("Cytosol", "Cytoplasm", fracDevel$Comparison)
+fracDevel$Comparison = factor(fracDevel$Comparison)
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/RetainedbyAge_LFCxFDR.pdf", width=20, height=6)
-ggplot(fracDevel[fracDevel$fracReg!="Retained: Adult/\nExported: Prenatal",], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+ggplot(fracDevel[fracDevel$fracReg!="Nuclear: Adult/\nCytoplasmic: Prenatal",], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
   geom_violin() +
+  scale_fill_manual(values=c("red3","gray47")) +
   facet_grid(. ~ fracReg) +
   ylab("Log2 Fold Change") + 
   xlab("") +
@@ -367,12 +372,13 @@ ggplot(fracDevel[fracDevel$fracReg!="Retained: Adult/\nExported: Prenatal",], ae
 dev.off()
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/AdultRetainednExported_Age-LFCxFDR.pdf", width=7, height=5)
-ggplot(fracDevel[which(fracDevel$fracReg=="Retained:\nAdult Only" | fracDevel$fracReg=="Exported:\nAdult Only"),], 
+ggplot(fracDevel[which(fracDevel$fracReg=="Nuclear:\nAdult Only" | fracDevel$fracReg=="Cytoplasmic:\nAdult Only"),], 
        aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  scale_fill_manual(values=c("red3","gray47")) +
   geom_boxplot() +
   facet_grid(. ~ fracReg) +
   ylab("Log2 Fold Change") + 
-  xlab("") +
+  xlab("") + geom_hline(yintercept=0, linetype="dotted") +
   ggtitle(paste0("Age Expression Changes\nby Fraction")) + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
@@ -389,31 +395,31 @@ elementNROWS(sig)-elementNROWS(lapply(fracDevel, function(x) x[x$Comparison=="Cy
 elementNROWS(sig)-elementNROWS(lapply(fracDevel, function(x) x[x$Comparison=="Nucleus",]))
 
 # In cytosol:
-tb = lapply(fracDevel[names(fracDevel)!="ret_Fet_exp_Ad"], function(x) 
+tb = lapply(fracDevel[elementNROWS(fracDevel)>0], function(x) 
   data.frame(Sig = c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
                      length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
              Nonsig = c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
                         length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Decreasing","Increasing")))
-df = rbind(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
+df = data.frame(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
 CytCounts = do.call(rbind, tb)
 CytCounts$FracGroup = gsub("\\..*","", rownames(CytCounts))
-CytCounts$fisher.pval = df["pvalue",match(CytCounts$FracGroup,colnames(df))]
-CytCounts$fisher.OR = df["OR",match(CytCounts$FracGroup,colnames(df))]
-CytCounts$Comparison = "Cytosol"
+CytCounts$fisher.pval = df[match(CytCounts$FracGroup,rownames(df)),"pvalue"]
+CytCounts$fisher.OR = df[match(CytCounts$FracGroup,rownames(df)),"OR"]
+CytCounts$Comparison = "Cytoplasm"
 CytCounts$padj = p.adjust(CytCounts$fisher.pval, method="fdr")
 
 
 # In Nucleus:
-tb = lapply(fracDevel[names(fracDevel)!="ret_Fet_exp_Ad"], function(x) 
+tb = lapply(fracDevel[elementNROWS(fracDevel)>0], function(x) 
   data.frame(Sig = c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
                      length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
              Nonsig = c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
                         length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Decreasing","Increasing")))
-df = rbind(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
+df = data.frame(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
 NucCounts = do.call(rbind, tb)
 NucCounts$FracGroup = gsub("\\..*","", rownames(NucCounts))
-NucCounts$fisher.pval = df["pvalue",match(NucCounts$FracGroup,colnames(df))]
-NucCounts$fisher.OR = df["OR",match(NucCounts$FracGroup,colnames(df))]
+NucCounts$fisher.pval = df[match(NucCounts$FracGroup,rownames(df)),"pvalue"]
+NucCounts$fisher.OR = df[match(NucCounts$FracGroup,rownames(df)),"OR"]
 NucCounts$Comparison = "Nucleus"
 NucCounts$padj = p.adjust(NucCounts$fisher.pval, method="fdr")
 
@@ -434,6 +440,7 @@ NucCounts[which(NucCounts$padj<=0.05),]
 #both_retained.Increasing  89     52 both_retained 5.761127e-03 0.4615974    Nucleus 2.304451e-02
 #Ad_retained.Decreasing   311    304   Ad_retained 2.511130e-11 0.5085722    Nucleus 2.008904e-10
 #Ad_retained.Increasing   817    406   Ad_retained 2.511130e-11 0.5085722    Nucleus 2.008904e-10
+NucCounts[which(NucCounts$FracGroup=="Ad_exported"),]
 
 
 # Make Age Sig object
@@ -487,7 +494,7 @@ save(Ipres.down,Cpres.down,Npres,age.sig,age.sig.1,sig,sig.1,geneMap,
 
 ## Annotation of age genes: Limiting to 1 LFC
 
-freq = lapply(age.sig.1, function(x) count(x$Type))
+freq = lapply(age.sig.1, function(x) data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
 colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
@@ -538,16 +545,16 @@ for (i in 1:length(group)){
         TypeFreq[which(TypeFreq$RNA_Type=="snRNA" & TypeFreq$Group==group[i]),2],
         TypeFreq[which(TypeFreq$RNA_Type=="vaultRNA" & TypeFreq$Group==group[i]),2])
 }
-group = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytosol Only", "Decreasing:\nNucleus Only",
-          "Increasing:\nCytosol Only", "Increasing:\nNucleus Only",
-          "Decreasing: Nucleus/\nIncreasing: Cytosol", "Decreasing: Cytosol/\nIncreasing: Nucleus", "Interaction")
-type$Group = factor(x=rep.int(group, 4), levels = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytosol Only","Decreasing:\nNucleus Only",
-                                                    "Increasing:\nCytosol Only", "Increasing:\nNucleus Only",
-                                                    "Decreasing: Nucleus/\nIncreasing: Cytosol", "Decreasing: Cytosol/\nIncreasing: Nucleus", "Interaction"))
+group = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytoplasm Only", "Decreasing:\nNucleus Only",
+          "Increasing:\nCytoplasm Only", "Increasing:\nNucleus Only",
+          "Decreasing: Nucleus/\nIncreasing: Cytoplasm", "Decreasing: Cytoplasm/\nIncreasing: Nucleus", "Interaction")
+type$Group = factor(x=rep.int(group, 4), levels = c("Decreasing: Both", "Increasing: Both", "Decreasing:\nCytoplasm Only","Decreasing:\nNucleus Only",
+                                                    "Increasing:\nCytoplasm Only", "Increasing:\nNucleus Only",
+                                                    "Decreasing: Nucleus/\nIncreasing: Cytoplasm", "Decreasing: Cytoplasm/\nIncreasing: Nucleus", "Interaction"))
 # Graph the Frequencies
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_age-fraction_LFC1.pdf", height = 6, width = 8)
-ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
-                        type$Group!="Decreasing: Cytosol/\nIncreasing: Nucleus"),],
+ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytoplasm" &
+                        type$Group!="Decreasing: Cytoplasm/\nIncreasing: Nucleus"),],
        aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
   coord_flip() +
   labs(fill="") +
@@ -558,8 +565,8 @@ ggplot(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
   theme(text = element_text(size = 20))
 dev.off()
 
-type = data.table(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytosol" &
-                               type$Group!="Decreasing: Cytosol/\nIncreasing: Nucleus"),])
+type = data.table(type[which(type$Group!="Decreasing: Nucleus/\nIncreasing: Cytoplasm" &
+                               type$Group!="Decreasing: Cytoplasm/\nIncreasing: Nucleus"),])
 x = data.frame(type[,sum(Count), by="Group"])
 type$sum = x[match(type$Group, x$Group),"V1"]
 type$perc = round(type$Count/type$sum*100,1)
@@ -577,28 +584,30 @@ ggplot(type, aes(x = Group, y = perc, fill = RNA.Type)) +
 dev.off()
 
 
+(3553+3803)/sum(elementNROWS(age.sig.1))*100 # 73.3% agree between nuclear and cytosoplasmic measurements of developmental changes
+
 i = type[grep("Increasing:",type$Group),]
 d = type[grep("Decreasing:",type$Group),]
 fisher.test(data.frame(c(sum(d[d$RNA.Type=="Protein-coding","Count"]), sum(d$Count)-sum(d[d$RNA.Type=="Protein-coding","Count"])),
                        c(sum(i[i$RNA.Type=="Protein-coding","Count"]), sum(i$Count)-sum(i[d$RNA.Type=="Protein-coding","Count"]))))
-#p-value = 9.524e-13
+#p-value = 6.52e-06
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  1.329709 1.660557
+#  1.135020 1.384314
 #sample estimates:
 #  odds ratio 
-#1.485546
-i = type[grep("Cytosol",type$Group),]
+#1.253317
+i = type[grep("Cytoplasm",type$Group),]
 d = type[grep("Nucleus",type$Group),]
 fisher.test(data.frame(c(sum(d[d$RNA.Type=="Protein-coding","Count"]), sum(d$Count)-sum(d[d$RNA.Type=="Protein-coding","Count"])),
                        c(sum(i[i$RNA.Type=="Protein-coding","Count"]), sum(i$Count)-sum(i[d$RNA.Type=="Protein-coding","Count"]))))
-#p-value < 2.2e-16
+#p-value = 2.517e-10
 #alternative hypothesis: true odds ratio is not equal to 1
 #95 percent confidence interval:
-#  0.2822201 0.4251484
+#  0.5009294 0.6978963
 #sample estimates:
 #  odds ratio 
-#0.3465579
+#0.5913688
 
 
 ## Gene Ontology
@@ -671,11 +680,10 @@ FracbyAge = FracbyAge[which(FracbyAge$padj!="NA"),]
 
 elementNROWS(age.sig)
 fracDevel = lapply(age.sig[elementNROWS(age.sig)>0], function(x) FracbyAge[which(FracbyAge$gencodeID %in% x$geneID),])
-names(fracDevel) = c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
-                     "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
-                     "Decreasing: Nucleus/\nIncreasing: Cytoplasm", 
-                     "Decreasing: Cytoplasm/\nIncreasing: Nucleus","Interaction")
-fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(names(fracDevel))))
+fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
+                                                                     "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
+                                                                     "Decreasing: Nucleus/\nIncreasing: Cytoplasm", 
+                                                                     "Decreasing: Cytoplasm/\nIncreasing: Nucleus","Interaction"))))
 fracDevel$fracReg = factor(fracDevel$fracReg, 
                            levels = c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
                                       "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
@@ -686,6 +694,7 @@ fracDevel$fracReg = factor(fracDevel$fracReg,
 pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/AgebyFraction_LFCxFDR.pdf", width=22, height=6)
 ggplot(fracDevel[fracDevel$fracReg!="Decreasing: Cytoplasm/\nIncreasing: Nucleus",], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
   geom_violin() +
+  scale_fill_manual(values=c("red3","gray47")) +
   facet_grid(. ~ fracReg) +
   ylab("Log2 Fold Change") + 
   xlab("") +
@@ -709,12 +718,13 @@ tb = lapply(fracDevel, function(x)
   data.frame(Sig = c(length(unique(x[which(x$Comparison=="Adult" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
                      length(unique(x[which(x$Comparison=="Adult" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
              Nonsig = c(length(unique(x[which(x$Comparison=="Adult" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
-                        length(unique(x[which(x$Comparison=="Adult" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Retained","Exported")))
-df = rbind(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
+                        length(unique(x[which(x$Comparison=="Adult" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Nuclear","Cytoplasmic")))
+df = data.frame(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),
+                OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
 AdCounts = do.call(rbind, tb)
 AdCounts$FracGroup = gsub("\\..*","", rownames(AdCounts))
-AdCounts$fisher.pval = df["pvalue",match(AdCounts$FracGroup,colnames(df))]
-AdCounts$fisher.OR = df["OR",match(AdCounts$FracGroup,colnames(df))]
+AdCounts$fisher.pval = df[match(AdCounts$FracGroup,rownames(df)),"pvalue"]
+AdCounts$fisher.OR = df[match(AdCounts$FracGroup,rownames(df)),"OR"]
 AdCounts$Comparison = "Adult"
 AdCounts$padj = p.adjust(AdCounts$fisher.pval, method="fdr")
 
@@ -723,52 +733,55 @@ tb = lapply(fracDevel, function(x)
   data.frame(Sig = c(length(unique(x[which(x$Comparison=="Prenatal" & x$log2FoldChange>0 & x$padj<=0.05),"gencodeID"])),
                      length(unique(x[which(x$Comparison=="Prenatal" & x$log2FoldChange<0 & x$padj<=0.05),"gencodeID"]))),
              Nonsig = c(length(unique(x[which(x$Comparison=="Prenatal" & x$log2FoldChange>0 & x$padj>0.05),"gencodeID"])),
-                        length(unique(x[which(x$Comparison=="Prenatal" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Retained","Exported")))
-df = rbind(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
+                        length(unique(x[which(x$Comparison=="Prenatal" & x$log2FoldChange<0 & x$padj>0.05),"gencodeID"]))),row.names = c("Nuclear","Cytoplasmic")))
+df = data.frame(pvalue = unlist(lapply(lapply(tb, fisher.test), function(x) x$p.value)),OR = unlist(lapply(lapply(tb, fisher.test),function(x) x$estimate))) 
 PrenCounts = do.call(rbind, tb)
 PrenCounts$FracGroup = gsub("\\..*","", rownames(PrenCounts))
-PrenCounts$fisher.pval = df["pvalue",match(PrenCounts$FracGroup,colnames(df))]
-PrenCounts$fisher.OR = df["OR",match(PrenCounts$FracGroup,colnames(df))]
+PrenCounts$fisher.pval = df[match(PrenCounts$FracGroup,rownames(df)),"pvalue"]
+PrenCounts$fisher.OR = df[match(PrenCounts$FracGroup,rownames(df)),"OR"]
 PrenCounts$Comparison = "Prenatal"
 PrenCounts$padj = p.adjust(PrenCounts$fisher.pval, method="fdr")
 write.csv(rbind(AdCounts,PrenCounts),quote = F, 
           file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/FracLFCxFracpval_bysigAgeGroup_fisher.csv")
 
-AdCounts[which(AdCounts$fisher.pval*9<=0.05),]
-#                         Sig Nonsig       FracGroup  fisher.pval   fisher.OR Comparison         padj
-#both_decreasing.Retained 344   1625 both_decreasing 1.014942e-04  0.72557420      Adult 1.826895e-04
-#both_decreasing.Exported 405   1388 both_decreasing 1.014942e-04  0.72557420      Adult 1.826895e-04
-#Cyt_decreasing.Retained  307    496  Cyt_decreasing 4.244042e-21 37.99319795      Adult 1.909819e-20
-#Cyt_decreasing.Exported    2    123  Cyt_decreasing 4.244042e-21 37.99319795      Adult 1.909819e-20
-#Nuc_decreasing.Retained    4     39  Nuc_decreasing 5.816124e-11  0.07149196      Adult 1.744837e-10
-#Nuc_decreasing.Exported  367    255  Nuc_decreasing 5.816124e-11  0.07149196      Adult 1.744837e-10
-#Cyt_increasing.Retained    4    107  Cyt_increasing 5.222355e-25  0.03846865      Adult 4.700120e-24
-#Cyt_increasing.Exported  615    632  Cyt_increasing 5.222355e-25  0.03846865      Adult 4.700120e-24
-#Nuc_increasing.Retained  399    538  Nuc_increasing 2.422647e-10 19.25096733      Adult 5.450957e-10
-#Nuc_increasing.Exported    2     52  Nuc_increasing 2.422647e-10 19.25096733      Adult 5.450957e-10
-PrenCounts[which(PrenCounts$fisher.pval*9<=0.05),]
-#                         Sig Nonsig       FracGroup  fisher.pval fisher.OR Comparison         padj
-#both_decreasing.Retained  43   1386 both_decreasing 9.975632e-05  2.590442   Prenatal 4.489034e-04
-#both_decreasing.Exported  27   2255 both_decreasing 9.975632e-05  2.590442   Prenatal 4.489034e-04
-#both_increasing.Retained  75   1103 both_increasing 4.527069e-07  3.306150   Prenatal 4.074362e-06
-#both_increasing.Exported  20    973 both_increasing 4.527069e-07  3.306150   Prenatal 4.074362e-06
-#Cyt_decreasing.Retained   23    422  Cyt_decreasing 4.565649e-04  6.311237   Prenatal 1.027271e-03
-#Cyt_decreasing.Exported    3    348  Cyt_decreasing 4.565649e-04  6.311237   Prenatal 1.027271e-03
-#Nuc_decreasing.Retained    8    151  Nuc_decreasing 3.577172e-03  5.833436   Prenatal 6.438910e-03
-#Nuc_decreasing.Exported    4    442  Nuc_decreasing 3.577172e-03  5.833436   Prenatal 6.438910e-03
-#Nuc_increasing.Retained   30    295  Nuc_increasing 3.338348e-04 13.586438   Prenatal 1.001504e-03
-#Nuc_increasing.Exported    1    134  Nuc_increasing 3.338348e-04 13.586438   Prenatal 1.001504e-03
+AdCounts[which(AdCounts$padj<=0.05),]
+#                            Sig Nonsig       FracGroup  fisher.pval   fisher.OR Comparison         padj
+#both_decreasing.Nuclear     344   1625 both_decreasing 1.014942e-04  0.72557420      Adult 1.826895e-04
+#both_decreasing.Cytoplasmic 405   1388 both_decreasing 1.014942e-04  0.72557420      Adult 1.826895e-04
+#Cyt_decreasing.Nuclear      307    496  Cyt_decreasing 4.244042e-21 37.99319795      Adult 1.909819e-20
+#Cyt_decreasing.Cytoplasmic    2    123  Cyt_decreasing 4.244042e-21 37.99319795      Adult 1.909819e-20
+#Nuc_decreasing.Nuclear        4     39  Nuc_decreasing 5.816124e-11  0.07149196      Adult 1.744837e-10
+#Nuc_decreasing.Cytoplasmic  367    255  Nuc_decreasing 5.816124e-11  0.07149196      Adult 1.744837e-10
+
+#Cyt_increasing.Nuclear        4    107  Cyt_increasing 5.222355e-25  0.03846865      Adult 4.700120e-24
+#Cyt_increasing.Cytoplasmic  615    632  Cyt_increasing 5.222355e-25  0.03846865      Adult 4.700120e-24
+#Nuc_increasing.Nuclear      399    538  Nuc_increasing 2.422647e-10 19.25096733      Adult 5.450957e-10
+#Nuc_increasing.Cytoplasmic    2     52  Nuc_increasing 2.422647e-10 19.25096733      Adult 5.450957e-10
+#interacting.Nuclear          90     11     interacting 1.657424e-02  0.27055781      Adult 2.486137e-02
+#interacting.Cytoplasmic     152      5     interacting 1.657424e-02  0.27055781      Adult 2.486137e-02
+
+PrenCounts[which(PrenCounts$padj<=0.05),]
+#                            Sig Nonsig       FracGroup  fisher.pval fisher.OR Comparison         padj
+#both_decreasing.Nuclear      43   1386 both_decreasing 9.975632e-05  2.590442   Prenatal 4.489034e-04
+#both_decreasing.Cytoplasmic  27   2255 both_decreasing 9.975632e-05  2.590442   Prenatal 4.489034e-04
+#both_increasing.Nuclear      75   1103 both_increasing 4.527069e-07  3.306150   Prenatal 4.074362e-06
+#both_increasing.Cytoplasmic  20    973 both_increasing 4.527069e-07  3.306150   Prenatal 4.074362e-06
+#Cyt_decreasing.Nuclear       23    422  Cyt_decreasing 4.565649e-04  6.311237   Prenatal 1.027271e-03
+#Cyt_decreasing.Cytoplasmic    3    348  Cyt_decreasing 4.565649e-04  6.311237   Prenatal 1.027271e-03
+#Nuc_decreasing.Nuclear        8    151  Nuc_decreasing 3.577172e-03  5.833436   Prenatal 6.438910e-03
+#Nuc_decreasing.Cytoplasmic    4    442  Nuc_decreasing 3.577172e-03  5.833436   Prenatal 6.438910e-03
+#Nuc_increasing.Nuclear       30    295  Nuc_increasing 3.338348e-04 13.586438   Prenatal 1.001504e-03
+#Nuc_increasing.Cytoplasmic    1    134  Nuc_increasing 3.338348e-04 13.586438   Prenatal 1.001504e-03
 
 
 ## make figure for age gene fraction-association
 x = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/FracLFCxFracpval_bysigAgeGroup_fisher.csv")
 ad = x[which(x$padj<=0.05 & x$Comparison=="Adult"),]
 fracDevel = lapply(age.sig[elementNROWS(age.sig)>0], function(x) FracbyAge[which(FracbyAge$gencodeID %in% x$geneID),])
-names(fracDevel) = c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
-                     "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
-                     "Decreasing: Nucleus/\nIncreasing: Cytoplasm", 
-                     "Decreasing: Cytoplasm/\nIncreasing: Nucleus","Interaction")
-fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(names(fracDevel))))
+fracDevel = do.call(rbind, Map(cbind, fracDevel, fracReg = as.list(c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
+                                                                     "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
+                                                                     "Decreasing: Nucleus/\nIncreasing: Cytoplasm", 
+                                                                     "Decreasing: Cytoplasm/\nIncreasing: Nucleus","Interaction"))))
 fracDevel$fracReg = factor(fracDevel$fracReg, 
                            levels = c("Decreasing: Both","Increasing: Both","Decreasing:\nCytoplasm Only",
                                       "Decreasing:\nNucleus Only","Increasing:\nCytoplasm Only","Increasing:\nNucleus Only",
@@ -780,9 +793,10 @@ ggplot(fracDevel[which(fracDevel$fracReg!="Decreasing: Cytoplasm/\nIncreasing: N
                          fracDevel$fracReg!="Decreasing: Nucleus/\nIncreasing: Cytoplasm" & 
                          fracDevel$fracReg!="Interaction" & fracDevel$Comparison=="Adult"),], 
        aes(x=fracReg, y=log2FoldChange, fill=FDR), color=FDR) + 
+  scale_fill_manual(values=c("red3","gray47")) +
   geom_boxplot() +
   ylab("Log2 Fold Change") + 
-  xlab("") +
+  xlab("") + geom_hline(yintercept=0, linetype="dotted") +
   ggtitle("Expression Changes by Fraction in Adult Samples in Gene Groups Regulated by Age") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
@@ -795,9 +809,9 @@ dev.off()
 ## make table of genes for supplement
 
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-names(sig) = c("Retained: Both","Exported: Both","Retained: Prenatal Only","Retained: Adult Only",
-               "Exported: Prenatal Only","Exported: Adult Only",
-               "Retained in Adult; Exported in Prenatal", "Retained in Prenatal; Exported in Adult","Interaction")
+names(sig) = c("Nuclear: Both","Cytoplasmic: Both","Nuclear: Prenatal Only","Nuclear: Adult Only",
+               "Cytoplasmic: Prenatal Only","Cytoplasmic: Adult Only",
+               "Nuclear in Adult; Cytoplasmic in Prenatal", "Nuclear in Prenatal; Cytoplasmic in Adult","Interaction")
 names(age.sig) = c("Decreasing: Both","Increasing: Both","Decreasing: Cytosol Only","Decreasing: Nucleus Only",
                    "Increasing: Cytosol Only","Increasing: Nucleus Only","Decreasing in Nucleus; Increasing in Cytosol",
                    "Decreasing in Cytosol; Increasing in Nucleus", "Interaction")

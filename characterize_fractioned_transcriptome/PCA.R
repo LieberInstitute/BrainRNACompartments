@@ -34,7 +34,7 @@ plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE)
     xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
     ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
     theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20))
+    theme(text = element_text(size = 20), legend.title=element_blank())
 }
 
 plotPCA2 <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE) 
@@ -118,12 +118,26 @@ plotPCA4 <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE)
 ### Run PCA
 require(genefilter)
 
+colData(rlog)$Zone = gsub("Cytosol", "Cytoplasm", colData(rlog)$Zone)
+colData(rlog)$Zone = factor(colData(rlog)$Zone)
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2.pdf", 
+    height = 5, width = 8)
 plotPCA(rlog, intgroup = c("Fetal", "Zone", "Library"))
+dev.off()
+
 plotPCA2(rlog, intgroup = c("Fetal", "Zone", "Library"))
 plotPCA3(rlog, intgroup = c("Fetal", "Zone", "Library"))
 plotPCA4(rlog, intgroup = c("Fetal", "Zone", "Library"))
 
+colData(rlog.down)$Zone = gsub("Cytosol", "Cytoplasm", colData(rlog.down)$Zone)
+colData(rlog.down)$Zone = factor(colData(rlog.down)$Zone)
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2_downsampled.pdf", 
+    height = 5, width = 8)
 plotPCA(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
+dev.off()
+
 plotPCA2(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
 plotPCA3(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
 plotPCA4(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
