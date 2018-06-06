@@ -27,66 +27,23 @@ enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 enrich = lapply(enrich, data.frame)
-enrich = rbind(do.call(rbind, Map(cbind, lapply(enrich, function(x) x["P.Value",]),Value = "P.Value")),
-               do.call(rbind, Map(cbind, lapply(enrich, function(x) x["Odds Ratio",]),Value = "Odds Ratio")))
-enrich = cbind(Comparison = gsub("1","",rownames(enrich)), enrich)
-enrich = melt(enrich)
-enrich$group = paste(enrich$Comparison, enrich$variable, sep=":")
-enrich = enrich[order(enrich$Comparison),]
+enrich = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), lapply(enrich, function(x) 
+  data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
+             row.names=NULL))))
+enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
 write.csv(enrich, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_FractionDEGs.csv")
 
 
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=0.05),"group"],1:4]
-#       Comparison      Value          variable        value
-#60    Ad_exported    P.Value                ID 2.922569e-03
-#69    Ad_exported Odds Ratio                ID 2.278997e+00
-#96    Ad_exported    P.Value Neurodegenerative 2.791624e-04
-#105   Ad_exported Odds Ratio Neurodegenerative 3.567415e+00
-#22    Ad_retained    P.Value      ASD.DATABASE 6.205271e-03
-#31    Ad_retained Odds Ratio      ASD.DATABASE 1.818759e+00
-#40    Ad_retained    P.Value         BPAD.GWAS 1.912994e-03
-#49    Ad_retained Odds Ratio         BPAD.GWAS 2.358939e+00
-#166   Ad_retained    P.Value           SCZ.SNV 7.555499e-03
-#175   Ad_retained Odds Ratio           SCZ.SNV 1.846415e+00
-#56  both_exported    P.Value                ID 1.798478e-03
-#65  both_exported Odds Ratio                ID 1.351675e+01
-#1   both_retained    P.Value           ASD.CNV 1.741394e-05
-#10  both_retained Odds Ratio           ASD.CNV 6.701774e+00
-#19  both_retained    P.Value      ASD.DATABASE 4.417327e-04
-#28  both_retained Odds Ratio      ASD.DATABASE 4.278013e+00
-#109 both_retained    P.Value           SCZ.CNV 2.568253e-03
-#118 both_retained Odds Ratio           SCZ.CNV 5.655885e+00
-#45    interacting    P.Value         BPAD.GWAS 4.395678e-02
-#54    interacting Odds Ratio         BPAD.GWAS 3.129840e+00
+enrich[enrich$FDR<=0.05,]
+#      Comparison           GeneSet      P.Value OddsRatio         FDR
+#1  both_retained           ASD.CNV 1.741394e-05  6.701774 0.001567255
+#2  both_retained      ASD.DATABASE 4.417327e-04  4.278013 0.013251982
+#7  both_retained           SCZ.CNV 2.568253e-03  5.655885 0.037575888
+#14 both_exported                ID 1.798478e-03 13.516748 0.034433895
+#33   Ad_retained         BPAD.GWAS 1.912994e-03  2.358939 0.034433895
+#54   Ad_exported                ID 2.922569e-03  2.278997 0.037575888
+#56   Ad_exported Neurodegenerative 2.791624e-04  3.567415 0.012562308
 
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=(0.05/90)),"group"],1:4]
-#       Comparison      Value          variable        value
-#96    Ad_exported    P.Value Neurodegenerative 2.791624e-04
-#105   Ad_exported Odds Ratio Neurodegenerative 3.567415e+00
-#1   both_retained    P.Value           ASD.CNV 1.741394e-05
-#10  both_retained Odds Ratio           ASD.CNV 6.701774e+00
-#19  both_retained    P.Value      ASD.DATABASE 4.417327e-04
-#28  both_retained Odds Ratio      ASD.DATABASE 4.278013e+00
-
-p = enrich[enrich$Value=="P.Value",]
-p$padj = p.adjust(p$value, method = "fdr")
-p[p$padj<=0.05,c(-2,-5)]
-enrich[enrich$group %in% p[p$padj<=0.05,"group"],]
-#       Comparison      Value          variable        value                         group
-#60    Ad_exported    P.Value                ID 2.922569e-03                Ad_exported:ID
-#69    Ad_exported Odds Ratio                ID 2.278997e+00                Ad_exported:ID
-#96    Ad_exported    P.Value Neurodegenerative 2.791624e-04 Ad_exported:Neurodegenerative
-#105   Ad_exported Odds Ratio Neurodegenerative 3.567415e+00 Ad_exported:Neurodegenerative
-#40    Ad_retained    P.Value         BPAD.GWAS 1.912994e-03         Ad_retained:BPAD.GWAS
-#49    Ad_retained Odds Ratio         BPAD.GWAS 2.358939e+00         Ad_retained:BPAD.GWAS
-#56  both_exported    P.Value                ID 1.798478e-03              both_exported:ID
-#65  both_exported Odds Ratio                ID 1.351675e+01              both_exported:ID
-#1   both_retained    P.Value           ASD.CNV 1.741394e-05         both_retained:ASD.CNV
-#10  both_retained Odds Ratio           ASD.CNV 6.701774e+00         both_retained:ASD.CNV
-#19  both_retained    P.Value      ASD.DATABASE 4.417327e-04    both_retained:ASD.DATABASE
-#28  both_retained Odds Ratio      ASD.DATABASE 4.278013e+00    both_retained:ASD.DATABASE
-#109 both_retained    P.Value           SCZ.CNV 2.568253e-03         both_retained:SCZ.CNV
-#118 both_retained Odds Ratio           SCZ.CNV 5.655885e+00         both_retained:SCZ.CNV
 
 # what the what??? These are the genes in the both retained set:
 
@@ -107,27 +64,70 @@ write.csv(do.call(rbind, genes), quote=F,
           file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_ASDenrichedGenes_retainedInBoth.csv")
 
 ## plot RPKM of these genes
-counts = geneRpkm.down[rownames(geneRpkm.down) %in% c(rownames(cnv),rownames(db)),grep("poly", colnames(geneRpkm.down))]
+counts = geneRpkm.down[rownames(geneRpkm.down) %in% c(rownames(genes$cnv),rownames(genes$db)),grep("poly", colnames(geneRpkm.down))]
 counts = melt(counts)
 counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
 counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
 counts[grep("53", counts$Var2),"Age"] = "P"
 counts[-grep("53", counts$Var2),"Age"] = "A"
 counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
-
 pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ASD_rpkm_plots.pdf", width=24, height=3)
 ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
-  geom_boxplot() +
+  geom_boxplot() + scale_fill_brewer(palette="Dark2") +
   facet_grid(. ~ sym) +
   ylab("Log(RPKM+1)") + 
   xlab("") +
-  ggtitle(paste0("Expression of Genes Associated with ASD")) + 
+  ggtitle(paste0("Expression of Genes Associated with Autism")) + 
   theme(title = element_text(size = 16)) +
   theme(text = element_text(size = 16)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
+
+counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$sz.cnv),grep("poly", colnames(geneRpkm.down))]
+counts = melt(counts)
+counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
+counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
+counts[grep("53", counts$Var2),"Age"] = "P"
+counts[-grep("53", counts$Var2),"Age"] = "A"
+counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/SZ.CNV_rpkm_plots.pdf", width=10, height=3)
+ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
+  geom_boxplot() + scale_fill_brewer(palette="Dark2") +
+  facet_grid(. ~ sym) +
+  ylab("Log(RPKM+1)") + 
+  xlab("") +
+  ggtitle(paste0("Expression of Genes Associated with Schizophrenia")) + 
+  theme(title = element_text(size = 16)) +
+  theme(text = element_text(size = 16)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
+counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$BPAD),grep("poly", colnames(geneRpkm.down))]
+counts = melt(counts)
+counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
+counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
+counts[grep("53", counts$Var2),"Age"] = "P"
+counts[-grep("53", counts$Var2),"Age"] = "A"
+counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/BPAD_rpkm_plots.pdf", width=12, height=3)
+ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
+  geom_boxplot() + scale_fill_brewer(palette="Dark2") +
+  facet_grid(. ~ sym) +
+  ylab("Log(RPKM+1)") + 
+  xlab("") +
+  ggtitle(paste0("Expression of Genes Associated with Bipolar")) + 
+  theme(title = element_text(size = 16)) +
+  theme(text = element_text(size = 16)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
+
 
 
 ## Enrichment in genes differentially expressed by age
@@ -145,29 +145,22 @@ enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 enrich = lapply(enrich, data.frame)
-enrich = rbind(do.call(rbind, Map(cbind, lapply(enrich, function(x) x["P.Value",]),Value = "P.Value")),
-                   do.call(rbind, Map(cbind, lapply(enrich, function(x) x["Odds Ratio",]),Value = "Odds Ratio")))
-enrich = cbind(Comparison = gsub("1","",rownames(enrich)), enrich)
-enrich = melt(enrich)
-enrich$group = paste(enrich$Comparison, enrich$variable, sep=":")
-enrich = enrich[order(enrich$Comparison),]
+enrich = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), lapply(enrich, function(x) 
+  data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
+             row.names=NULL))))
+enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
 write.csv(enrich, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_AgeDEGs.csv")
 
 
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=(0.05/100)),"group"],1:4]
-#         Comparison      Value     variable        value
-#19  both_decreasing    P.Value ASD.DATABASE 3.848874e-07
-#28  both_decreasing Odds Ratio ASD.DATABASE 2.185606e+00
-#55  both_decreasing    P.Value           ID 1.584933e-08
-#64  both_decreasing Odds Ratio           ID 3.669451e+00
-#73  both_decreasing    P.Value          NDD 5.583036e-06
-#82  both_decreasing Odds Ratio          NDD 5.646020e+00
-#163 both_decreasing    P.Value      SCZ.SNV 3.750855e-06
-#172 both_decreasing Odds Ratio      SCZ.SNV 2.165057e+00
-#2   both_increasing    P.Value      ASD.CNV 5.164925e-06
-#11  both_increasing Odds Ratio      ASD.CNV 2.333495e+00
-#110 both_increasing    P.Value      SCZ.CNV 9.408016e-05
-#119 both_increasing Odds Ratio      SCZ.CNV 2.463959e+00
+enrich[enrich$FDR<=0.05,]
+#        Comparison      GeneSet      P.Value OddsRatio          FDR
+#2  both_decreasing ASD.DATABASE 3.848874e-07  2.185606 1.731994e-05
+#4  both_decreasing           ID 1.584933e-08  3.669451 1.426440e-06
+#5  both_decreasing          NDD 5.583036e-06  5.646020 1.004946e-04
+#10 both_decreasing      SCZ.SNV 3.750855e-06  2.165057 1.004946e-04
+#11 both_increasing      ASD.CNV 5.164925e-06  2.333495 1.004946e-04
+#13 both_increasing    BPAD.GWAS 1.165816e-03  2.010292 1.498906e-02
+#17 both_increasing      SCZ.CNV 9.408016e-05  2.463959 1.411202e-03
 
 
 # Are the ASD genes the same as the ones that were in "both retained"?
@@ -216,31 +209,11 @@ enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 enrich = lapply(enrich, data.frame)
-enrich = rbind(do.call(rbind, Map(cbind, lapply(enrich, function(x) x["P.Value",]),Value = "P.Value")),
-               do.call(rbind, Map(cbind, lapply(enrich, function(x) x["Odds Ratio",]),Value = "Odds Ratio")))
-enrich = cbind(Comparison = gsub("1","",rownames(enrich)), enrich)
-enrich = melt(enrich)
-enrich$group = paste(enrich$Comparison, enrich$variable, sep=":")
-enrich = enrich[order(enrich$Comparison),]
+enrich = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), lapply(enrich, function(x) 
+  data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
+             row.names=NULL))))
+enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
 
 
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=0.05),"group"],1:4]
-#       Comparison      Value          variable        value
-#40    Ad_retained    P.Value         BPAD.GWAS  0.005944548
-#49    Ad_retained Odds Ratio         BPAD.GWAS  2.898079796
-#148   Ad_retained    P.Value      SCZ.PGC.GWAS  0.026527536
-#157   Ad_retained Odds Ratio      SCZ.PGC.GWAS  2.532200879
-#92  both_exported    P.Value Neurodegenerative  0.034813888
-#101 both_exported Odds Ratio Neurodegenerative 30.571697580
-#19  both_retained    P.Value      ASD.DATABASE  0.004371475
-#28  both_retained Odds Ratio      ASD.DATABASE  4.143867756
-#99    interacting    P.Value Neurodegenerative  0.038050368
-#108   interacting Odds Ratio Neurodegenerative  6.818302145
-
-p = enrich[enrich$Value=="P.Value",]
-p$padj = p.adjust(p$value, method = "fdr")
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=(0.05/90)),"group"],1:4]
+enrich[enrich$FDR<=0.05,]
 # none :(
-enrich[enrich$group %in% p[p$padj<=0.05,"group"],]
-# none :(
-
