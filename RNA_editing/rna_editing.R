@@ -110,19 +110,19 @@ editingres_df[, list(min = min(na.omit(rate)),max = max(na.omit(rate)), median =
 # What is the validated coverage range per sample at edited sites?
 editingres_df[, list(min = min(valdepth),max = max(valdepth), median = median(valdepth), 
                      mean = mean(valdepth), sd = sd(valdepth)), by = c("sampleID")]
-#sampleID min max median     mean       sd
-#1: Br1113C1   0 109     12 16.99608 15.02656
-#2: Br1113N1   2 108     12 16.10694 12.74313
-#3:  Br2046C   1 108     12 16.24075 14.81553
-#4:  Br2046N   1 109     12 15.50497 13.21504
-#5:  Br2074C   1 109     12 16.79001 15.35052
-#6:  Br2074N   0 107     12 15.77555 14.04571
-#7: Br5339N1   1 107     11 14.41094 11.83242
-#8: Br5340N1   0 109     11 14.80892 12.41942
-#9: Br5341C1   2 107     12 16.62589 15.18498
-#10: Br5341N1   0 107     11 15.73896 14.59073
-#11: Br5339C1   0 108     12 15.32501 13.00267
-#12: Br5340C1   0 107     11 15.29666 13.01752
+#    sampleID min max median     mean       sd
+#1: Br1113C1   0 109     12 16.91928 14.99633
+#2: Br1113N1   2 108     12 16.10279 12.73881
+#3:  Br2046C   1 108     12 16.33267 14.73171
+#4:  Br2046N   1 109     12 15.61522 13.31537
+#5:  Br2074C   1 109     12 16.79319 15.28954
+#6:  Br2074N   0 107     12 15.86815 14.13114
+#7: Br5339N1   1 107     11 14.41077 11.70882
+#8: Br5340N1   0 109     11 14.75442 12.21129
+#9: Br5341C1   2 107     12 16.35597 14.74964
+#10: Br5341N1   0 107     11 15.53969 14.19272
+#11: Br5339C1   0 108     11 15.18437 12.81806
+#12: Br5340C1   0 107     11 15.21979 12.80784
 
 ggplot(editingres_df, aes(x = sampleID, y = valdepth, fill = collapsedconversion)) + geom_boxplot() +
   facet_grid(. ~ Group, scales = "free") +
@@ -170,7 +170,7 @@ grediting$UTR3 = ifelse(grediting$rnum %in% queryHits(annotation[["UTR3"]]), "UT
 grediting$anno = paste0(grediting$cds,":",grediting$intron, ":", grediting$UTR5, ":", grediting$UTR3)
 
 editing = as.data.frame(grediting)
-editing[which(editing$anno == "NA:NA:NA:NA"),"annotation"] = "Other" 
+editing[which(editing$anno == "NA:NA:NA:NA"),"annotation"] = "Intergenic" 
 editing[grep("CDS", editing$cds),"annotation"] = "CDS"
 editing[which(is.na(editing$annotation) & editing$UTR3 == "UTR3"),"annotation"] = "UTR3"
 editing[which(is.na(editing$annotation) & editing$UTR5 == "UTR5"),"annotation"] = "UTR5"
@@ -184,10 +184,13 @@ editing$nearestID = names(geneMapGR)[subjectHits(dA)]
 editing$distToGene = mcols(dA)$distance
 editing$EntrezID = ifelse(editing$overlappingGene!="NA", geneMap[match(editing$overlappingGene, geneMap$gencodeID),"EntrezID"], geneMapGR$EntrezID[subjectHits(dA)])
 editing_anno = data.table(editing)
+editing_anno$annotation = gsub("UTR3","3'UTR",editing_anno$annotation)
+editing_anno$annotation = gsub("UTR5","5'UTR", editing_anno$annotation)
+editing_anno$annotation = factor(editing_anno$annotation, levels = c("CDS","Intron","3'UTR","5'UTR","Intergenic"))
 
 # What is the distribution of features edited across groups?
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_allSites.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_allSites.pdf", width = 7,height = 4)
 ggplot(editing_anno[,length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
@@ -198,7 +201,7 @@ ggplot(editing_anno[,length(unique(editingID)), by = c("annotation", "Fraction",
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 dev.off()
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_AtoGOnly.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_AtoGOnly.pdf", width = 7,height = 4)
 ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
@@ -211,10 +214,10 @@ ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), 
 dev.off()
 
 intron = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="Intron",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
-utr3 = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="UTR3",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
+utr3 = editing_anno[collapsedconversion=="A:G / T:C" & annotation=="3'UTR",length(unique(editingID)), by = c("annotation", "Fraction", "Age")]
 total = editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction", "Age")]
-intron$V1/total$V1 * 100
-utr3$V1/total$V1 * 100
+(intron$V1/total$V1 * 100)[order(intron$V1/total$V1 * 100)] # 21.67809 33.73761 33.75515 26.02888
+(utr3$V1/total$V1 * 100)[order(utr3$V1/total$V1 * 100)] # 37.56576 40.39850 43.84477 50.83252
 
 
 ### In editing sites shared between all four groups:
@@ -241,7 +244,7 @@ for (i in 1:nrow(intersectres)) {
   propmat[rowIdx,colIdx]=intersectres$rate[i]
 }
 
-result = data.frame(id=rownames(propmat),fstat=NA,df=NA,pval.age=NA,pval.frac=NA,pval.int=NA)
+result = data.frame(id=rownames(propmat),fstat=NA,df=NA,Age=NA,Fraction=NA,Interaction=NA)
 for (i in 1:nrow(propmat)) {
   print(i)
   age = c(rep.int("Adult",6), rep.int("Prenatal",6))
@@ -258,32 +261,23 @@ for (i in 1:nrow(propmat)) {
     }
   }
 }
-result$fdr.age = p.adjust(result$pval.age, method = "fdr")
-result$fdr.frac = p.adjust(result$pval.frac, method = "fdr")
-result$fdr.int = p.adjust(result$pval.int, method = "fdr")
+result$fdr.age = p.adjust(result$Age, method = "fdr")
+result$fdr.frac = p.adjust(result$Fraction, method = "fdr")
+result$fdr.int = p.adjust(result$Interaction, method = "fdr")
 head(na.omit(result[order(result$fdr.int),]))
 head(na.omit(result[order(result$fdr.frac),]))
 head(na.omit(result[order(result$fdr.age),]))
+result = melt(result, id.vars = c("id","fstat","df","fdr.age","fdr.frac","fdr.int"))
+result$variable = factor(result$variable, levels = c("Age","Fraction","Interaction"))
+
 
 ## Plot the pvalue distributions
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Pvalue_distributions_RNAediting.pdf",height = 6,width = 8)
-ggplot(data=result, aes(result$pval.age)) + geom_histogram(bins=20) +
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Pvalue_distributions_RNAediting.pdf",height = 4,width = 9)
+ggplot(data=result, aes(result$value)) + geom_histogram(bins=20) + facet_grid(. ~ variable) +
   ylab("Count") + 
   xlab("P-value") +
-  ggtitle("P-value By Age") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
-ggplot(data=result, aes(result$pval.frac)) + geom_histogram(bins=20) +
-  ylab("Count") + 
-  xlab("P-value") +
-  ggtitle("P-value By Fraction") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
-ggplot(data=result, aes(result$pval.int)) + geom_histogram(bins=20) +
-  ylab("Count") + 
-  xlab("P-value") +
-  ggtitle("P-value By Fraction and Age") +
+  ggtitle("P-value Distribution") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 dev.off()
@@ -302,6 +296,7 @@ for (i in 1:length(unique(dat$editingID))){
   g = ggplot(dat[which(dat$editingID==ids[i]),], 
              aes(x = Age, y = rate, fill = Fraction)) + geom_boxplot() + geom_jitter() +
              ylab("Editing Rate") + ylim(0,1) +
+    scale_fill_brewer(palette="Dark2") +
              xlab("") +
              ggtitle(ids[i]) +
              theme(title = element_text(size = 20)) +
@@ -317,6 +312,7 @@ for (i in 1:length(unique(dat$editingID))){
   g = ggplot(dat[which(dat$editingID==ids[i]),], 
              aes(x = Age, y = rate, fill = Fraction)) + geom_boxplot() + geom_jitter() +
     ylab("Editing Rate") + ylim(0,1) +
+    scale_fill_brewer(palette="Dark2") +
     xlab("") +
     ggtitle(ids[i]) +
     theme(title = element_text(size = 20)) +
@@ -332,6 +328,7 @@ for (i in 1:length(unique(dat$editingID))){
   g = ggplot(dat[which(dat$editingID==ids[i]),], 
              aes(x = Age, y = rate, fill = Fraction)) + geom_boxplot() + geom_jitter() +
     ylab("Editing Rate") + ylim(0,1) +
+    scale_fill_brewer(palette="Dark2") +
     xlab("") +
     ggtitle(ids[i]) +
     theme(title = element_text(size = 20)) +
@@ -347,7 +344,7 @@ for (i in 1:length(unique(dat$editingID))){
   g = ggplot(dat[which(dat$editingID==ids[i]),], 
              aes(x = Age, y = rate, fill = Fraction)) + geom_boxplot() + geom_jitter() +
     ylab("Editing Rate") + ylim(0,1) +
-    xlab("") +
+    xlab("") + scale_fill_brewer(palette="Dark2") +
     ggtitle(ids[i]) +
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20))
@@ -509,7 +506,7 @@ x = lapply(unique, function(x) as.data.frame(cbind(x[,length(unique(editingID)),
 x = Map(cbind, x, diff = lapply(x, function(y) y$total - y$V1))
 comps = list(byFraction = c("cytosolOnly","nucleusOnly"), byAge = c("adultOnly","prenatalOnly"), byFracInAdult = c("ACnotAN","ANnotAC"),
              byFracinPrenatal = c("PCnotPN","PNnotPC"), byAgeinCyt = c("ACnotPC","PCnotAC"), byAgeinNuc = c("ANnotPN", "PNnotAN"))
-anno = c("CDS","Intron","Other","UTR3","UTR5")
+anno = c("CDS","Intron","Intergenic","3'UTR","5'UTR")
 
 ## Are  more likely to be in cyt over nuc or vice versa?
 anno.comps = list(list(),list(),list(),list(),list(),list())
@@ -523,11 +520,42 @@ for (i in (1:length(comps))){
   names(anno.comps[[i]]) = anno
 }
 names(anno.comps) = names(comps)
-write.csv(rbind(pval = do.call(rbind, lapply(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)), data.frame)),
-                          OR = round(do.call(rbind, lapply(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$estimate)), data.frame)),2)),
-          quote=F, file= "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_byGroup.csv")
-names(unlist(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)))[unlist(lapply(lapply(anno.comps, function(x) lapply(x, fisher.test)), function(x) lapply(x, function(y) y$p.value)))<=0.001923077])
-# 24 of 26 comparisons are significant
+anno.comps = lapply(anno.comps, lapply, fisher.test)
+
+x = do.call(rbind, Map(cbind, Group = as.list(names(anno.comps)), lapply(anno.comps, function(a) 
+            do.call(rbind, Map(cbind, Annotation = as.list(names(a)), lapply(a, function(z) data.frame(pval = z$p.value, OddsRatio = z$estimate, row.names = NULL)))))))
+x$FDR = p.adjust(x$pval, method = "fdr")
+write.csv(x,quote=F, file= "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_byGroup.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_byGroup.csv")
+df[df$FDR<=0.05 & df$OddsRatio>1,colnames(df)!="X"]
+#              Group Annotation          pval OddsRatio           FDR
+#3        byFraction Intergenic  2.730282e-06  1.223474  3.561237e-06
+#4        byFraction      3'UTR  0.000000e+00 82.370592  0.000000e+00
+#8             byAge Intergenic  0.000000e+00 27.361875  0.000000e+00
+#9             byAge      3'UTR  1.315546e-20  1.380692  1.973319e-20
+#12    byFracInAdult     Intron 1.117287e-256 34.364053 2.578354e-256
+#13    byFracInAdult Intergenic  1.526726e-05  1.259822  1.908407e-05
+#14    byFracInAdult      3'UTR  1.983926e-10  1.353012  2.834180e-10
+#18 byFracinPrenatal Intergenic 6.300473e-270 50.507131 1.575118e-269
+#19 byFracinPrenatal      3'UTR  3.522626e-34  1.972863  5.871044e-34
+#23       byAgeinCyt Intergenic 2.545671e-280 22.697174 6.942740e-280
+#24       byAgeinCyt      3'UTR  1.250038e-63  2.130625  2.343820e-63
+#27       byAgeinNuc     Intron  2.230578e-07  1.225238  3.041697e-07
+#28       byAgeinNuc Intergenic  0.000000e+00 24.117045  0.000000e+00
+#29       byAgeinNuc      3'UTR  0.000000e+00 61.294598  0.000000e+00
+df[df$FDR<=0.05 & df$OddsRatio<1,colnames(df)!="X"]
+#              Group Annotation          pval  OddsRatio           FDR
+#1        byFraction        CDS  0.000000e+00 0.02523414  0.000000e+00
+#2        byFraction     Intron  6.411616e-75 0.46490368  1.282323e-74
+#6             byAge        CDS  0.000000e+00 0.02737029  0.000000e+00
+#11    byFracInAdult        CDS 5.323224e-311 0.02267203 1.774408e-310
+#16 byFracinPrenatal        CDS 2.785537e-240 0.02228103 5.969007e-240
+#17 byFracinPrenatal     Intron  9.482181e-28 0.54250043  1.497186e-27
+#21       byAgeinCyt        CDS 8.794660e-309 0.04676909 2.638398e-308
+#22       byAgeinCyt     Intron  3.371831e-57 0.46696500  5.950290e-57
+#25       byAgeinCyt      5'UTR  2.643376e-02 0.55454641  3.172052e-02
+#26       byAgeinNuc        CDS  0.000000e+00 0.02697268  0.000000e+00
+#30       byAgeinNuc      5'UTR  0.000000e+00 0.01657080  0.000000e+00
 
 
 
@@ -728,33 +756,3 @@ plot(DO.ACnotPC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enric
 plot(DO.PCnotAC,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotAC")
 plot(DO.PCnotPN,colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: PCnotPN")
 dev.off()
-
-
-### Characterize the overlap with retained introns
-
-# read in results files
-path = "./Dropbox/sorted_figures/IRfinder/"
-comps = c("Adult_PolyA_Zone","Fetal_PolyA_Zone","Cytosol_PolyA_Age","Nuclear_PolyA_Age","PolyA_Zone","PolyA_Age")
-nonconst = list()
-for (i in 1:length(comps)){nonconst[[i]] = read.table(paste0(path, "PolyA/",comps[i],"_nonconst.tab"), header = TRUE, comment.char="#")}
-names(nonconst) = comps
-elementNROWS(nonconst)
-#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#2043              1582              1332              2118               211               338
-string = lapply(nonconst, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),"/", fixed = TRUE),recursive = FALSE))
-genes = lapply(string, function(x) x[grep("ENSG", x)])
-comments = lapply(string, function(y) as.character(y[seq.int(from = 3, to=length(y), by=3)]))
-IR.diff = lapply(nonconst, function(y) y$A.IRratio - y$B.IRratio)
-Sign = lapply(IR.diff, function(y) ifelse(y < 0,"MoreIRInNuc.Fetal", "MoreIRInCyt.Adult"))
-IR = Map(cbind, nonconst, ensID = genes, comments = comments, IR.diff = IR.diff, Sign = Sign)
-IRclean = lapply(IR, function(y) y[which(y$A.warnings!="LowCover" & y$A.warnings!="LowSplicing" & y$A.warnings!="NonUniformIntronCover" & 
-                                         y$B.warnings!="LowCover" & y$B.warnings!="LowSplicing" & y$B.warnings!="NonUniformIntronCover" & y$comments=="clean"),])
-lapply(IRclean, head)
-IRsig = lapply(IRclean, function(x) x[which(x$p.diff<=0.05),])
-elementNROWS(IRsig)
-#Adult_PolyA_Zone  Fetal_PolyA_Zone Cytosol_PolyA_Age Nuclear_PolyA_Age        PolyA_Zone         PolyA_Age 
-#162                93                80               179                32                37
-# Find overlaps with RNA editing sites
-IRranges = lapply(IRclean, function(x) makeGRangesFromDataFrame(x, start.field="Start",end.field="End",strand.field="Direction",keep.extra.columns = T))
-editing_ranges = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
-IR_hits = lapply(IRranges, function(x) findOverlaps(editing_ranges, x)) # No overlaps!

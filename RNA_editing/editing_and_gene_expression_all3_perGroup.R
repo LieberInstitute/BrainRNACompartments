@@ -63,6 +63,18 @@ unique_all = Map(cbind, unique_all, both_retained = lapply(unique_all, function(
                  Nuc_increasing = lapply(unique_all, function(x) ifelse(x$geneID %in% DEGnames$Nuc_increasing, "Nuc_increasing", "no")),
                  decr_Nuc_incr_Cyt = lapply(unique_all, function(x) ifelse(x$geneID %in% DEGnames$decr_Nuc_incr_Cyt, "decr_Nuc_incr_Cyt", "no")),
                  decr_Cyt_incr_Nuc = lapply(unique_all, function(x) ifelse(x$geneID %in% DEGnames$decr_Cyt_incr_Nuc, "decr_Cyt_incr_Nuc", "no")))
+for (i in 1:length(unique_all)) { 
+  unique_all[[i]]$adult_ret = ifelse((unique_all[[i]]$both_retained=="both_retained" | unique_all[[i]]$Ad_retained=="Ad_retained"), "adult_ret","no")
+  unique_all[[i]]$pren_ret = ifelse((unique_all[[i]]$both_retained=="both_retained" | unique_all[[i]]$Fet_retained=="Fet_retained"), "pren_ret","no")
+  unique_all[[i]]$adult_exp = ifelse((unique_all[[i]]$both_exported=="both_exported" | unique_all[[i]]$Ad_exported=="Ad_exported"), "adult_exp","no")
+  unique_all[[i]]$pren_exp = ifelse((unique_all[[i]]$both_exported=="both_exported" | unique_all[[i]]$Fet_exported=="Fet_exported"), "pren_exp","no")
+  unique_all[[i]]$cyt_decr = ifelse((unique_all[[i]]$both_decreasing=="both_decreasing" | unique_all[[i]]$Cyt_decreasing=="Cyt_decreasing"), "cyt_decr","no")
+  unique_all[[i]]$nuc_decr = ifelse((unique_all[[i]]$both_decreasing=="both_decreasing" | unique_all[[i]]$Nuc_decreasing=="Nuc_decreasing"), "nuc_decr","no")
+  unique_all[[i]]$cyt_incr = ifelse((unique_all[[i]]$both_increasing=="both_increasing" | unique_all[[i]]$Cyt_increasing=="Cyt_increasing"), "cyt_incr","no")
+  unique_all[[i]]$nuc_incr = ifelse((unique_all[[i]]$both_increasing=="both_increasing" | unique_all[[i]]$Nuc_increasing=="Nuc_increasing"), "nuc_incr","no")
+  
+
+}
 elementNROWS(unique_all)
 lapply(unique_all, head)
 
@@ -99,6 +111,17 @@ all = Map(cbind, all, ensID = lapply(all, function(x) geneMap[match(x$geneID,gen
           Nuc_increasing = lapply(all, function(x) ifelse(x$geneID %in% DEGnames$Nuc_increasing, "Nuc_increasing", "no")),
           decr_Nuc_incr_Cyt = lapply(all, function(x) ifelse(x$geneID %in% DEGnames$decr_Nuc_incr_Cyt, "decr_Nuc_incr_Cyt", "no")),
           decr_Cyt_incr_Nuc = lapply(all, function(x) ifelse(x$geneID %in% DEGnames$decr_Cyt_incr_Nuc, "decr_Cyt_incr_Nuc", "no")))
+for (i in 1:length(all)) {
+    all[[i]]$adult_ret = ifelse((all[[i]]$both_retained=="both_retained" | all[[i]]$Ad_retained=="Ad_retained"), "adult_ret","no")
+    all[[i]]$pren_ret = ifelse((all[[i]]$both_retained=="both_retained" | all[[i]]$Fet_retained=="Fet_retained"), "pren_ret","no")
+    all[[i]]$adult_exp = ifelse((all[[i]]$both_exported=="both_exported" | all[[i]]$Ad_exported=="Ad_exported"), "adult_exp","no")
+    all[[i]]$pren_exp = ifelse((all[[i]]$both_exported=="both_exported" | all[[i]]$Fet_exported=="Fet_exported"), "pren_exp","no")
+    all[[i]]$cyt_decr = ifelse((all[[i]]$both_decreasing=="both_decreasing" | all[[i]]$Cyt_decreasing=="Cyt_decreasing"), "cyt_decr","no")
+    all[[i]]$nuc_decr = ifelse((all[[i]]$both_decreasing=="both_decreasing" | all[[i]]$Nuc_decreasing=="Nuc_decreasing"), "nuc_decr","no")
+    all[[i]]$cyt_incr = ifelse((all[[i]]$both_increasing=="both_increasing" | all[[i]]$Cyt_increasing=="Cyt_increasing"), "cyt_incr","no")
+    all[[i]]$nuc_incr = ifelse((all[[i]]$both_increasing=="both_increasing" | all[[i]]$Nuc_increasing=="Nuc_increasing"), "nuc_incr","no")
+}
+
 
 elementNROWS(lapply(unique_all, function(x) unique(x$editingID)))
 #adultOnly prenatalOnly      ANnotAC      ACnotAN      ANnotPN      PNnotAN      ACnotPC      PCnotAC      PCnotPN      PNnotPC 
@@ -123,17 +146,22 @@ for (i in 1:length(numsites_bygene)){
                                        y = numsites_bygene_all[[allgroup[i]]][-which(numsites_bygene_all[[allgroup[i]]][,"geneID"] %in% numsites_bygene[[group[i]]][,"geneID"]),"V1"])
 }
 names(t.num.bygene) = names(t.editedgenes.numsites) = group
-write.csv(rbind(Tstat = data.frame(lapply(t.num.bygene, function(x) round(x$statistic,3))), pval = data.frame(lapply(t.num.bygene, function(x) x$p.value)),
-                confInt = data.frame(lapply(t.num.bygene, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(t.num.bygene, function(x) round(x$estimate,3))),
-                max = data.frame(lapply(numsites_bygene, function(x) max(x$V1))), median = data.frame(lapply(numsites_bygene, function(x) median(x$V1))), 
-                sd = data.frame(lapply(numsites_bygene, function(x) round(sd(x$V1),3)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perGene_inUniqueSiteGenes_vsNonUniqueSiteGenes.csv")
-write.csv(rbind(Tstat = data.frame(lapply(t.editedgenes.numsites, function(x) x$statistic)), pval = data.frame(lapply(t.editedgenes.numsites, function(x) x$p.value)),
-                confInt = data.frame(lapply(t.editedgenes.numsites, function(x) x$conf.int)), estMeans = data.frame(lapply(t.editedgenes.numsites, function(x) x$estimate)),
-                max = mapply(function(x,y) max(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup),
-                median = mapply(function(x,y) median(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup),
-                sd = mapply(function(x,y) sd(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup)),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perGene_inUniqueSiteGenes_vsNonUniqueSiteGenes_notJustUniqueSites.csv")
+numsites_bygene = numsites_bygene[match(group, names(numsites_bygene))]
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(t.num.bygene, function(x) data.frame(Tstat = x$statistic, pval = x$p.value, confInt1 = x$conf.int[1], confInt2 = x$conf.int[2], 
+                                                                                                   estMeansX = x$estimate[1], estMeansY = x$estimate[2], row.names = NULL)),
+                        max = lapply(numsites_bygene, function(x) max(x$V1)), median = lapply(numsites_bygene, function(x) median(x$V1)), sd = lapply(numsites_bygene, function(x) sd(x$V1))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perGene_inUniqueSiteGenes_vsNonUniqueSiteGenes.csv")
+
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(t.editedgenes.numsites, function(x) data.frame(Tstat = x$statistic, pval = x$p.value, confInt1 = x$conf.int[1], confInt2 = x$conf.int[2], 
+                                                                                                             estMeansX = x$estimate[1], estMeansY = x$estimate[2], row.names = NULL)),
+                        max = mapply(function(x,y) max(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup),
+                        median = mapply(function(x,y) median(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup),
+                        sd = mapply(function(x,y) sd(numsites_bygene_all[[y]][-which(numsites_bygene_all[[y]][,"geneID"] %in% numsites_bygene[[x]][,"geneID"]),"V1"]), group, allgroup)))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perGene_inUniqueSiteGenes_vsNonUniqueSiteGenes_notJustUniqueSites.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perGene_inUniqueSiteGenes_vsNonUniqueSiteGenes_notJustUniqueSites.csv")
+df[df$FDR<=0.05,]
 
 
 ## What about at the exon level?
@@ -158,18 +186,22 @@ for (i in 1:length(numsites_byexon)){
                                        y = numsites_byexon_all[[allgroup[i]]][-which(numsites_byexon_all[[allgroup[i]]][,"exonID"] %in% numsites_byexon[[group[i]]][,"exonID"]),"V1"])
 }
 names(t.num.byexon) = names(t.editedexons.numsites) = group
-write.csv(rbind(Tstat = data.frame(lapply(t.num.byexon, function(x) round(x$statistic,3))), pval = data.frame(lapply(t.num.byexon, function(x) x$p.value)),
-                             confInt = data.frame(lapply(t.num.byexon, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(t.num.byexon, function(x) round(x$estimate,3))),
-                             max = data.frame(lapply(numsites_byexon, function(x) max(x$V1))), median = data.frame(lapply(numsites_byexon, function(x) median(x$V1))), 
-                             sd = data.frame(lapply(numsites_byexon, function(x) round(sd(x$V1),3)))),quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perExon_inUniqueSiteExons_vsNonUniqueSiteExons.csv")
-write.csv(rbind(Tstat = data.frame(lapply(t.editedexons.numsites, function(x) x$statistic)), pval = data.frame(lapply(t.editedexons.numsites, function(x) x$p.value)),
-                confInt = data.frame(lapply(t.editedexons.numsites, function(x) x$conf.int)), estMeans = data.frame(lapply(t.editedexons.numsites, function(x) x$estimate)),
-                max = mapply(function(x,y) max(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
-                median = mapply(function(x,y) median(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
-                sd = mapply(function(x,y) sd(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup)),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perExon_inUniqueSiteExons_vsNonUniqueSiteExons_notJustUniqueSites.csv")
+numsites_byexon = numsites_byexon[match(group, names(numsites_byexon))]
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(t.num.byexon, function(x) data.frame(Tstat = x$statistic, pval = x$p.value, confInt1 = x$conf.int[1], confInt2 = x$conf.int[2], 
+                                                                                                   estMeansX = x$estimate[1], estMeansY = x$estimate[2], row.names = NULL)),
+                        max = lapply(numsites_byexon, function(x) max(x$V1)), median = lapply(numsites_byexon, function(x) median(x$V1)), sd = lapply(numsites_byexon, function(x) sd(x$V1))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perExon_inUniqueSiteExons_vsNonUniqueSiteExons.csv")
 
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(t.editedexons.numsites, function(x) data.frame(Tstat = x$statistic, pval = x$p.value, confInt1 = x$conf.int[1], confInt2 = x$conf.int[2], 
+                                                                                                             estMeansX = x$estimate[1], estMeansY = x$estimate[2], row.names = NULL)),
+                        max = mapply(function(x,y) max(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
+                        median = mapply(function(x,y) median(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup),
+                        sd = mapply(function(x,y) sd(numsites_byexon_all[[y]][-which(numsites_byexon_all[[y]][,"exonID"] %in% numsites_byexon[[x]][,"exonID"]),"V1"]), group, allgroup)))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perExon_inUniqueSiteExons_vsNonUniqueSiteExons_notJustUniqueSites.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Ttest_results_numEditingSites_perExon_inUniqueSiteExons_vsNonUniqueSiteExons_notJustUniqueSites.csv")
+df[df$FDR<=0.05,]
 
 
 ### Compare the proportion of editing sites in each annotation in sites unique to a group found in all samples of that group and those that aren’t
@@ -178,44 +210,23 @@ write.csv(rbind(Tstat = data.frame(lapply(t.editedexons.numsites, function(x) x$
 anno.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
 group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
 unique = lapply(unique_bySamp[3:12], function(x) editing_anno[which(editingID %in% x$EditingID),,])
+an = c("CDS","Intron","5'UTR","3'UTR","NA:NA:NA:NA")
 for (i in 1:length(unique_all)){
-  anno.site[[i]] = list(
-    data.frame(inAll = c(nrow(unique_all[[group[i]]][grep("CDS", anno),list(unique(editingID)),]), nrow(unique_all[[group[i]]][-grep("CDS", anno),list(unique(editingID)),])),
-               notInAll = c(nrow(unique[[group[i]]][grep("CDS", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][grep("CDS", anno),list(unique(editingID)),]),
-                            nrow(unique[[group[i]]][-grep("CDS", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][-grep("CDS", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
-    data.frame(inAll = c(nrow(unique_all[[group[i]]][grep("Intron", anno),list(unique(editingID)),]), nrow(unique_all[[group[i]]][-grep("Intron", anno),list(unique(editingID)),])),
-               notInAll = c(nrow(unique[[group[i]]][grep("Intron", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][grep("Intron", anno),list(unique(editingID)),]),
-                            nrow(unique[[group[i]]][-grep("Intron", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][-grep("Intron", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
-    data.frame(inAll = c(nrow(unique_all[[group[i]]][grep("5'UTR", anno),list(unique(editingID)),]), nrow(unique_all[[group[i]]][-grep("5'UTR", anno),list(unique(editingID)),])),
-               notInAll = c(nrow(unique[[group[i]]][grep("5'UTR", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][grep("5'UTR", anno),list(unique(editingID)),]),
-                            nrow(unique[[group[i]]][-grep("5'UTR", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][-grep("5'UTR", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
-    data.frame(inAll = c(nrow(unique_all[[group[i]]][grep("3'UTR", anno),list(unique(editingID)),]), nrow(unique_all[[group[i]]][-grep("3'UTR", anno),list(unique(editingID)),])),
-               notInAll = c(nrow(unique[[group[i]]][grep("3'UTR", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][grep("3'UTR", anno),list(unique(editingID)),]),
-                            nrow(unique[[group[i]]][-grep("3'UTR", anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][-grep("3'UTR", anno),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")),
-    data.frame(inAll = c(nrow(unique_all[[group[i]]][(annotation=="Intergenic"),list(unique(editingID)),]), nrow(unique_all[[group[i]]][(annotation!="Intergenic"),list(unique(editingID)),])),
-               notInAll = c(nrow(unique[[group[i]]][(annotation=="Intergenic"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(annotation=="Intergenic"),list(unique(editingID)),]),
-                            nrow(unique[[group[i]]][(annotation!="Intergenic"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(annotation!="Intergenic"),list(unique(editingID)),])), row.names = c("inAnno","notInAnno")))
+  for (j in 1:length(an)) {
+    anno.site[[i]][[j]] = data.frame(inAll = c(nrow(unique_all[[group[i]]][grep(an[j], anno),list(unique(editingID)),]), nrow(unique_all[[group[i]]][-grep(an[j], anno),list(unique(editingID)),])),
+                                     notInAll = c(nrow(unique[[group[i]]][grep(an[j], anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][grep(an[j], anno),list(unique(editingID)),]),
+                                                  nrow(unique[[group[i]]][-grep(an[j], anno),list(unique(editingID)),])-nrow(unique_all[[group[i]]][-grep(an[j], anno),list(unique(editingID)),])), 
+                                     row.names = c("inAnno","notInAnno")) }
   names(anno.site[[i]]) = c("CDS","Intron","5'UTR","3'UTR","Intergenic")
 }
 names(anno.site) = group
-fisher.anno.site = lapply(anno.site, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.anno.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-      data.frame(lapply(fisher.anno.site, function(x) unlist(lapply(x, function(y) round(y$estimate,3)), recursive=F)))),quote = F,
-file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotation_enrichment_UniqueSitesinAll_vsUniqueSitesNotInAll.csv")
-pval = unlist(lapply(fisher.anno.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.001]) # three pound signs indicate p value <=0.001 (Bonferoni corrected threshold) 
-#adultOnly.CDS
-#adultOnly.3'UTR
-###prenatalOnly.3'UTR
-#prenatalOnly.Intergenic
-#ANnotAC.CDS
-#ANnotAC.Intron
-#PCnotAC.3'UTR
-#PCnotAC.Intergenic
-###ANnotPN.3'UTR
-###ANnotPN.Intergenic 
-###PNnotAN.3'UTR is enriched compared to unique sites not in all samples in a group
-###PNnotAN.Intergenic is depleted compared to unique sites not in all samples in a group
+fisher.anno.site = lapply(anno.site, lapply, fisher.test)
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.anno.site, function(x) 
+     do.call(rbind, Map(cbind, Annotation = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotation_enrichment_UniqueSitesinAll_vsUniqueSitesNotInAll.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotation_enrichment_UniqueSitesinAll_vsUniqueSitesNotInAll.csv")
+df[df$FDR<=0.05,] 
 
 
 
@@ -227,313 +238,122 @@ names(pval[pval<=0.001]) # three pound signs indicate p value <=0.001 (Bonferoni
 frac.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
 group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
 allgroup = c("adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+comp = list(c("both_retained", "both_exported"),c("adult_ret","adult_exp"), c("pren_ret","pren_exp"),"both_retained","adult_ret", "pren_ret","both_exported","adult_exp","pren_exp")
 for (i in 1:length(unique_all)){
-  frac.site[[i]] = list(
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(editingID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_retained=="no"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_retained=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(editingID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no" & Ad_retained=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_retained=="no" & Ad_retained=="no"),list(unique(editingID)),])-
-                                 nrow(unique_all[[group[i]]][(both_retained=="no" & Ad_retained=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(editingID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no" & Fet_retained=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_retained=="no" & Fet_retained=="no"),list(unique(editingID)),])-
-                                 nrow(unique_all[[group[i]]][(both_retained=="no" & Fet_retained=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(editingID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_exported=="no"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_exported=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(editingID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no" & Ad_exported=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_exported=="no" & Ad_exported=="no"),list(unique(editingID)),])-
-                                 nrow(unique_all[[group[i]]][(both_exported=="no" & Ad_exported=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),]),
-                            nrow(all[[allgroup[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(editingID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no" & Fet_exported=="no"),list(unique(editingID)),]),
-                               nrow(all[[allgroup[i]]][(both_exported=="no" & Fet_exported=="no"),list(unique(editingID)),])-
-                                 nrow(unique_all[[group[i]]][(both_exported=="no" & Fet_exported=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")))
+  ua = as.data.frame(unique_all[[group[i]]])
+  al = as.data.frame(all[[allgroup[i]]])
+  for (j in 1:3) {
+    frac.site[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]][1]]==comp[[j]][1],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"editingID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]][2]]==comp[[j]][2],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"editingID"]))), row.names = c("unique","notUnique")) }
+  for (j in 4:9) {
+    frac.site[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]]]==comp[[j]],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]]]==comp[[j]],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]]]==comp[[j]],"editingID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]]]=="no","editingID"])),length(unique(al[al[,colnames(al)==comp[[j]]]=="no","editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]]]=="no","editingID"]))), row.names = c("unique","notUnique")) }
   names(frac.site[[i]]) = c("bothagesDEG","adultDEG","prenatalDEG","bothagesRetained","adultRetained","prenatalRetained","bothagesExported","adultExported","prenatalExported")
 }
 names(frac.site) = group
-fisher.frac.site = lapply(frac.site, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.frac.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.frac.site, function(x) unlist(lapply(x, function(y) round(y$estimate,3)), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
-pval = unlist(lapply(fisher.frac.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0005555556]) #(Bonferoni corrected threshold) 
-# ANnotAC.adultDEG
-# ANnotAC.bothagesRetained
-# ANnotAC.adultRetained
-# PNnotPC.bothagesRetained
-# PNnotPC.adultRetained
-# PNnotPC.prenatalRetained
+fisher.frac.site = lapply(frac.site, lapply, fisher.test)
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.frac.site, function(x) do.call(rbind, Map(cbind, Comparison = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
+df[df$FDR<=0.05,]
+
 
 # number of significantly retained or exported genes that either contain an editing site specific to a group and in all samples, or don't
+
 frac.gene = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+comp = list(c("both_retained", "both_exported","both_retained", "both_exported","both_retained", "both_exported"),c("adult_ret","adult_exp","both_retained", "both_exported","Ad_retained", "Ad_exported"), 
+            c("pren_ret","pren_exp","both_retained", "both_exported","Fet_retained", "Fet_exported"),
+            c("both_retained", "both_retained", "both_retained"),c("adult_ret","both_retained","Ad_retained"), c("pren_ret","both_retained","Fet_retained"),
+            c("both_exported","both_exported","both_exported"), c("adult_exp","both_exported","Ad_exported"),c("pren_exp","both_exported","Fet_exported"))
 for (i in 1:length(unique_all)){
-  frac.gene[[i]] = list(
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(geneID)),]),
-                            length(unique(sig$both_retained$geneID))-nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(geneID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(geneID)),]),
-                            length(unique(sig$both_exported$geneID))-nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Ad_retained$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(geneID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Ad_exported$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Fet_retained$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(geneID)),])),
-               exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Fet_exported$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(geneID)),]),
-                            length(unique(sig$both_retained$geneID))-nrow(unique_all[[group[i]]][(both_retained=="both_retained"),list(unique(geneID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts)-length(unique(sig$both_retained$geneID))-nrow(unique_all[[group[i]]][(both_retained=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Ad_retained$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Ad_retained=="Ad_retained"),list(unique(geneID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no" & Ad_retained=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts)-sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Ad_retained$geneID)))-
-                                 nrow(unique_all[[group[i]]][(both_retained=="no" & Ad_retained=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(retained = c(nrow(unique_all[[group[i]]][(both_retained=="both_retained" | Fet_retained=="Fet_retained"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Fet_retained$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_retained=="both_retained"| Fet_retained=="Fet_retained"),list(unique(geneID)),])),
-               notretained = c(nrow(unique_all[[group[i]]][(both_retained=="no" & Fet_retained=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts)-sum(length(unique(sig$both_retained$geneID)),length(unique(sig$Fet_retained$geneID)))-
-                                 nrow(unique_all[[group[i]]][(both_retained=="no" & Fet_retained=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(geneID)),]),
-                            length(unique(sig$both_exported$geneID))-nrow(unique_all[[group[i]]][(both_exported=="both_exported"),list(unique(geneID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts.down)-length(unique(sig$both_exported$geneID))-nrow(unique_all[[group[i]]][(both_exported=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Ad_exported$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Ad_exported=="Ad_exported"),list(unique(geneID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no" & Ad_exported=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts.down)-sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Ad_exported$geneID)))-
-                                 nrow(unique_all[[group[i]]][(both_exported=="no" & Ad_exported=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(exported = c(nrow(unique_all[[group[i]]][(both_exported=="both_exported" | Fet_exported=="Fet_exported"),list(unique(geneID)),]),
-                            sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Fet_exported$geneID)))-
-                              nrow(unique_all[[group[i]]][(both_exported=="both_exported"| Fet_exported=="Fet_exported"),list(unique(geneID)),])),
-               notexported = c(nrow(unique_all[[group[i]]][(both_exported=="no" & Fet_exported=="no"),list(unique(geneID)),]),
-                               nrow(geneCounts.down)-sum(length(unique(sig$both_exported$geneID)),length(unique(sig$Fet_exported$geneID)))-
-                                 nrow(unique_all[[group[i]]][(both_exported=="no" & Fet_exported=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")))
-    names(frac.gene[[i]]) = c("bothagesDEG","adultDEG","prenatalDEG","bothagesRetained","adultRetained","prenatalRetained","bothagesExported","adultExported","prenatalExported")
+  ua = as.data.frame(unique_all[[group[i]]])
+  al = as.data.frame(all[[allgroup[i]]])
+  for (j in 1:3) {
+    frac.gene[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"])),length(unique(c(sig[[comp[[j]][3]]]$geneID,sig[[comp[[j]][5]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"geneID"])),length(unique(c(sig[[comp[[j]][4]]]$geneID,sig[[comp[[j]][6]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"geneID"])))) }
+  for (j in 4:9) {
+    frac.gene[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"])),length(unique(c(sig[[comp[[j]][2]]]$geneID,sig[[comp[[j]][3]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]=="no","geneID"])),
+                                       nrow(geneCounts)-length(unique(c(sig[[comp[[j]][2]]]$geneID,sig[[comp[[j]][3]]]$geneID)))-length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]=="no","geneID"])))) }
+  names(frac.gene[[i]]) = c("bothagesDEG","adultDEG","prenatalDEG","bothagesRetained","adultRetained","prenatalRetained","bothagesExported","adultExported","prenatalExported")
 }
 names(frac.gene) = group
-fisher.frac.gene = lapply(frac.gene, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.frac.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.frac.gene, function(x) unlist(lapply(x, function(y) round(y$estimate,3)), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
-pval = unlist(lapply(fisher.frac.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0005555556]) # (Bonferoni corrected threshold) 
-# prenatalOnly.adultRetained
-# ACnotAN.adultExported
-# ANnotAC.adultDEG
-# ANnotAC.bothagesRetained
-# ANnotAC.adultRetained
-# ANnotAC.prenatalRetained
-# PNnotPC.adultDEG
-# PNnotPC.bothagesRetained
-# PNnotPC.adultRetained
-# PNnotPC.prenatalRetained
-# ACnotPC.adultExported
-# ANnotPN.adultDEG
-# ANnotPN.bothagesRetained
-# ANnotPN.adultRetained
-# ANnotPN.prenatalRetained
-# ANnotPN.adultExported
-# PNnotAN.adultDEG
-# PNnotAN.bothagesRetained
-# PNnotAN.adultRetained
+fisher.frac.gene = lapply(frac.gene, lapply, fisher.test)
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.frac.gene, function(x) do.call(rbind, Map(cbind, Comparison = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_FracDEGs.csv")
+df[df$FDR<=0.05,]
+
 
 
 ## Are editing sites specific to a group and shared by all samples in a group more or less likely to fall in an increasing or decreasing genes by age than chance?
 
 # number of editing sites falling within significantly retained or imported genes that are specific and in all samples, or those found in the same group that aren't specific
 age.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+comp = list(c("both_decreasing", "both_increasing"),c("cyt_decr","cyt_incr"), c("nuc_decr","nuc_incr"),"both_decreasing","cyt_decr", "nuc_decr","both_increasing","cyt_incr","nuc_incr")
 for (i in 1:length(unique_all)){
-  age.site[[i]] = list(
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])),
-               decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])),
-               decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])),
-               decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(editingID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_increasing=="no"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_increasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(editingID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no" & Cyt_increasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_increasing=="no" & Cyt_increasing=="no"),list(unique(editingID)),])-
-                                   nrow(unique_all[[group[i]]][(both_increasing=="no" & Cyt_increasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(editingID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no" & Nuc_increasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_increasing=="no" & Nuc_increasing=="no"),list(unique(editingID)),])-
-                                   nrow(unique_all[[group[i]]][(both_increasing=="no" & Nuc_increasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(editingID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_decreasing=="no"),list(unique(editingID)),])-nrow(unique_all[[group[i]]][(both_decreasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(editingID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no" & Cyt_decreasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_decreasing=="no" & Cyt_decreasing=="no"),list(unique(editingID)),])-
-                                   nrow(unique_all[[group[i]]][(both_decreasing=="no" & Cyt_decreasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),]),
-                              nrow(all[[allgroup[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(editingID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no" & Nuc_decreasing=="no"),list(unique(editingID)),]),
-                                 nrow(all[[allgroup[i]]][(both_decreasing=="no" & Nuc_decreasing=="no"),list(unique(editingID)),])-
-                                   nrow(unique_all[[group[i]]][(both_decreasing=="no" & Nuc_decreasing=="no"),list(unique(editingID)),])), row.names = c("unique","notUnique")))
-  names(age.site[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG","bothfractionsIncreasing","CytosolIncreasing","NucleusIncreasing","bothfractionsDecreasing","CytosolDecreasing","NucleusDecreasing")
+  ua = as.data.frame(unique_all[[group[i]]])
+  al = as.data.frame(all[[allgroup[i]]])
+  for (j in 1:3) {
+    age.site[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]][1]]==comp[[j]][1],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"editingID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]][2]]==comp[[j]][2],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"editingID"]))), row.names = c("unique","notUnique")) }
+  for (j in 4:9) {
+    age.site[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]]]==comp[[j]],"editingID"])),length(unique(al[al[,colnames(al)==comp[[j]]]==comp[[j]],"editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]]]==comp[[j]],"editingID"]))),
+                                     c(length(unique(ua[ua[,colnames(ua)==comp[[j]]]=="no","editingID"])),length(unique(al[al[,colnames(al)==comp[[j]]]=="no","editingID"]))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]]]=="no","editingID"]))), row.names = c("unique","notUnique")) }
+  names(age.site[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG","bothfractionsDecreasing","CytosolDecreasing","NucleusDecreasing","bothfractionsIncreasing","CytosolIncreasing","NucleusIncreasing")
 }
 names(age.site) = group
-fisher.age.site = lapply(age.site, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.age.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.age.site, function(x) unlist(lapply(x, function(y) round(y$estimate,3)), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
-pval = unlist(lapply(fisher.age.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0005555556])[c(grep("bothfractions",names(pval[pval<=0.0005555556])))] # (Bonferoni corrected threshold) 
-# adultOnly.bothfractionsDEG 
-# adultOnly.bothfractionsIncreasing 
-# prenatalOnly.bothfractionsDEG 
-# prenatalOnly.bothfractionsDecreasing 
-# ACnotPC.bothfractionsDEG 
-# ACnotPC.bothfractionsIncreasing 
-# ACnotPC.bothfractionsDecreasing 
-# PCnotAC.bothfractionsDEG 
-# PCnotAC.bothfractionsDecreasing 
-# ANnotPN.bothfractionsDEG 
-# ANnotPN.bothfractionsIncreasing 
-# ANnotPN.bothfractionsDecreasing 
-# PNnotAN.bothfractionsDEG 
-# PNnotAN.bothfractionsIncreasing 
-# PNnotAN.bothfractionsDecreasing 
+fisher.age.site = lapply(age.site, lapply, fisher.test)
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.age.site, function(x) do.call(rbind, Map(cbind, Comparison = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editingsite_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
+df[df$FDR<=0.05,]
+
 
 # number of significantly increasing or decreasing genes by age that either contain an editing site specific to a group and in all samples, or don't
 age.gene = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+comp = list(c("both_increasing", "both_decreasing","both_increasing", "both_decreasing","both_increasing", "both_decreasing"),
+            c("cyt_incr","cyt_decr","both_increasing", "both_decreasing","Cyt_increasing", "Cyt_decreasing"), 
+            c("nuc_incr","nuc_decr","both_increasing", "both_decreasing","Nuc_increasing", "Nuc_decreasing"),
+            c("both_increasing", "both_increasing", "both_increasing"),c("cyt_incr","both_increasing","Cyt_increasing"), c("nuc_incr","both_increasing","Nuc_increasing"),
+            c("both_decreasing","both_decreasing","both_decreasing"), c("cyt_decr","both_decreasing","Cyt_decreasing"),c("nuc_decr","both_decreasing","Nuc_decreasing"))
 for (i in 1:length(unique_all)){
-  age.gene[[i]] = list(
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(geneID)),]),
-                              length(unique(age.sig$both_decreasing$geneID))-nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(geneID)),])),
-               increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(geneID)),]),
-                              length(unique(age.sig$both_increasing$geneID))-nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Cyt_decreasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(geneID)),])),
-               increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Cyt_increasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Nuc_decreasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(geneID)),])),
-               increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Nuc_increasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(geneID)),]),
-                              length(unique(age.sig$both_decreasing$geneID))-nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"),list(unique(geneID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts)-length(unique(age.sig$both_decreasing$geneID))-nrow(unique_all[[group[i]]][(both_decreasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Cyt_decreasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Cyt_decreasing=="Cyt_decreasing"),list(unique(geneID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no" & Cyt_decreasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts.down)-sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Cyt_decreasing$geneID)))-
-                                   nrow(unique_all[[group[i]]][(both_decreasing=="no" & Cyt_decreasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(decreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing" | Nuc_decreasing=="Nuc_decreasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Nuc_decreasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_decreasing=="both_decreasing"| Nuc_decreasing=="Nuc_decreasing"),list(unique(geneID)),])),
-               notdecreasing = c(nrow(unique_all[[group[i]]][(both_decreasing=="no" & Nuc_decreasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts)-sum(length(unique(age.sig$both_decreasing$geneID)),length(unique(age.sig$Nuc_decreasing$geneID)))-
-                                   nrow(unique_all[[group[i]]][(both_decreasing=="no" & Nuc_decreasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(geneID)),]),
-                              length(unique(age.sig$both_increasing$geneID))-nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"),list(unique(geneID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts)-length(unique(age.sig$both_increasing$geneID))-nrow(unique_all[[group[i]]][(both_increasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Cyt_increasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Cyt_increasing=="Cyt_increasing"),list(unique(geneID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no" & Cyt_increasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts.down)-sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Cyt_increasing$geneID)))-
-                                   nrow(unique_all[[group[i]]][(both_increasing=="no" & Cyt_increasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")),
-    data.frame(increasing = c(nrow(unique_all[[group[i]]][(both_increasing=="both_increasing" | Nuc_increasing=="Nuc_increasing"),list(unique(geneID)),]),
-                              sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Nuc_increasing$geneID)))-
-                                nrow(unique_all[[group[i]]][(both_increasing=="both_increasing"| Nuc_increasing=="Nuc_increasing"),list(unique(geneID)),])),
-               notincreasing = c(nrow(unique_all[[group[i]]][(both_increasing=="no" & Nuc_increasing=="no"),list(unique(geneID)),]),
-                                 nrow(geneCounts)-sum(length(unique(age.sig$both_increasing$geneID)),length(unique(age.sig$Nuc_increasing$geneID)))-
-                                   nrow(unique_all[[group[i]]][(both_increasing=="no" & Nuc_increasing=="no"),list(unique(geneID)),])), row.names = c("ContainsUnique","NoUniquePresent")))
-  names(age.gene[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG","bothfractionsdecreasing","Cytosoldecreasing","Nucleusdecreasing","bothfractionsincreasing","Cytosolincreasing","Nucleusincreasing")
+  ua = as.data.frame(unique_all[[group[i]]])
+  al = as.data.frame(all[[allgroup[i]]])
+  for (j in 1:3) {
+    age.gene[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"])),length(unique(c(age.sig[[comp[[j]][3]]]$geneID,age.sig[[comp[[j]][5]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"]))),
+                                    c(length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"geneID"])),length(unique(c(age.sig[[comp[[j]][4]]]$geneID,age.sig[[comp[[j]][6]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][2]]==comp[[j]][2],"geneID"])))) }
+  for (j in 4:9) {
+    age.gene[[i]][[j]] = data.frame(c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"])),length(unique(c(age.sig[[comp[[j]][2]]]$geneID,age.sig[[comp[[j]][3]]]$geneID)))-
+                                         length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]==comp[[j]][1],"geneID"]))),
+                                    c(length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]=="no","geneID"])),
+                                       nrow(geneCounts)-length(unique(c(age.sig[[comp[[j]][2]]]$geneID,age.sig[[comp[[j]][3]]]$geneID)))-length(unique(ua[ua[,colnames(ua)==comp[[j]][1]]=="no","geneID"])))) }
+  names(age.gene[[i]]) = c("bothfractionsDEG","CytosolDEG","NucleusDEG","bothfractionsIncreasing","CytosolIncreasing","NucleusIncreasing","bothfractionsDecreasing","CytosolDecreasing","NucleusDecreasing")
 }
 names(age.gene) = group
-fisher.age.gene = lapply(age.gene, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) round(y$estimate,3)), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
-pval = unlist(lapply(fisher.age.gene, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0005555556])[c(grep("bothfractions",names(pval[pval<=0.0005555556])))] # (Bonferoni corrected threshold) 
-# adultOnly.bothfractionsDEG          
-# adultOnly.bothfractionsincreasing   
-# prenatalOnly.bothfractionsDEG      
-# prenatalOnly.bothfractionsdecreasing
-# ANnotAC.bothfractionsincreasing    
-# PNnotPC.bothfractionsDEG          
-# PNnotPC.bothfractionsdecreasing  
-# ACnotPC.bothfractionsDEG            
-# ACnotPC.bothfractionsincreasing  
-# PCnotAC.bothfractionsDEG          
-# PCnotAC.bothfractionsdecreasing   
-# ANnotPN.bothfractionsDEG            
-# ANnotPN.bothfractionsincreasing   
-# PNnotAN.bothfractionsDEG          
-# PNnotAN.bothfractionsdecreasing
+fisher.age.gene = lapply(age.gene, lapply, fisher.test)
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.age.gene, function(x) do.call(rbind, Map(cbind, Comparison = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedgene_enrichment_UniqueSitesinAll_vsAllOthers_inOrout_AgeDEGs.csv")
+df[df$FDR<=0.05,]
+
 
 
 ### Does editing rate correlate with gene expression in the group the editing site appears?
@@ -542,47 +362,144 @@ names(pval[pval<=0.0005555556])[c(grep("bothfractions",names(pval[pval<=0.000555
 corr.site = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
 group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
 unique_all_df = lapply(unique_all, as.data.frame)
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/correlation_degLFC_and_editingRate_inUniqueSites_inAllSamps.pdf")
 for (i in 1:length(unique_all)){
-  corr.site[[i]] = list(Adult = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Adult.LFC"], use = "complete.obs"),3),
-                        Prenatal = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Prenatal.LFC"], use = "complete.obs"),3),
-                        Cytosol = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Cytosol.LFC"], use = "complete.obs"),3),
-                        Nucleus = round(cor(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Nucleus.LFC"], use = "complete.obs"),3))
+  corr.site[[i]] = list(Adult = cor.test(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Adult.LFC"], use = "complete.obs"),
+                        Prenatal = cor.test(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Prenatal.LFC"], use = "complete.obs"),
+                        Cytosol = cor.test(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Cytosol.LFC"], use = "complete.obs"),
+                        Nucleus = cor.test(x = unique_all_df[[group[i]]][,"rate"], y = unique_all_df[[group[i]]][,"Nucleus.LFC"], use = "complete.obs"))
+  print(ggplot(unique_all_df[[group[i]]], aes(x=rate, y = Adult.LFC)) + geom_point() + geom_smooth(method='lm') + 
+          ylab("log2 fold change") + xlab("editing rate") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle(paste0("Editing Rate (", group[i],") vs. Expression\nBy Fraction in Adult")))
+  print(ggplot(unique_all_df[[group[i]]], aes(x=rate, y = Prenatal.LFC)) + geom_point() + geom_smooth(method='lm') + 
+          ylab("log2 fold change") + xlab("editing rate") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle(paste0("Editing Rate (", group[i],") vs. Expression\nBy Fraction in Prenatal")))
+  print(ggplot(unique_all_df[[group[i]]], aes(x=rate, y = Cytosol.LFC)) + geom_point() + geom_smooth(method='lm') + 
+          ylab("log2 fold change") + xlab("editing rate") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle(paste0("Editing Rate (", group[i],") vs. Expression\nBy Age in Cytoplasm")))
+  print(ggplot(unique_all_df[[group[i]]], aes(x=rate, y = Nucleus.LFC)) + geom_point() + geom_smooth(method='lm') + 
+          ylab("log2 fold change") + xlab("editing rate") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle(paste0("Editing Rate (", group[i],") vs. Expression\nBy Age in Nucleus")))
 }
-names(corr.site) = group
-write.csv(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F))), quote=F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/correlation_degLFC_and_editingRate_inUniqueSites_inAllSamps.csv")
+dev.off()
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(corr.site, function(x) 
+     cbind(LFC = names(x), do.call(rbind, lapply(x, function(y) 
+       data.frame(Tstat = y$statistic, pval = y$p.value, cor = y$estimate)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+row.names(df) = NULL
+write.csv(df, quote=F,file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/correlation_degLFC_and_editingRate_inUniqueSites_inAllSamps.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/correlation_degLFC_and_editingRate_inUniqueSites_inAllSamps.csv")
+df[df$FDR<=0.05 & abs(df$cor)>0.3,]
 
-max(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # 0.371
-max(abs(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F))))) # 0.429
-min(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F)))) # -0.429
-min(abs(data.frame(lapply(corr.site, function(x) unlist(x, recursive=F))))) # 0.003
 
 
 ### Is gene expression greater in the compartment/age exhibiting the editing site than in the compared group?
 ## t test of LFC between unique sites in both groups
 
-t.frac.site = t.age.site = list(list())
+t.site = list(list())
 comps = list(byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
              byAgeInCytosol = c("ACnotPC","PCnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN"))
 for (i in 1:length(comps)){
-  t.frac.site[[i]] = list(adult = t.test(x = unique_all_df[[comps[[i]][1]]][,"Adult.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Adult.LFC"]),
-                          prenatal = t.test(x = unique_all_df[[comps[[i]][1]]][,"Prenatal.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Prenatal.LFC"]))
-  t.age.site[[i]] = list(cytosol = t.test(x = unique_all_df[[comps[[i]][1]]][,"Cytosol.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Cytosol.LFC"]),
-                         nucleus = t.test(x = unique_all_df[[comps[[i]][1]]][,"Nucleus.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Nucleus.LFC"]))
+  t.site[[i]] = list(adult = t.test(x = unique_all_df[[comps[[i]][1]]][,"Adult.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Adult.LFC"]),
+                          prenatal = t.test(x = unique_all_df[[comps[[i]][1]]][,"Prenatal.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Prenatal.LFC"]),
+                          cytosol = t.test(x = unique_all_df[[comps[[i]][1]]][,"Cytosol.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Cytosol.LFC"]),
+                          nucleus = t.test(x = unique_all_df[[comps[[i]][1]]][,"Nucleus.LFC"], y = unique_all_df[[comps[[i]][2]]][,"Nucleus.LFC"]))
+}  
+names(t.site) = names(t.age.site) = names(comps)
+df = do.call(rbind, Map(cbind, comparison = as.list(names(comps)), group1 = lapply(comps, function(x) x[1]), group2 = lapply(comps, function(x) x[2]),
+                        lapply(t.site, function(x) do.call(rbind, Map(cbind, LFC = as.list(names(x)), lapply(x, function(y) 
+                    data.frame(Tstat = y$statistic, pval = y$p.value, estMean1 = y$estimate[1], estMean2 = y$estimate[2])))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+row.names(df) = NULL
+write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+df[df$FDR<=0.05,]
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/t.test.of.LFC.between.unique.editing.sites.shared.by.all.in.group.pdf", width = 10,height = 5)
+for (i in 1:length(comps)){
+  tmp = rbind(cbind(comp = comps[[i]][1], melt(unique_all_df[[comps[[i]][1]]][,colnames(unique_all_df[[comps[[i]][1]]]) %in% c("Adult.LFC","Prenatal.LFC","Cytosol.LFC","Nucleus.LFC")]),
+                    melt(unique_all_df[[comps[[i]][1]]][,colnames(unique_all_df[[comps[[i]][1]]]) %in% c("Adult.padj","Prenatal.padj","Cytosol.padj","Nucleus.padj")])),
+              cbind(comp = comps[[i]][2], melt(unique_all_df[[comps[[i]][2]]][,colnames(unique_all_df[[comps[[i]][2]]]) %in% c("Adult.LFC","Prenatal.LFC","Cytosol.LFC","Nucleus.LFC")]),
+                    melt(unique_all_df[[comps[[i]][2]]][,colnames(unique_all_df[[comps[[i]][2]]]) %in% c("Adult.padj","Prenatal.padj","Cytosol.padj","Nucleus.padj")])))
+  tmp = tmp[,-4]
+  colnames(tmp) = c("comp","Group","LFC","padj")
+  tmp$sig = ifelse(tmp$padj<=0.05,"FDR < 0.05", "FDR > 0.05")
+  tmp[is.na(tmp$padj),"sig"] = "FDR > 0.05"
+  tmp$Group = gsub("Adult.LFC", "LFC by Fraction\nin Adult", tmp$Group)
+  tmp$Group = gsub("Prenatal.LFC", "LFC by Fraction\nin Prenatal", tmp$Group)
+  tmp$Group = gsub("Cytosol.LFC", "LFC by Age\n in Cytoplasm", tmp$Group)
+  tmp$Group = gsub("Nucleus.LFC", "LFC by Age\n in Nucleus", tmp$Group)
+  tmp$comp = gsub("adultOnly", "Adult\nOnly", tmp$comp)
+  tmp$comp = gsub("prenatalOnly", "Prenatal\nOnly", tmp$comp)
+  tmp$comp = gsub("ANnotPN", "AN\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotAN", "PN\nnot AN", tmp$comp)
+  tmp$comp = gsub("ACnotPC", "AC\nnot PC", tmp$comp)
+  tmp$comp = gsub("PCnotPN", "PC\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotPC", "PN\nnot PC", tmp$comp)
+  tmp$comp = gsub("ACnotAN", "AC\nnot AN", tmp$comp)
+  tmp$comp = gsub("ANnotAC", "AN\nnot AC", tmp$comp)
+  tmp$comp = gsub("PCnotAC", "PC\nnot AC", tmp$comp)
+  print(ggplot(tmp, aes(x=comp, y = LFC, fill = sig)) + geom_boxplot() + facet_grid(. ~ Group) +
+          geom_hline(yintercept=0, linetype="dotted") + ylab("log2 fold change") + xlab("") + 
+          theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+          ggtitle("Gene Expression by Editing Group") + scale_fill_manual(values=c("red3","gray47")))
+  print(ggplot(tmp, aes(x=comp, y = LFC)) + geom_boxplot() + geom_jitter() + facet_grid(. ~ Group) +
+          geom_hline(yintercept=0, linetype="dotted") +
+          ylab("log2 fold change") + xlab("") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle("Gene Expression by Editing Group"))
+  
 }
-names(t.frac.site) = names(t.age.site) = names(comps)
-t.LFC.editing = rbind(frac.Tstat = data.frame(lapply(t.frac.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
-                      age.Tstat = data.frame(lapply(t.age.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
-                      frac.pval = data.frame(lapply(t.frac.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                      age.pval = data.frame(lapply(t.age.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                      frac.confInt = data.frame(lapply(t.frac.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
-                      age.confInt = data.frame(lapply(t.age.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))),
-                      frac.estMeans = data.frame(lapply(t.frac.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F))),
-                      age.estMeans = data.frame(lapply(t.age.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F))))
-write.csv(t.LFC.editing, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+dev.off()
 
-
-## Plots?
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/fig4D_E_F.LFC.between.unique.editing.sites.shared.by.all.in.group.pdf", width = 7,height = 4)
+tmp = rbind(cbind(comp = "adultOnly", melt(unique_all_df$adultOnly[,colnames(unique_all_df$adultOnly) %in% c("Cytosol.LFC","Nucleus.LFC")]),
+                  melt(unique_all_df$adultOnly[,colnames(unique_all_df$adultOnly) %in% c("Cytosol.padj","Nucleus.padj")])),
+            cbind(comp = "prenatalOnly", melt(unique_all_df$prenatalOnly[,colnames(unique_all_df$prenatalOnly) %in% c("Cytosol.LFC","Nucleus.LFC")]),
+                  melt(unique_all_df$prenatalOnly[,colnames(unique_all_df$prenatalOnly) %in% c("Cytosol.padj","Nucleus.padj")])))
+tmp = tmp[,-4]
+colnames(tmp) = c("comp","Group","LFC","padj")
+tmp$sig = ifelse(tmp$padj<=0.05,"FDR < 0.05", "FDR > 0.05")
+tmp[is.na(tmp$padj),"sig"] = "FDR > 0.05"
+tmp$Group = gsub("Cytosol.LFC", "LFC by Age\n in Cytoplasm", tmp$Group)
+tmp$Group = gsub("Nucleus.LFC", "LFC by Age\n in Nucleus", tmp$Group)
+tmp$comp = gsub("adultOnly", "Adult\nOnly", tmp$comp)
+tmp$comp = gsub("prenatalOnly", "Prenatal\nOnly", tmp$comp)
+ggplot(tmp, aes(x=comp, y = LFC, fill = sig)) + geom_boxplot() + facet_grid(. ~ Group) +
+       geom_hline(yintercept=0, linetype="dotted") + ylab("log2 fold change") + xlab("") + 
+       theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+       scale_fill_manual(values=c("red3","gray47")) + ylim(-8,8)
+tmp = rbind(cbind(comp = "ACnotAN", melt(unique_all_df$ACnotAN[,colnames(unique_all_df$ACnotAN) %in% c("Adult.LFC","Prenatal.LFC")]),
+                  melt(unique_all_df$ACnotAN[,colnames(unique_all_df$ACnotAN) %in% c("Adult.padj","Prenatal.padj")])),
+            cbind(comp = "ANnotAC", melt(unique_all_df$ANnotAC[,colnames(unique_all_df$ANnotAC) %in% c("Adult.LFC","Prenatal.LFC")]),
+                  melt(unique_all_df$ANnotAC[,colnames(unique_all_df$ANnotAC) %in% c("Adult.padj","Prenatal.padj")])))
+tmp = tmp[,-4]
+colnames(tmp) = c("comp","Group","LFC","padj")
+tmp$sig = ifelse(tmp$padj<=0.05,"FDR < 0.05", "FDR > 0.05")
+tmp[is.na(tmp$padj),"sig"] = "FDR > 0.05"
+tmp$Group = gsub("Adult.LFC", "LFC by Fraction\nin Adult", tmp$Group)
+tmp$Group = gsub("Prenatal.LFC", "LFC by Fraction\nin Prenatal", tmp$Group)
+tmp$comp = gsub("ACnotAN", "AC\nnot AN", tmp$comp)
+tmp$comp = gsub("ANnotAC", "AN\nnot AC", tmp$comp)
+ggplot(tmp, aes(x=comp, y = LFC, fill = sig)) + geom_boxplot() + facet_grid(. ~ Group) +
+  geom_hline(yintercept=0, linetype="dotted") + ylab("log2 fold change") + xlab("") + 
+  theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+  scale_fill_manual(values=c("red3","gray47")) + ylim(-2.5,2.5)
+tmp = rbind(cbind(comp = "PCnotPN", melt(unique_all_df$PCnotPN[,colnames(unique_all_df$PCnotPN) %in% c("Adult.LFC","Prenatal.LFC")]),
+                  melt(unique_all_df$PCnotPN[,colnames(unique_all_df$PCnotPN) %in% c("Adult.padj","Prenatal.padj")])),
+            cbind(comp = "PNnotPC", melt(unique_all_df$PNnotPC[,colnames(unique_all_df$PNnotPC) %in% c("Adult.LFC","Prenatal.LFC")]),
+                  melt(unique_all_df$PNnotPC[,colnames(unique_all_df$PNnotPC) %in% c("Adult.padj","Prenatal.padj")])))
+tmp = tmp[,-4]
+colnames(tmp) = c("comp","Group","LFC","padj")
+tmp$sig = ifelse(tmp$padj<=0.05,"FDR < 0.05", "FDR > 0.05")
+tmp[is.na(tmp$padj),"sig"] = "FDR > 0.05"
+tmp$Group = gsub("Adult.LFC", "LFC by Fraction\nin Adult", tmp$Group)
+tmp$Group = gsub("Prenatal.LFC", "LFC by Fraction\nin Prenatal", tmp$Group)
+tmp$comp = gsub("PCnotPN", "PC\nnot PN", tmp$comp)
+tmp$comp = gsub("PNnotPC", "PN\nnot PC", tmp$comp)
+ggplot(tmp, aes(x=comp, y = LFC, fill = sig)) + geom_boxplot() + facet_grid(. ~ Group) +
+  geom_hline(yintercept=0, linetype="dotted") + ylab("log2 fold change") + xlab("") + 
+  theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+  scale_fill_manual(values=c("red3","gray47")) + ylim(-2.5,2.5)
+dev.off()
 
 
 ### In intronic editing sites, is the IR ratio greater in the compartment exhibiting the site than the compared group?
@@ -597,18 +514,12 @@ for (i in 1:length(shortenedNames)){
 }
 names(IRres) = shortenedNames
 IRres_gr = lapply(IRres, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr",start.field = "Start",end.field = "End",strand.field = "Direction",keep.extra.columns = T))
-Map(cbind, unique_all, geneID = lapply(unique_all, function(x) ifelse(as.character(x$overlappingGene)!="NA", as.character(x$overlappingGene), as.character(x$nearestID))))
 editing_anno_gr = makeGRangesFromDataFrame(cbind(editing_anno, geneID = ifelse(as.character(editing_anno$overlappingGene)!="NA", 
                                                                                as.character(editing_anno$overlappingGene), as.character(editing_anno$nearestID))), keep.extra.columns=T)
-ov = lapply(IRres_gr, function(x,y) findOverlaps(x, editing_anno_gr))
-togintron = list()
-for (i in 1:length(IRres)){
-  tmp = IRres[[i]]
-  togintron[[i]] = cbind(editing_anno[subjectHits(ov[[i]]),], IRratio = tmp$IRratio[queryHits(ov[[i]])],
-                   sampleIDintron = names(IRres)[i], 
-                   intronID = paste0(tmp$Chr[queryHits(ov[[i]])],":",tmp$Start[queryHits(ov[[i]])],"-",tmp$End[queryHits(ov[[i]])],":",tmp$Direction[queryHits(ov[[i]])]))
-}
-togintron = do.call(rbind, togintron)
+ov = lapply(IRres_gr, function(x) findOverlaps(x, editing_anno_gr))
+togintron = do.call(rbind,mapply(function(oo, IR, n) cbind(editing_anno[subjectHits(oo),], IRratio = IR$IRratio[queryHits(oo)], sampleIDintron = n, 
+                                             intronID = paste0(IR$Chr[queryHits(oo)],":",IR$Start[queryHits(oo)],"-",
+                                                               IR$End[queryHits(oo)],":",IR$Direction[queryHits(oo)])), ov, IRres, names(IRres), SIMPLIFY = F))
 IRratio_editing = lapply(unique_all_df, function(x) togintron[which(togintron$editingID %in% x$editingID & togintron$annotation=="Intron"),])
 rbind(number.introns = unlist(lapply(IRratio_editing, function(x) length(unique(x$intronID)))),
       number.sites = unlist(lapply(IRratio_editing, function(x) length(unique(x$editingID)))),
@@ -618,24 +529,59 @@ rbind(number.introns = unlist(lapply(IRratio_editing, function(x) length(unique(
 #number.sites           11           15      39       2      81      61      23      39       1      25
 #num.total.sites        30           23      76       4     184      97      57      73       2      35
 
+IRratio_editing = lapply(IRratio_editing, data.table)
+IRratio_editing = lapply(IRratio_editing, function(x) x[,unique(IRratio), by = c("intronID","sampleIDintron","editingID")])
+for (i in 1:length(IRratio_editing)) {
+  IRratio_editing[[i]]$Fraction = ifelse(IRratio_editing[[i]]$sampleIDintron %in% c("Br1113C1","Br2046C","Br2074C","Br5339C1","Br5340C1","Br5341C1"), "Cytoplasm","Nucleus") 
+  IRratio_editing[[i]]$Age = ifelse(IRratio_editing[[i]]$sampleIDintron %in% c("Br1113C1","Br1113N1","Br2046C","Br2046N","Br2074C","Br2074N"),"Adult","Prenatal")
+}
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/IRratio.between.unique.editing.sites.shared.by.all.in.group.pdf", width = 6,height = 4)
+for (i in 1:length(comps)){
+  if (nrow(IRratio_editing[[comps[[i]][1]]])>0 & nrow(IRratio_editing[[comps[[i]][2]]])>0) {
+  tmp = rbind(cbind(comp = comps[[i]][1], IRratio_editing[[comps[[i]][1]]]),cbind(comp = comps[[i]][2], IRratio_editing[[comps[[i]][2]]]))
+  } else if (nrow(IRratio_editing[[comps[[i]][1]]])>0 & nrow(IRratio_editing[[comps[[i]][2]]])<1) {
+    tmp = cbind(comp = comps[[i]][1], IRratio_editing[[comps[[i]][1]]])
+  } else if (nrow(IRratio_editing[[comps[[i]][1]]])<1 & nrow(IRratio_editing[[comps[[i]][2]]])>0) {
+    tmp = cbind(comp = comps[[i]][2], IRratio_editing[[comps[[i]][2]]])
+  } 
+  tmp$comp = gsub("adultOnly", "Adult\nOnly", tmp$comp)
+  tmp$comp = gsub("prenatalOnly", "Prenatal\nOnly", tmp$comp)
+  tmp$comp = gsub("ANnotPN", "AN\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotAN", "PN\nnot AN", tmp$comp)
+  tmp$comp = gsub("ACnotPC", "AC\nnot PC", tmp$comp)
+  tmp$comp = gsub("PCnotPN", "PC\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotPC", "PN\nnot PC", tmp$comp)
+  tmp$comp = gsub("ACnotAN", "AC\nnot AN", tmp$comp)
+  tmp$comp = gsub("ANnotAC", "AN\nnot AC", tmp$comp)
+  tmp$comp = gsub("PCnotAC", "PC\nnot AC", tmp$comp)
+  print(ggplot(tmp, aes(x=comp, y = IRratio, fill = Fraction)) + geom_boxplot() + facet_grid(. ~ Age) +
+          ylab("IR Ratio") + xlab("") + 
+          theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+          ggtitle("IR Ratio by Editing Group") + scale_fill_brewer(palette="Dark2"))
+}
+dev.off()
 
 t.IRratio = list()
-comps = list(byAge = c("adultOnly","prenatalOnly"), byFractionInAdult = c("ACnotAN","ANnotAC"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), 
-             byAgeInCytosol = c("ACnotPC","PCnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN"))
 for (i in 1:length(comps)){
-  t.IRratio[[i]] = t.test(x = IRratio_editing[[comps[[i]][1]]][,"IRratio"], y = IRratio_editing[[comps[[i]][2]]][,"IRratio"])
-}
-names(t.IRratio) = names(comps)
-write.csv(rbind(Tstat = data.frame(lapply(t.IRratio, function(x) x$statistic)), pval = data.frame(lapply(t.IRratio, function(x) x$p.value)),
-                confInt = data.frame(lapply(t.IRratio, function(x) x$conf.int)), estMeans = data.frame(lapply(t.IRratio, function(x) x$estimate))), 
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.IRratio.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+  if (nrow(IRratio_editing[[comps[[i]][1]]])>0 & nrow(IRratio_editing[[comps[[i]][2]]])>0) {
+    t.IRratio[[i]] = t.test(x = IRratio_editing[[comps[[i]][1]]][,"IRratio"], y = IRratio_editing[[comps[[i]][2]]][,"IRratio"])  } else if (nrow(IRratio_editing[[comps[[i]][1]]])>0 & nrow(IRratio_editing[[comps[[i]][2]]])<1) {
+    } }
+df = do.call(rbind, Map(cbind, comparison = as.list(names(comps)[elementNROWS(t.IRratio)>0]), group1 = lapply(comps[elementNROWS(t.IRratio)>0], function(x) x[1]), group2 = lapply(comps[elementNROWS(t.IRratio)>0], function(x) x[2]),
+                        lapply(t.IRratio[elementNROWS(t.IRratio)>0], function(y) data.frame(Tstat = y$statistic, pval = y$p.value, estMean1 = y$estimate[1], estMean2 = y$estimate[2]))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+row.names(df) = NULL
+write.csv(df,quote=F, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.IRratio.between.unique.editing.sites.shared.by.all.in.group.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.IRratio.between.unique.editing.sites.shared.by.all.in.group.csv")
+df[df$FDR<=0.05,]
 
 
 ## Are the introns that are edited expressed in the other group where they are not edited?
+IRratio_editing = lapply(unique_all_df, function(x) togintron[which(togintron$editingID %in% x$editingID & togintron$annotation=="Intron"),])
 IRratio_editing_dt = lapply(IRratio_editing, data.table)
 IRratio_editing_dt = lapply(IRratio_editing_dt, function(x) as.data.frame(x[,list(unique(IRratio)),by=c("editingID","sampleIDintron","intronID")]))
 IRratio_editing_dt = Map(cbind, IRratio_editing_dt, 
-                         Fraction = lapply(IRratio_editing_dt, function(x) ifelse(x$sampleIDintron %in% c("Br1113C1","Br2046C","Br2074C","Br5339C1","Br5340C1","Br5341C1"),"Cytosol","Nucleus")),
+                         Fraction = lapply(IRratio_editing_dt, function(x) ifelse(x$sampleIDintron %in% c("Br1113C1","Br2046C","Br2074C","Br5339C1","Br5340C1","Br5341C1"),"Cytoplasm","Nucleus")),
                          Age = lapply(IRratio_editing_dt, function(x) ifelse(x$sampleIDintron %in% c("Br1113C1","Br2046C","Br2074C","Br1113N1","Br2046N","Br2074N"),"Adult","Prenatal")))
 IRratio_editing_dt = Map(cbind, IRratio_editing_dt, Group = lapply(IRratio_editing_dt, function(x) as.character(paste(x$Age, x$Fraction, sep=":"))))
 IRratio_editing_dt = lapply(IRratio_editing_dt, data.table)
@@ -661,6 +607,7 @@ for (i in 1:nrow(y)){
 df = data.frame(percent = c(round(y$Zero/y$V1*100,2),round((y$V1-y$Zero)/y$V1*100,2)), Group = rep.int(y$Group,2), SiteGroup = rep.int(y$SiteGroup,2), 
                 IR = c(rep.int("Not Expressed",nrow(y)),rep.int("Expressed",nrow(y))), TotalIntrons = c(rep.int(NA, nrow(y)),y$V1))
 df$SiteGroup = factor(df$SiteGroup, levels = c("adultOnly","prenatalOnly","ACnotPC","PCnotAC","ANnotPN","PNnotAN","ACnotAN","ANnotAC","PCnotPN","PNnotPC"))
+write.csv(df, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/introns.present.inEachGroup.csv")
 
 # Count introns with >=10% retention in a group
 x = lapply(IRratio_editing_dt, function(x) x[V1>=0.1,length(unique(intronID)),by="Group"])
@@ -682,23 +629,21 @@ df1 = data.frame(percent = c(round(y$IR/y$V1*100,2),round((y$V1-y$IR)/y$V1*100,2
                 IR = c(rep.int("Retained Intron",nrow(y)),rep.int("Not Retained Intron",nrow(y))), TotalIntrons = c(rep.int(NA, nrow(y)),y$V1))
 df1$SiteGroup = factor(df1$SiteGroup, levels = c("adultOnly","prenatalOnly","ACnotPC","PCnotAC","ANnotPN","PNnotAN","ACnotAN","ANnotAC","PCnotPN","PNnotPC"))
 df1$IR = factor(df1$IR, levels = c("Retained Intron","Not Retained Intron"))
-
+write.csv(df1, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/introns.present.10percent.inEachGroup.csv")
 
 
 # Plot intron retention ratios
 pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/introns_overlappingUniqueInAll3_editingSites_PercentNotExpresseded_inOtherGroups.pdf",width=18,height=9)
 ggplot(df, aes(x = Group, y = percent, fill=IR)) + geom_bar(stat = "identity") +
   facet_grid(. ~ SiteGroup) +
-  labs(fill="") +
-  ylab("Percent") + 
+  labs(fill="") + ylab("Percent") + 
   xlab("") + theme(axis.text.x=element_text(angle=45,hjust=1)) +
   ggtitle("Percent Expressed Introns Containing a Unique Editing Site\nPresent In All Group Samples") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(df1, aes(x = Group, y = percent, fill=IR)) + geom_bar(stat = "identity") +
   facet_grid(. ~ SiteGroup) +
-  labs(fill="") +
-  ylab("Percent") + 
+  labs(fill="") + ylab("Percent") + 
   xlab("") + theme(axis.text.x=element_text(angle=45,hjust=1)) +
   ggtitle("Percent Introns (IR Ratio > 0.1)\nContaining a Unique Editing Site Present In All Group Samples") +
   theme(title = element_text(size = 20)) +
@@ -741,6 +686,51 @@ tog = cbind(tog, A.retained = ifelse((tog$A.LFC>0 & tog$A.padj<=0.05), "retained
             P.retained = ifelse((tog$P.LFC>0 & tog$P.padj<=0.05), "retained","no"),P.exported = ifelse((tog$P.LFC<0 & tog$P.padj<=0.05), "exported","no"),
             C.increasing = ifelse((tog$C.LFC<0 & tog$C.padj<=0.05), "increasing","no"),C.decreasing = ifelse((tog$C.LFC>0 & tog$C.padj<=0.05), "decreasing","no"),
             N.increasing = ifelse((tog$N.LFC<0 & tog$N.padj<=0.05), "increasing","no"),N.decreasing = ifelse((tog$N.LFC>0 & tog$N.padj<=0.05), "decreasing","no"))
+save(tog, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/exons.present.inEachGroup.editing.rda")
+
+for (i in 1:length(unique_all)) { unique_all[[i]]$start = unique_all[[i]]$end }
+tog$start = tog$end
+oo = lapply(unique_all, function(x) findOverlaps(makeGRangesFromDataFrame(tog[,1:5]), makeGRangesFromDataFrame(x)))
+x = Map(cbind, mapply(function(ov, un) un[subjectHits(ov)], oo, unique_all, SIMPLIFY = F), 
+                 lapply(oo, function(x) as.data.frame(tog)[queryHits(x), colnames(tog) %in% c("A.LFC","A.padj","P.LFC","P.padj","C.LFC","C.padj","N.LFC","N.padj")]))
+unique_all_df = lapply(x, as.data.frame)
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/exons.LFC.between.unique.editing.sites.shared.by.all.in.group.pdf", width = 10,height = 5)
+for (i in 1:length(comps)){
+  tmp = rbind(cbind(comp = comps[[i]][1], melt(unique_all_df[[comps[[i]][1]]][,colnames(unique_all_df[[comps[[i]][1]]]) %in% c("A.LFC","P.LFC","C.LFC","N.LFC")]),
+                    melt(unique_all_df[[comps[[i]][1]]][,colnames(unique_all_df[[comps[[i]][1]]]) %in% c("A.padj","P.padj","C.padj","N.padj")])),
+              cbind(comp = comps[[i]][2], melt(unique_all_df[[comps[[i]][2]]][,colnames(unique_all_df[[comps[[i]][2]]]) %in% c("A.LFC","P.LFC","C.LFC","N.LFC")]),
+                    melt(unique_all_df[[comps[[i]][2]]][,colnames(unique_all_df[[comps[[i]][2]]]) %in% c("A.padj","P.padj","C.padj","N.padj")])))
+  tmp = tmp[,-4]
+  colnames(tmp) = c("comp","Group","LFC","padj")
+  tmp$sig = ifelse(tmp$padj<=0.05,"FDR < 0.05", "FDR > 0.05")
+  tmp[is.na(tmp$padj),"sig"] = "FDR > 0.05"
+  tmp$Group = gsub("A.LFC", "LFC by Fraction\nin Adult", tmp$Group)
+  tmp$Group = gsub("P.LFC", "LFC by Fraction\nin Prenatal", tmp$Group)
+  tmp$Group = gsub("C.LFC", "LFC by Age\n in Cytoplasm", tmp$Group)
+  tmp$Group = gsub("N.LFC", "LFC by Age\n in Nucleus", tmp$Group)
+  tmp$comp = gsub("adultOnly", "Adult\nOnly", tmp$comp)
+  tmp$comp = gsub("prenatalOnly", "Prenatal\nOnly", tmp$comp)
+  tmp$comp = gsub("ANnotPN", "AN\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotAN", "PN\nnot AN", tmp$comp)
+  tmp$comp = gsub("ACnotPC", "AC\nnot PC", tmp$comp)
+  tmp$comp = gsub("PCnotPN", "PC\nnot PN", tmp$comp)
+  tmp$comp = gsub("PNnotPC", "PN\nnot PC", tmp$comp)
+  tmp$comp = gsub("ACnotAN", "AC\nnot AN", tmp$comp)
+  tmp$comp = gsub("ANnotAC", "AN\nnot AC", tmp$comp)
+  tmp$comp = gsub("PCnotAC", "PC\nnot AC", tmp$comp)
+  print(ggplot(tmp, aes(x=comp, y = LFC, fill = sig)) + geom_boxplot() + facet_grid(. ~ Group) +
+          geom_hline(yintercept=0, linetype="dotted") + ylab("log2 fold change") + xlab("") + 
+          theme(title = element_text(size = 20), text = element_text(size = 20), legend.title = element_blank()) +
+          ggtitle("Gene Expression by Editing Group") + scale_fill_manual(values=c("red3","gray47")))
+  print(ggplot(tmp, aes(x=comp, y = LFC)) + geom_boxplot() + geom_jitter() + facet_grid(. ~ Group) +
+          geom_hline(yintercept=0, linetype="dotted") +
+          ylab("log2 fold change") + xlab("") + theme(title = element_text(size = 20)) + theme(text = element_text(size = 20)) +
+          ggtitle("Gene Expression by Editing Group"))
+  
+}
+dev.off()
+
 
 
 ### in all exon editing sites, is the exon differentially expressed by group?
@@ -757,12 +747,14 @@ for (i in 1:length(comps)){
                               cytosol = t.test(x = uniqueAll_allexons[[comps[[i]][1]]][,"C.LFC"], y = uniqueAll_allexons[[comps[[i]][2]]][,"C.LFC"]),
                               nucleus = t.test(x = uniqueAll_allexons[[comps[[i]][1]]][,"N.LFC"], y = uniqueAll_allexons[[comps[[i]][2]]][,"N.LFC"]))
 }
-names(t.allexons.site) = names(comps)
-write.csv(rbind(Tstat = data.frame(lapply(t.allexons.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
-                pval = data.frame(lapply(t.allexons.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                confInt = data.frame(lapply(t.allexons.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
-                estMeans = data.frame(lapply(t.allexons.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))), 
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.allexons.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+df = do.call(rbind, Map(cbind, comparison = as.list(names(comps)), group1 = lapply(comps, function(x) x[1]), group2 = lapply(comps, function(x) x[2]),
+                        lapply(t.allexons.site, function(x) do.call(rbind, Map(cbind, LFC = as.list(names(x)), lapply(x, function(y) 
+                          data.frame(Tstat = y$statistic, pval = y$p.value, estMean1 = y$estimate[1], estMean2 = y$estimate[2])))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+row.names(df) = NULL
+write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.allexons.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.allexons.LFC.between.unique.editing.sites.shared.by.all.in.group.csv")
+df[df$FDR<=0.05,]
 
 
 ## Correlate the LFC between age and fraction comparisons in different groups
@@ -770,8 +762,8 @@ write.csv(rbind(Tstat = data.frame(lapply(t.allexons.site, function(x) unlist(la
 corr.allexons.site = list(list())
 group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
 for (i in 1:length(group)){
-  corr.allexons.site[[i]] = list(fraction = cor(x = uniqueAll_allexons[[group[i]]][,"A.LFC"], y = uniqueAll_allexons[[group[i]]][,"P.LFC"], use = "complete.obs"),
-                                 age = cor(x = uniqueAll_allexons[[group[i]]][,"C.LFC"], y = uniqueAll_allexons[[group[i]]][,"N.LFC"], use = "complete.obs"))
+  corr.allexons.site[[i]] = list(fraction = cor.test(x = uniqueAll_allexons[[group[i]]][,"A.LFC"], y = uniqueAll_allexons[[group[i]]][,"P.LFC"], use = "complete.obs"),
+                                 age = cor.test(x = uniqueAll_allexons[[group[i]]][,"C.LFC"], y = uniqueAll_allexons[[group[i]]][,"N.LFC"], use = "complete.obs"))
 }
 names(corr.allexons.site) = group
 data.frame(lapply(corr.allexons.site, function(x) unlist(x, recursive=F)))
@@ -803,18 +795,90 @@ for (i in 1:length(unique_all)){
                decreasing = c(nrow(uniqueAll_allexons[[group[i]]][(N.LFC>0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_allexons[[group[i]]][(N.LFC>0 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")))
   names(fisher.allexons[[i]]) = c("bothagesDEE","AdultDEE","PrenatalDEE","bothfractionsDEE","CytosolDEE","NucleusDEE")
 }
-names(fisher.allexons) = group
 fisher.allexons.editing = lapply(fisher.allexons, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.allexons.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.allexons.editing, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedallexons_sigvsnonsig_export-retain_increase-decrease.csv")
-pval = unlist(lapply(fisher.allexons.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0008333333]) # (Bonferoni corrected threshold) 
-# adultOnly.NucleusDEE
-# ANnotAC.NucleusDEE
-# ANnotPN.PrenatalDEE
-# ANnotPN.NucleusDEE
-# PNnotAN.NucleusDEE
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.allexons.editing, function(x) 
+  do.call(rbind, Map(cbind, exon.Cat = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedallexons_sigvsnonsig_export-retain_increase-decrease.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedallexons_sigvsnonsig_export-retain_increase-decrease.csv")
+df[df$FDR<=0.05,]
+
+
+## Compare being significantly DE with being unique or not
+
+group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
+allgroup = c("adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
+all_allExons = lapply(all, function(x) tog[editingID %in% x$editingID,,])
+fisher = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
+for (i in 1:length(unique_all)){
+  fisher[[i]] = list(
+    data.frame(exported = c(nrow(uniqueAll_allexons[[group[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),])-
+                              nrow(uniqueAll_allexons[[group[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),])),
+               notexported = c(nrow(uniqueAll_allexons[[group[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),])-
+                                 nrow(uniqueAll_allexons[[group[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(exported = c(nrow(uniqueAll_allexons[[group[i]]][(A.exported=="exported"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(A.exported=="exported"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(A.exported=="exported"),list(unique(exonID)),])),
+               notexported = c(nrow(uniqueAll_allexons[[group[i]]][(A.exported=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(A.exported=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(A.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(exported = c(nrow(uniqueAll_allexons[[group[i]]][(P.exported=="exported"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(P.exported=="exported"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(P.exported=="exported"),list(unique(exonID)),])),
+               notexported = c(nrow(uniqueAll_allexons[[group[i]]][(P.exported=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(P.exported=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(P.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(retained = c(nrow(uniqueAll_allexons[[group[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),])-
+                              nrow(uniqueAll_allexons[[group[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),])),
+               notretained = c(nrow(uniqueAll_allexons[[group[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),])-
+                                 nrow(uniqueAll_allexons[[group[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(retained = c(nrow(uniqueAll_allexons[[group[i]]][(A.retained=="retained"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(A.retained=="retained"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(A.retained=="retained"),list(unique(exonID)),])),
+               notretained = c(nrow(uniqueAll_allexons[[group[i]]][(A.retained=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(A.retained=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(A.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(retained = c(nrow(uniqueAll_allexons[[group[i]]][(P.retained=="retained"),list(unique(exonID)),]),
+                            nrow(all_allExons[[allgroup[i]]][(P.retained=="retained"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(P.retained=="retained"),list(unique(exonID)),])),
+               notretained = c(nrow(uniqueAll_allexons[[group[i]]][(P.retained=="no"),list(unique(exonID)),]),
+                               nrow(all_allExons[[allgroup[i]]][(P.retained=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(P.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(increasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),])-
+                                nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),])),
+               notincreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),])-
+                                   nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(increasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="increasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(C.increasing=="increasing"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="increasing"),list(unique(exonID)),])),
+               notincreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(C.increasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(C.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(increasing = c(nrow(uniqueAll_allexons[[group[i]]][(N.increasing=="increasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(N.increasing=="increasing"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(N.increasing=="increasing"),list(unique(exonID)),])),
+               notincreasing = c(nrow(uniqueAll_allexons[[group[i]]][(N.increasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(N.increasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(N.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(decreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),])-
+                                nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),])),
+               notdecreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),])-
+                                   nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(decreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),])),
+               notdecreasing = c(nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(C.decreasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(C.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
+    data.frame(decreasing = c(nrow(uniqueAll_allexons[[group[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),]),
+                              nrow(all_allExons[[allgroup[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),])),
+               notdecreasing = c(nrow(uniqueAll_allexons[[group[i]]][(N.decreasing=="no"),list(unique(exonID)),]),
+                                 nrow(all_allExons[[allgroup[i]]][(N.decreasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_allexons[[group[i]]][(N.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")))
+  names(fisher[[i]]) = c("bothagesDEE:Exported","AdultDEE:Exported","PrenatalDEE:Exported","bothagesDEE:Retained","AdultDEE:Retained","PrenatalDEE:Retained",
+                              "bothfractionsDEE:Increasing","CytosolDEE:Increasing","NucleusDEE:Increasing","bothfractionsDEE:Decreasing","CytosolDEE:Decreasing","NucleusDEE:Decreasing")
+}
+fisher.editing = lapply(fisher, function(x) lapply(x, fisher.test))
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.editing, function(x) 
+  do.call(rbind, Map(cbind, exon.Cat = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedExons_sigvsnonsig_export-not_retain-not_increase-not_decrease-not.csv")
+df[df$FDR<=0.05,]
+
+
 
 ### in 3'UTR editing sites, is the exon differentially expressed by group?
 
@@ -832,11 +896,12 @@ for (i in 1:length(comps)){
                           nucleus = t.test(x = uniqueAll_3UTR[[comps[[i]][1]]][,"N.LFC"], y = uniqueAll_3UTR[[comps[[i]][2]]][,"N.LFC"]))
 }
 names(t.3UTR.site) = names(comps)
-write.csv(rbind(Tstat = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
-                pval = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                confInt = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
-                estMeans = data.frame(lapply(t.3UTR.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))), 
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.3UTR.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
+df = do.call(rbind, Map(cbind, comparison = as.list(names(comps)), group1 = lapply(comps, function(x) x[1]), group2 = lapply(comps, function(x) x[2]),
+                        lapply(t.3UTR.site, function(x) do.call(rbind, Map(cbind, LFC = as.list(names(x)), lapply(x, function(y) 
+                          data.frame(Tstat = y$statistic, pval = y$p.value, estMean1 = y$estimate[1], estMean2 = y$estimate[2])))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+row.names(df) = NULL
+write.csv(df,file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.3UTR.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
 
 
 ## Correlate the LFC between age and fraction comparisons in different groups
@@ -877,21 +942,12 @@ for (i in 1:length(unique_all)){
                decreasing = c(nrow(uniqueAll_3UTR[[group[i]]][(N.LFC>0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_3UTR[[group[i]]][(N.LFC>0 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")))
   names(fisher.3UTR[[i]]) = c("bothagesDEE","AdultDEE","PrenatalDEE","bothfractionsDEE","CytosolDEE","NucleusDEE")
 }
-names(fisher.3UTR) = group
 fisher.3UTR.editing = lapply(fisher.3UTR, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_edited3UTR_sigvsnonsig_export-retain_increase-decrease.csv")
-pval = unlist(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0008333333]) # (Bonferoni corrected threshold) 
-# adultOnly.NucleusDEE : enriched for increasing significant 3'UTRs
-# ANnotAC.bothfractionsDEE : enriched for increasing significant 3'UTRs
-### ANnotAC.NucleusDEE : enriched for increasing significant 3'UTRs
-# ACnotPC.NucleusDEE : enriched for increasing significant 3'UTRs
-# ANnotPN.NucleusDEE : enriched for increasing significant 3'UTRs
-# PNnotAN.bothfractionsDEE : depleted for increasing significant 3'UTRs
-# PNnotAN.CytosolDEE : depleted for increasing significant 3'UTRs
-# PNnotAN.NucleusDEE : depleted for increasing significant 3'UTRs
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.3UTR.editing, function(x) 
+  do.call(rbind, Map(cbind, exon.Cat = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_edited3UTR_sigvsnonsig_export-retain_increase-decrease.csv")
+df[df$FDR<=0.05,]
 
 
 ## Compare being significantly DE with being unique or not
@@ -961,14 +1017,12 @@ for (i in 1:length(unique_all)){
     names(fisher.3UTR[[i]]) = c("bothagesDEE:Exported","AdultDEE:Exported","PrenatalDEE:Exported","bothagesDEE:Retained","AdultDEE:Retained","PrenatalDEE:Retained",
                                 "bothfractionsDEE:Increasing","CytosolDEE:Increasing","NucleusDEE:Increasing","bothfractionsDEE:Decreasing","CytosolDEE:Decreasing","NucleusDEE:Decreasing")
 }
-names(fisher.3UTR) = group
 fisher.3UTR.editing = lapply(fisher.3UTR, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_edited3UTR_sigvsnonsig_export-not_retain-not_increase-not_decrease-not.csv")
-pval = unlist(lapply(fisher.3UTR.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0004166667]) # (Bonferoni corrected threshold) 
-# 23 meet this threshold, all of them age-related, but AdultDEE:Retained is borderline enriched in ANnotAC and PNnotPC
+df = do.call(rbind, Map(cbind, Group = as.list(group), lapply(fisher.3UTR.editing, function(x) 
+  do.call(rbind, Map(cbind, exon.Cat = as.list(names(x)), lapply(x, function(y) data.frame(pval = y$p.value, OddsRatio = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df,quote = F,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_edited3UTR_sigvsnonsig_export-not_retain-not_increase-not_decrease-not.csv")
+df[df$FDR<=0.05,]
 
 
 ## Are the edited 3'UTRs from the major isoform?
@@ -1009,158 +1063,6 @@ ggplot(x, aes(x = name, y = perc, fill= dominant3UTR)) + geom_bar(stat = "identi
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 dev.off()
-
-
-
-### in CDS editing sites, is the exon differentially expressed by group?
-
-## Compare LFC and significance of groups of editing sites in CDS
-
-tog.CDS = tog[which(tog$cds=="CDS"),]
-uniqueAll_CDS = lapply(unique_all, function(x) tog.CDS[which(tog.CDS$editingID %in% x$editingID),])
-t.CDS.site = list(list())
-comps = list(byFractionInAdult = c("ACnotAN","ANnotAC"), byAgeInNucleus = c("ANnotPN","PNnotAN")) # not enough observations for byAge = c("adultOnly","prenatalOnly"), byFractionInPrenatal = c("PCnotPN","PNnotPC"), byAgeInCytosol = c("ACnotPC","PCnotAC")
-for (i in 1:length(comps)){
-  t.CDS.site[[i]] = list(adult = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"A.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"A.LFC"]),
-                          prenatal = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"P.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"P.LFC"]),
-                          cytosol = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"C.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"C.LFC"]),
-                          nucleus = t.test(x = uniqueAll_CDS[[comps[[i]][1]]][,"N.LFC"], y = uniqueAll_CDS[[comps[[i]][2]]][,"N.LFC"]))
-}
-names(t.CDS.site) = names(comps)
-write.csv(rbind(Tstat = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$statistic), recursive=F))),
-                pval = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                confInt = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$conf.int), recursive=F))), 
-                estMeans = data.frame(lapply(t.CDS.site, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/t.test.of.CDS.LFC.between.unique.editing.sites.shared.by.all.in.group.csv", quote=F)
-
-
-## Correlate the LFC between age and fraction comparisons in different groups
-corr.CDS.site = list(list())
-for (i in 1:length(group)){
-  if (nrow(uniqueAll_CDS[[group[i]]])!=0){
-  corr.CDS.site[[i]] = list(fraction = cor(x = uniqueAll_CDS[[group[i]]][,"A.LFC"], y = uniqueAll_CDS[[group[i]]][,"P.LFC"], use = "complete.obs"),
-                             age = cor(x = uniqueAll_CDS[[group[i]]][,"C.LFC"], y = uniqueAll_CDS[[group[i]]][,"N.LFC"], use = "complete.obs")) }
-  else corr.CDS.site[[i]] = NA}
-names(corr.CDS.site) = group
-data.frame(lapply(corr.CDS.site, function(x) unlist(x, recursive=F)))
-#         adultOnly prenatalOnly ACnotAN   ANnotAC PCnotPN PNnotPC   ACnotPC PCnotAC   ANnotPN PNnotAN
-#fraction 0.9437860           NA      NA 0.3369156      NA      NA 0.9478086      NA 0.7707414      NA
-#age      0.8723613           NA      NA 0.8005509      NA      NA 0.8723622      NA 0.6890385      NA
-
-
-## Compare the number of edited CDSs that are significantly and non-significantly up- and down-expressed per group
-
-fisher.CDS = list(list(),list(),list(),list(),list(),list(),list())
-group = c("adultOnly","ACnotAN","ANnotAC","PNnotPC","ACnotPC","ANnotPN","PNnotAN") #not enough obs for "prenatalOnly","PCnotAC","PCnotPN"
-for (i in 1:length(group)){
-  fisher.CDS[[i]] = list(
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
-                            nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & P.LFC<0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])),
-               retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj<=0.05 & P.padj<=0.05),list(unique(exonID)),]),
-                            nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & P.LFC>0 & A.padj>0.05 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & A.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(A.LFC<0 & A.padj>0.05),list(unique(exonID)),])),
-               retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & A.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(A.LFC>0 & A.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(P.LFC<0 & P.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(P.LFC<0 & P.padj>0.05),list(unique(exonID)),])),
-               retained = c(nrow(uniqueAll_CDS[[group[i]]][(P.LFC>0 & P.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(P.LFC>0 & P.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
-                              nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & N.LFC<0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])),
-               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj<=0.05 & N.padj<=0.05),list(unique(exonID)),]),
-                              nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & N.LFC>0 & C.padj>0.05 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & C.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(C.LFC<0 & C.padj>0.05),list(unique(exonID)),])),
-               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & C.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(C.LFC>0 & C.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.LFC<0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(N.LFC<0 & N.padj>0.05),list(unique(exonID)),])),
-               decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.LFC>0 & N.padj<=0.05),list(unique(exonID)),]),nrow(uniqueAll_CDS[[group[i]]][(N.LFC>0 & N.padj>0.05),list(unique(exonID)),])), row.names = c("sig","non-sig")))
-  names(fisher.CDS[[i]]) = c("bothagesDEE","AdultDEE","PrenatalDEE","bothfractionsDEE","CytosolDEE","NucleusDEE")
-}
-names(fisher.CDS) = group
-fisher.CDS.editing = lapply(fisher.CDS, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedCDS_sigvsnonsig_export-retain_increase-decrease.csv")
-pval = unlist(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0008333333]) # (Bonferoni corrected threshold) 
-# adultOnly.NucleusDEE
-# I think there are too few sites to draw conclusions
-
-
-## Compare being significantly DE with being unique or not
-
-group = c("adultOnly","prenatalOnly","ACnotAN","ANnotAC","PCnotPN","PNnotPC","ACnotPC","PCnotAC","ANnotPN","PNnotAN")
-allgroup = c("adultAll","prenatalAll","allAC","allAN","allPC","allPN","allAC","allPC","allAN","allPN")
-all_CDS = lapply(all, function(x) tog.CDS[editingID %in% x$editingID,,])
-fisher.CDS = list(list(),list(),list(),list(),list(),list(),list(),list(),list(),list())
-for (i in 1:length(unique_all)){
-  fisher.CDS[[i]] = list(
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),])-
-                              nrow(uniqueAll_CDS[[group[i]]][(A.exported=="exported" & P.exported=="exported"),list(unique(exonID)),])),
-               notexported = c(nrow(uniqueAll_CDS[[group[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),])-
-                                 nrow(uniqueAll_CDS[[group[i]]][(A.exported=="no" | P.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(A.exported=="exported"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(A.exported=="exported"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(A.exported=="exported"),list(unique(exonID)),])),
-               notexported = c(nrow(uniqueAll_CDS[[group[i]]][(A.exported=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(A.exported=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(A.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(exported = c(nrow(uniqueAll_CDS[[group[i]]][(P.exported=="exported"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(P.exported=="exported"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(P.exported=="exported"),list(unique(exonID)),])),
-               notexported = c(nrow(uniqueAll_CDS[[group[i]]][(P.exported=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(P.exported=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(P.exported=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),])-
-                              nrow(uniqueAll_CDS[[group[i]]][(A.retained=="retained" & P.retained=="retained"),list(unique(exonID)),])),
-               notretained = c(nrow(uniqueAll_CDS[[group[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),])-
-                                 nrow(uniqueAll_CDS[[group[i]]][(A.retained=="no" | P.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(retained = c(nrow(uniqueAll_CDS[[group[i]]][(A.retained=="retained"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(A.retained=="retained"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(A.retained=="retained"),list(unique(exonID)),])),
-               notretained = c(nrow(uniqueAll_CDS[[group[i]]][(A.retained=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(A.retained=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(A.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(retained = c(nrow(uniqueAll_CDS[[group[i]]][(P.retained=="retained"),list(unique(exonID)),]),
-                            nrow(all_CDS[[allgroup[i]]][(P.retained=="retained"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(P.retained=="retained"),list(unique(exonID)),])),
-               notretained = c(nrow(uniqueAll_CDS[[group[i]]][(P.retained=="no"),list(unique(exonID)),]),
-                               nrow(all_CDS[[allgroup[i]]][(P.retained=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(P.retained=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),])-
-                                nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="increasing" & N.increasing=="increasing"),list(unique(exonID)),])),
-               notincreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),])-
-                                   nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="no" | N.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="increasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(C.increasing=="increasing"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="increasing"),list(unique(exonID)),])),
-               notincreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(C.increasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(C.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(increasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.increasing=="increasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(N.increasing=="increasing"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(N.increasing=="increasing"),list(unique(exonID)),])),
-               notincreasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.increasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(N.increasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(N.increasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),])-
-                                nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="decreasing" & N.decreasing=="decreasing"),list(unique(exonID)),])),
-               notdecreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),])-
-                                   nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="no" | N.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="decreasing"),list(unique(exonID)),])),
-               notdecreasing = c(nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(C.decreasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(C.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")),
-    data.frame(decreasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),]),
-                              nrow(all_CDS[[allgroup[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(N.decreasing=="decreasing"),list(unique(exonID)),])),
-               notdecreasing = c(nrow(uniqueAll_CDS[[group[i]]][(N.decreasing=="no"),list(unique(exonID)),]),
-                                 nrow(all_CDS[[allgroup[i]]][(N.decreasing=="no"),list(unique(exonID)),])-nrow(uniqueAll_CDS[[group[i]]][(N.decreasing=="no"),list(unique(exonID)),])), row.names = c("unique","notunique")))
-  names(fisher.CDS[[i]]) = c("bothagesDEE:Exported","AdultDEE:Exported","PrenatalDEE:Exported","bothagesDEE:Retained","AdultDEE:Retained","PrenatalDEE:Retained",
-                              "bothfractionsDEE:Increasing","CytosolDEE:Increasing","NucleusDEE:Increasing","bothfractionsDEE:Decreasing","CytosolDEE:Decreasing","NucleusDEE:Decreasing")
-}
-names(fisher.CDS) = group
-fisher.CDS.editing = lapply(fisher.CDS, function(x) lapply(x, fisher.test))
-write.csv(rbind(data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))),quote = F,
-          file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_editedCDS_sigvsnonsig_export-not_retain-not_increase-not_decrease-not.csv")
-pval = unlist(lapply(fisher.CDS.editing, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)))
-names(pval[pval<=0.0004166667]) # (Bonferoni corrected threshold) 
-# adultOnly.bothfractionsDEE:Increasing
-# adultOnly.NucleusDEE:Increasing
-# ACnotPC.NucleusDEE:Increasing
-# ANnotPN.NucleusDEE:Increasing
 
 
 
@@ -1205,9 +1107,10 @@ for (i in 1:nrow(y)){
 df = data.frame(percent = c(round(y$Zero/y$V1*100,2),round((y$V1-y$Zero)/y$V1*100,2)), Group = rep.int(y$Group,2), SiteGroup = rep.int(y$name,2), 
                 IR = c(rep.int("Not Expressed",nrow(y)),rep.int("Expressed",nrow(y))), TotalExons = c(rep.int(NA, nrow(y)),y$V1))
 df$SiteGroup = factor(df$SiteGroup, levels = c("adultOnly","prenatalOnly","ACnotPC","PCnotAC","ANnotPN","PNnotAN","ACnotAN","ANnotAC","PCnotPN","PNnotPC"))
+write.csv(df,"./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/exons_overlappingUniqueInAll3_editingSites_PercentNotExpresseded_inOtherGroups.csv")
 
 
-# Plot intron retention ratios
+# Plot exon retention ratios
 pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/exons_overlappingUniqueInAll3_editingSites_PercentNotExpresseded_inOtherGroups.pdf",width=18,height=9)
 ggplot(df[grep(":", df$Group),], aes(x = Group, y = percent, fill=IR)) + geom_bar(stat = "identity") +
   facet_grid(. ~ SiteGroup) +

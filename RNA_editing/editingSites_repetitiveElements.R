@@ -42,16 +42,24 @@ all = Map(cbind, all, ensID = lapply(all, function(x) geneMap[match(x$nearestID,
 
 
 ### What proportion of editing sites overlap a repetitive element, and what kind?
-class = editing_anno[,length(unique(editingID)), by = c("Fraction","Age","repClass")]
-family = editing_anno[,length(unique(editingID)), by = c("Fraction","Age","repFamily")]
+class = editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age","repClass")]
+family = editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age","repFamily")]
 family$alu = ifelse(family$repFamily=="Alu","Alu","non-Alu")
 family[repFamily=="NA","alu"] = "non-repeat"
-editing_anno[repClass != "NA",length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]/editing_anno[,length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]
+editing_anno[repClass != "NA" & collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]/
+  editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]
 #Fraction  Age    Proportion overlapping a repeat
-#Cytosol  Adult  0.6810811
-#Nucleus    Adult 0.7554318
-#Nucleus Prenatal  0.6682450
-#Cytosol Prenatal 0.6397240
+#Cytosol  Adult  0.4271956
+#Nucleus    Adult 0.4468188
+#Nucleus Prenatal  0.4441917
+#Cytosol Prenatal 0.4416968
+
+editing_anno[repFamily=="Alu" & collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]/
+  editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age")][,list(V1),]*100
+#1: 40.00979
+#2: 41.67870
+#3: 41.95933
+#4: 41.75090
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/numberEditingSites_overlapping_repeats.pdf",width=10,height=6)
 ggplot(class, aes(x = Fraction, y = V1, fill = repClass)) + geom_bar(stat = "identity") +
@@ -98,8 +106,8 @@ dev.off()
 
 
 # Unique sites shared in all samples in a group and repeats
-class = lapply(unique_all, function(x) x[,length(unique(editingID)), by = c("Fraction","Age","repClass")])
-family = lapply(unique_all, function(x) x[,length(unique(editingID)), by = c("Fraction","Age","repFamily")])
+class = lapply(unique_all, function(x) x[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age","repClass")])
+family = lapply(unique_all, function(x) x[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("Fraction","Age","repFamily")])
 for (i in 1:length(family)){
   tmp = family[[i]]
   tmp$alu = ifelse(tmp$repFamily=="Alu","Alu","non-Alu")

@@ -18,7 +18,7 @@ unique_bySamp_all = list(cytosolOnly = unique_bySamp$cytosolOnly[-grep("no", uni
 unique_all = lapply(unique_bySamp_all, function(x) editing_anno[which(editingID %in% x$EditingID),,])
 unique_all = Map(cbind, unique_all, geneID = lapply(unique_all, function(x) ifelse(as.character(x$overlappingGene)!="NA", as.character(x$overlappingGene), as.character(x$nearestID))))
 
-aej_sets = openxlsx::read.xlsx('/Users/amanda/Dropbox/sorted_figures/new/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
+aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
 
 ## Enrichment in editing sites unique to a group
 
@@ -39,28 +39,15 @@ enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 enrich = lapply(enrich, data.frame)
-enrich = rbind(do.call(rbind, Map(cbind, lapply(enrich, function(x) x["P.Value",]),Value = "P.Value")),
-               do.call(rbind, Map(cbind, lapply(enrich, function(x) x["Odds Ratio",]),Value = "Odds Ratio")))
-enrich = cbind(Comparison = gsub("1","",rownames(enrich)), enrich)
-enrich = melt(enrich)
-enrich$group = paste(enrich$Comparison, enrich$variable, sep=":")
-enrich = enrich[order(enrich$Comparison),]
+enrich = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), lapply(enrich, function(x) 
+            data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
+                   row.names=NULL))))
+enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
 write.csv(enrich, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Birnbaum_geneSet_enrichment_uniqueEditingSites.csv")
+enrich = read.csv("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Birnbaum_geneSet_enrichment_uniqueEditingSites.csv")
+head(enrich)
 
-
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=0.05),"group"],1:4]
-#     Comparison      Value          variable      value
-#29      ANnotAC    P.Value      ASD.DATABASE 0.02021688
-#41      ANnotAC Odds Ratio      ASD.DATABASE 0.51303840
-#125     ANnotAC    P.Value Neurodegenerative 0.02313140
-#137     ANnotAC Odds Ratio Neurodegenerative 0.00000000
-#197     ANnotAC    P.Value      SCZ.PGC.GWAS 0.02914231
-#209     ANnotAC Odds Ratio      SCZ.PGC.GWAS 0.36534121
-#26  nucleusOnly    P.Value      ASD.DATABASE 0.00406509
-#38  nucleusOnly Odds Ratio      ASD.DATABASE 0.48026029
-#36      PNnotPC    P.Value      ASD.DATABASE 0.01684535
-#48      PNnotPC Odds Ratio      ASD.DATABASE 0.45925335
-enrich[enrich$group %in% enrich[which(enrich$Value=="P.Value" & enrich$value<=(0.05/120)),"group"],1:4]
+enrich[enrich$FDR<=0.05,]
 # none
 
 
@@ -79,19 +66,12 @@ enrich_all = mapply(function(inG,outG) lapply(splitSets, function(x) {
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 enrich_all = lapply(enrich_all, data.frame)
-enrich_all = rbind(do.call(rbind, Map(cbind, lapply(enrich_all, function(x) x["P.Value",]),Value = "P.Value")),
-               do.call(rbind, Map(cbind, lapply(enrich_all, function(x) x["Odds Ratio",]),Value = "Odds Ratio")))
-enrich_all = cbind(Comparison = gsub("1","",rownames(enrich_all)), enrich_all)
-enrich_all = melt(enrich_all)
-enrich_all$group = paste(enrich_all$Comparison, enrich_all$variable, sep=":")
-enrich_all = enrich_all[order(enrich_all$Comparison),]
+enrich_all = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich_all)), lapply(enrich_all, function(x) 
+  data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
+             row.names=NULL))))
+enrich_all$FDR = p.adjust(enrich_all$P.Value, method = "fdr")
+enrich_all
 write.csv(enrich_all, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/Birnbaum_geneSet_enrichment_uniqueEditingSites_inAllSamps.csv")
 
-
-enrich_all[enrich_all$group %in% enrich_all[which(enrich_all$Value=="P.Value" & enrich_all$value<=0.05),"group"],1:4]
-#    Comparison      Value variable     value
-#107    PCnotPN    P.Value      NDD  0.020434
-#119    PCnotPN Odds Ratio      NDD 58.566300
-enrich_all[enrich_all$group %in% enrich_all[which(enrich_all$Value=="P.Value" & enrich_all$value<=(0.05/120)),"group"],1:4]
-#none
-
+enrich_all[enrich_all$FDR<=0.05,]
+# none

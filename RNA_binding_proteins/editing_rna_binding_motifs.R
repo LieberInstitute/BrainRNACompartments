@@ -176,19 +176,69 @@ for (i in 1:length(rbpIDs)) {
    names(tables[[i]]) = lapply(comp, function(x) x[1]) 
 }
 names(tables) = rbpIDs
-
 fisher = lapply(tables, function(x) lapply(x, fisher.test))
+df = do.call(rbind, Map(cbind, RBP = as.list(names(fisher)), lapply(fisher, function(x) 
+     do.call(rbind, Map(cbind, Group = as.list(names(x)),lapply(x, function(y) 
+       data.frame(pval = y$p.value, OR = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote=F,file="./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_motif_enrichment_byGroup.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_motif_enrichment_byGroup.csv")
+df[df$FDR<=0.05,]
+# none
 
-write.csv(do.call(rbind, lapply(fisher, function(x) data.frame(rbind(pval = unlist(lapply(x, function(y) y$p.value)), 
-                                                                     OR = unlist(lapply(x, function(y) y$estimate)))))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_motif_enrichment_byGroup.csv")
 
-unlist(lapply(fisher, function(x) unlist(lapply(x, function(y) y$p.value))))[
-  unlist(lapply(fisher, function(x) unlist(lapply(x, function(y) y$p.value)))) <= 5.263158e-05 ] # bonferoni corrected for 95 RBPs * 10 groups
-unlist(lapply(fisher, function(x) unlist(lapply(x, function(y) y$p.value))))[order(unlist(lapply(fisher, function(x) unlist(lapply(x, function(y) y$p.value)))))]
+## are certain annotations of editing sites more likely to overlap an RBP?
 
+x = data.frame(editing_anno[,length(unique(editingID)), by = c("proteinID","annotation")])
+x$proteinID = factor(x$proteinID, 
+                    levels = c("SRSF5","SRSF3","MBNL1","TRA2B","CUG-BP","PTBP1","SRSF2","SRSF7","TARDBP","G3BP2","PABPC4",   
+                               "SNRNP70","SART3","PABPC1","HNRNPC","HNRNPCL1","SRSF1","PABPC3","KHDRBS1","RALY", "PABPC5","TIA1", "HNRNPL",   
+                               "HNRPLL","LIN28A","HNRNPF","HNRNPA1","IGF2BP2","IGF2BP3","YBX1","SRSF9","SRSF10","HNRNPA2B1","NOVA1","RBFOX1",   
+                               "CNOT4","SNRPA","PABPN1","PUM2","RBMS3","QKI","KHDRBS2","DAZAP1","CPEB4","HNRNPH2","RBMS1","MSI1",     
+                               "ZC3H14","RBM24","MATR3","U2AF2","HNRNPU","CPEB2","HuR","ZCRB1","RBM38","FMR1","KHDRBS3","HNRNPM",  
+                               "RBM28","ENOX1","RBM6","ZNF638","A1CF","RBM46","SAMD4A","RBM42","BRUNOL4","HNRNPK","HNRNPA1L2","BRUNOL5",  
+                               "RBM5","TRA2A","HNRNPH1","ANKHD1","YBX2","FXR1","TUT1","PCBP1","SFPQ","ESRP2","RBM41","RBM8A",    
+                               "FXR2","BRUNOL6","PCBP2","PCBP3","ZC3H10","FUS","RBM45","RBM4","RBM3","PPRC1","SRSF6", "NoMatch"))
+tables = rep.int(list(vector("list", length = length(anno))), length(rbpIDs))
+anno = as.character(unique(x$annotation))
 
-
+for (i in 1:length(rbpIDs)) {
+  for (j in 1:length(anno)) {
+    if (rbpIDs[i] %in% x[which(x$annotation==anno[j]),"proteinID"]) {
+      tables[[i]][[j]] = data.frame(yesRBP = c(x[which(x$annotation==anno[j] & x$proteinID==rbpIDs[i]),"V1"],
+                                               sum(x[which(x$annotation!=anno[j] & x$proteinID==rbpIDs[i]),"V1"])),
+                                    noRBP = c(sum(x[which(x$annotation==anno[j] & x$proteinID!=rbpIDs[i]),"V1"]),
+                                              sum(x[which(x$annotation!=anno[j] & x$proteinID!=rbpIDs[i]),"V1"])),
+                                    row.names = c("anno","Not"))
+    } else {
+      tables[[i]][[j]] = data.frame(yesRBP = c(0, sum(x[which(x$annotation!=anno[j] & x$proteinID==rbpIDs[i]),"V1"])),
+                                    noRBP = c(sum(x[which(x$annotation==anno[j] & x$proteinID!=rbpIDs[i]),"V1"]),
+                                              sum(x[which(x$annotation!=anno[j] & x$proteinID!=rbpIDs[i]),"V1"])),
+                                    row.names = c("anno","Not"))
+    } }
+  names(tables[[i]]) = anno 
+}
+names(tables) = rbpIDs
+fisher = lapply(tables, function(x) lapply(x, fisher.test))
+df = do.call(rbind, Map(cbind, RBP = as.list(names(fisher)), lapply(fisher, function(x) 
+  do.call(rbind, Map(cbind, Group = as.list(names(x)),lapply(x, function(y) 
+    data.frame(pval = y$p.value, OR = y$estimate, row.names = NULL)))))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+df
+write.csv(df, quote=F,file="./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_motif_enrichment_byAnnotation.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_binding_proteins/data/rbpmap_motif_enrichment_byAnnotation.csv")
+x = df[df$FDR<=0.05 & df$OR>1 & df$Group!="Intergenic",]
+x[order(x$Group),]
+#      X     RBP  Group          pval       OR           FDR
+#14   14   SRSF3  3'UTR  4.073403e-03 1.153741  4.499690e-02
+#144 144 IGF2BP2  3'UTR  1.116565e-04 1.832377  3.119813e-03
+#149 149 IGF2BP3  3'UTR  2.813087e-05 1.923309  1.214742e-03
+#289 289    FMR1  3'UTR  2.227528e-03 2.152279  2.859664e-02
+#5     5 NoMatch  5'UTR  2.340941e-43 3.447016  5.559736e-41
+#2     2 NoMatch    CDS 4.864645e-115 4.355730 2.310706e-112
+#8     8   SRSF5 Intron  2.632366e-06 1.225028  2.083956e-04
+#53   53   G3BP2 Intron  5.111727e-04 1.532568  8.671679e-03
+#128 128  LIN28A Intron  2.460095e-03 1.583692  3.075119e-02
 
 
 
