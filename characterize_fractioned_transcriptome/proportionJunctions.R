@@ -29,15 +29,16 @@ df$Fraction = factor(df$Fraction)
 
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_full.pdf", 
-    width = 10, height = 4)
+    width = 8.5, height = 4)
 ggplot(df, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
   geom_jitter() + facet_grid(. ~ Library) +
   scale_fill_brewer(palette="Dark2") +
-  ylim(0, 0.4) +
+  ylim(0, 0.4) + xlab("") +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
-  xlab("") +
-  ggtitle("Proportion of Reads Mapping to Splice Junctions") + 
-  theme(title = element_text(size = 20), legend.title=element_blank()) +
+  theme(legend.position = c(.9, 0.85)) +
+  ggtitle("Proportion of Reads Overlapping Splice Junctions") + 
+  theme(title = element_text(size = 20), legend.title=element_blank(), legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) +
   theme(text = element_text(size = 20))
 dev.off()
 
@@ -67,15 +68,16 @@ df.down$Fraction = gsub("Cytosol", "Cytoplasm", df.down$Fraction)
 df.down$Fraction = factor(df.down$Fraction)
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
-    width = 10, height = 4)
+    width = 8.5, height = 4)
 ggplot(df.down, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
   geom_jitter() + facet_grid(. ~ Library) +
   scale_fill_brewer(palette="Dark2") +
-  ylim(0, 0.4) +
+  ylim(0, 0.4) + xlab("") +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
-  xlab("") +
-  ggtitle("Proportion of Reads Mapping to Splice Junctions") + 
-  theme(title = element_text(size = 20), legend.title=element_blank()) +
+  theme(legend.position = c(.9, 0.85)) +
+  ggtitle("Proportion of Reads Overlapping Splice Junctions") + 
+  theme(title = element_text(size = 20), legend.title=element_blank(), legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) +
   theme(text = element_text(size = 20))
 dev.off()
 
