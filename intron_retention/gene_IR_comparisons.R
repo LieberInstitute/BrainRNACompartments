@@ -37,7 +37,7 @@ elementNROWS(sig)
 max = do.call(rbind, irbyGene)
 max$SampleID = gsub("\\..*","", rownames(max))
 max$rownum = c(1:nrow(max))
-max$Fraction = ifelse(max$rownum %in% grep("C", max$SampleID), "Cytosol", "Nucleus")
+max$Fraction = ifelse(max$rownum %in% grep("C", max$SampleID), "Cytoplasm", "Nucleus")
 max$Age = ifelse(max$rownum %in% grep("Br53", max$SampleID), "Prenatal", "Adult")
 max$Group = paste(max$Age, max$Fraction, sep=":")
 sigIR = lapply(sig, function(x) max[which(max$genes %in% x$ensID),])
@@ -91,9 +91,13 @@ for (i in 1:length(perc)){
 }
 names(moreless) = names(perc)
 moreless.fisher = lapply(moreless, function(x) lapply(x,fisher.test))
-write.csv(rbind(pval = data.frame(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/fisher_50perc_10perc_IR_sigDEGs_relationship_byFraction.csv")
+x = data.frame(comp = rep.int(names(moreless),2), percent = c(rep.int("50%", length(moreless)),rep.int("10%", length(moreless))),
+               pval = c(unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)[1])),
+                        unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)[2]))),
+               OddsRatio = c(unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)[1])),
+                             unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)[2]))), row.names = NULL)
+x$FDR = p.adjust(x$pval, method="fdr")
+write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/fisher_50perc_10perc_IR_sigDEGs_relationship_byFraction.csv")
 
 
 # Intron retention between retained and exported genes
@@ -102,17 +106,21 @@ IR_ret_exp = list(both = t.test(sigIR[["both_retained"]][,"IRratio"], sigIR[["bo
                                  c(sigIR[["both_exported"]][,"IRratio"],sigIR[["Ad_exported"]][,"IRratio"])),
                   prenatal = t.test(c(sigIR[["both_retained"]][,"IRratio"],sigIR[["Fet_retained"]][,"IRratio"]), 
                                     c(sigIR[["both_exported"]][,"IRratio"],sigIR[["Fet_exported"]][,"IRratio"])))
-write.csv(rbind(Tstat = data.frame(lapply(IR_ret_exp, function(x) round(x$statistic,3))), pval = data.frame(lapply(IR_ret_exp, function(x) x$p.value)),
-                confInt = data.frame(lapply(IR_ret_exp, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(IR_ret_exp, function(x) round(x$estimate,3)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/Ttest_exported_vs_retained_DEG_IRratios.csv")
+x = data.frame(Comp = names(IR_ret_exp), Tstat = unlist(lapply(IR_ret_exp, function(x) round(x$statistic,3))), pval = unlist(lapply(IR_ret_exp, function(x) x$p.value)),
+               confInt1 = unlist(lapply(IR_ret_exp, function(x) round(x$conf.int,3)[1])), confInt2 = unlist(lapply(IR_ret_exp, function(x) round(x$conf.int,3)[2])),
+               estMeans1 = unlist(lapply(IR_ret_exp, function(x) round(x$estimate,3)[1])), estMeans2 = unlist(lapply(IR_ret_exp, function(x) round(x$estimate,3)[2])),
+               row.names = NULL)
+x$FDR = p.adjust(x$pval, method="fdr")
+write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/Ttest_exported_vs_retained_DEG_IRratios.csv")
 
 
 # What does the distribution of IR Ratios by Sig group look like?
-gr = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
-       "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
-       "Retained in Prenatal/\nExported in Adult", "Interaction")
+gr = c("Both Nuclear", "Both Cytoplasmic", "Nuclear in Prenatal", "Nuclear in Adult",
+       "Cytoplasmic in Prenatal", "Cytoplasmic in Adult", "Nuclear in Adult/\nCytoplasmic in Prenatal",
+       "Nuclear in Prenatal/\nCytoplasmic in Adult", "Interaction")
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byFraction.pdf")
 for (i in 1:length(sigIR)){
+sigIR[[i]]$Group = factor(sigIR[[i]]$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
 x = ggplot(sigIR[[i]], aes(x=IRratio)) +
   geom_density(aes(group=Group, colour=Group)) +
   ylab("") + 
@@ -121,14 +129,27 @@ x = ggplot(sigIR[[i]], aes(x=IRratio)) +
   ggtitle(paste0("Intron Retention: ", gr[i])) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  theme(legend.position = c(0.8, 0.55)) +
+  theme(legend.position = c(0.8, 0.65)) +
   labs(fill="") +
-  theme(legend.background = element_rect(fill = "transparent"),
+  theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 print(x)
 }
-dev.off() 
-
+x = rbind(cbind(sigIR[["both_retained"]], Genes = "Both Nuclear"), cbind(sigIR[["both_exported"]], Genes = "Both Cytoplasmic"))
+x$Genes = factor(x$Genes, levels = c("Both Cytoplasmic","Both Nuclear"))
+ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
+  geom_density() +
+  ylab("") + 
+  xlim(0,0.15) +
+  xlab("IR Ratio") +
+  ggtitle("Intron Retention By Fraction") +
+  theme(title = element_text(size = 28)) +
+  theme(text = element_text(size = 28)) +
+  theme(legend.position = c(0.7, 0.65)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
 
 
 ### Get IR info for genes significantly regulated by Age
@@ -136,7 +157,7 @@ dev.off()
 sigIR = lapply(age.sig, function(x) max[which(max$genes %in% x$ensID),])
 unlist(lapply(sigIR, function(x) length(unique(x$genes))))
 
-# genes >50% or >10% retained in at least one sample
+# genes >50% or >10% Nuclear in at least one sample
 perc = lapply(sigIR, function(x) list(sig.more50=as.character(unique(x[which(x$IRratio>=0.50),"genes"])),
                                       sig.less50=as.character(unique(x[which(x$IRratio<0.50),"genes"])),
                                       all.more50=as.character(unique(max[which(max$IRratio>=0.50),"genes"])),
@@ -184,27 +205,35 @@ for (i in 1:length(perc)){
 }
 names(moreless) = names(perc)
 moreless.fisher = lapply(moreless, function(x) lapply(x,fisher.test))
-write.csv(rbind(pval = data.frame(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F))),
-                data.frame(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/fisher_50perc_10perc_IR_sigDEGs_relationship_byAge.csv")
+x = data.frame(comp = rep.int(names(moreless),2), percent = c(rep.int("50%", length(moreless)),rep.int("10%", length(moreless))),
+               pval = c(unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)[1])),
+                        unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$p.value), recursive=F)[2]))),
+               OddsRatio = c(unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)[1])),
+                             unlist(lapply(moreless.fisher, function(x) unlist(lapply(x, function(y) y$estimate), recursive=F)[2]))), row.names = NULL)
+x$FDR = p.adjust(x$pval, method="fdr")
+write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/fisher_50perc_10perc_IR_sigDEGs_relationship_byAge.csv")
 
 
-# Intron retention between retained and exported genes
-IR_decr_incr = list(both = t.test(sigIR[["both_decreasing"]][,"IRratio"], sigIR[["both_increasing"]][,"IRratio"]),
-                  adult = t.test(c(sigIR[["both_decreasing"]][,"IRratio"],sigIR[["Ad_decreasing"]][,"IRratio"]), 
-                                 c(sigIR[["both_increasing"]][,"IRratio"],sigIR[["Ad_increasing"]][,"IRratio"])),
-                  prenatal = t.test(c(sigIR[["both_decreasing"]][,"IRratio"],sigIR[["Fet_decreasing"]][,"IRratio"]), 
-                                    c(sigIR[["both_increasing"]][,"IRratio"],sigIR[["Fet_increasing"]][,"IRratio"])))
-write.csv(rbind(Tstat = data.frame(lapply(IR_decr_incr, function(x) round(x$statistic,3))), pval = data.frame(lapply(IR_decr_incr, function(x) x$p.value)),
-                confInt = data.frame(lapply(IR_decr_incr, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(IR_decr_incr, function(x) round(x$estimate,3)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/Ttest_increasing_vs_decreasing_DEG_IRratios.csv")
+# Intron retention between Nuclear and Cytoplasmic genes
+IR_decr_incr = list(Both = t.test(sigIR[["both_decreasing"]][,"IRratio"], sigIR[["both_increasing"]][,"IRratio"]),
+                    Cytoplasm = t.test(c(sigIR[["both_decreasing"]][,"IRratio"],sigIR[["Cyt_decreasing"]][,"IRratio"]), 
+                                   c(sigIR[["both_increasing"]][,"IRratio"],sigIR[["Cyt_increasing"]][,"IRratio"])),
+                    Nucleus = t.test(c(sigIR[["both_decreasing"]][,"IRratio"],sigIR[["Nuc_decreasing"]][,"IRratio"]), 
+                                      c(sigIR[["both_increasing"]][,"IRratio"],sigIR[["Nuc_increasing"]][,"IRratio"])))
+x = data.frame(Comp = names(IR_decr_incr), Tstat = unlist(lapply(IR_decr_incr, function(x) round(x$statistic,3))), pval = unlist(lapply(IR_decr_incr, function(x) x$p.value)),
+               confInt1 = unlist(lapply(IR_decr_incr, function(x) round(x$conf.int,3)[1])), confInt2 = unlist(lapply(IR_decr_incr, function(x) round(x$conf.int,3)[2])),
+               estMeans1 = unlist(lapply(IR_decr_incr, function(x) round(x$estimate,3)[1])), estMeans2 = unlist(lapply(IR_decr_incr, function(x) round(x$estimate,3)[2])),
+               row.names = NULL)
+x$FDR = p.adjust(x$pval, method="fdr")
+write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/gene_IR_comparisons/Ttest_increasing_vs_decreasing_DEG_IRratios.csv")
 
 
 # What does the distribution of IR Ratios by Sig group look like?
-gr = c("Both Decreasing","Both Increasing","Decreasing in Cytosol","Decreasing in Nucleus","Increasing in Cytosol","Increasing in Nucleus",
-       "Decreasing in Nucleus\nIncreasing in Cytosol","Decreasing in Cytosol\nIncreasing in Nucleus","Interaction")
+gr = c("Both Decreasing","Both Increasing","Decreasing in Cytoplasm","Decreasing in Nucleus","Increasing in Cytoplasm","Increasing in Nucleus",
+       "Decreasing in Nucleus\nIncreasing in Cytoplasm","Decreasing in Cytoplasm\nIncreasing in Nucleus","Interaction")
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byAge.pdf")
 for (i in 1:length(sigIR)){
+  sigIR[[i]]$Group = factor(sigIR[[i]]$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
   x = ggplot(sigIR[[i]], aes(x=IRratio)) +
     geom_density(aes(group=Group, colour=Group)) +
     ylab("") + 
@@ -219,6 +248,30 @@ for (i in 1:length(sigIR)){
           legend.key = element_rect(fill = "transparent", color = "transparent"))
   print(x)
 }
+x = rbind(cbind(sigIR[["Cyt_decreasing"]], Genes = "Decreasing in Cytoplasm"), cbind(sigIR[["Cyt_increasing"]], Genes = "Increasing in Cytoplasm"))
+x$Genes = factor(x$Genes, levels = c("Decreasing in Cytoplasm","Increasing in Cytoplasm"))
+ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
+  geom_density() + ylab("") + 
+  xlim(0,0.15) + xlab("IR Ratio") +
+  ggtitle("Developmental IR") +
+  theme(title = element_text(size = 28)) +
+  theme(text = element_text(size = 28)) +
+  theme(legend.position = c(0.7, 0.65)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+x = rbind(cbind(sigIR[["Nuc_decreasing"]], Genes = "Decreasing in Nucleus"), cbind(sigIR[["Nuc_increasing"]], Genes = "Increasing in Nucleus"))
+x$Genes = factor(x$Genes, levels = c("Decreasing in Nucleus","Increasing in Nucleus"))
+ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
+  geom_density() + ylab("") + 
+  xlim(0,0.15) + xlab("IR Ratio") +
+  ggtitle("Developmental IR") +
+  theme(title = element_text(size = 28)) +
+  theme(text = element_text(size = 28)) +
+  theme(legend.position = c(0.7, 0.65)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
 
 
@@ -227,13 +280,14 @@ dev.off()
 FracByAge = list(Apres = data.frame(Apres), Fpres.down = data.frame(Fpres.down),Ipres.down = data.frame(Ipres.down))
 FracByAge = Map(cbind, FracByAge,lapply(FracByAge, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
                 Comparison = list("Adult", "Prenatal", "Interaction"))
-r = lapply(irbyGene, function(x) x[which(as.character(x$genes) %in% as.character(FracByAge[["Apres"]][,"ensemblID"])),])
+r = lapply(irbyGene, function(x) x[which(as.character(x$genes) %in% c(as.character(FracByAge[["Apres"]][,"ensemblID"]),as.character(FracByAge[["Fpres.down"]][,"ensemblID"]))),])
 FracByAgeIR = list(Map(cbind, r, lapply(r, function(x) FracByAge[["Apres"]][match(x$genes, FracByAge[["Apres"]][,"ensemblID"]),])),
                    Map(cbind, r, lapply(r, function(x) FracByAge[["Fpres.down"]][match(x$genes, FracByAge[["Fpres.down"]][,"ensemblID"]),])))
 FracByAgeIR = do.call(rbind, lapply(FracByAgeIR, function(x) do.call(rbind, x)))
 FracByAgeIR$SampleID = gsub("\\..*","", rownames(FracByAgeIR))
 FracByAgeIR$rownum = c(1:nrow(FracByAgeIR))
-FracByAgeIR$Fraction = ifelse((FracByAgeIR$rownum %in% grep("C", FracByAgeIR$SampleID)), "Cytosol", "Nucleus")
+head(FracByAgeIR)
+FracByAgeIR$Fraction = ifelse((FracByAgeIR$rownum %in% grep("C", FracByAgeIR$SampleID)), "Cytoplasm", "Nucleus")
 FracByAgeIR$Age = ifelse(FracByAgeIR$rownum %in% grep("53", FracByAgeIR$SampleID), "Prenatal", "Adult")
 FracByAgeIR$Group = paste(FracByAgeIR$Age, FracByAgeIR$Fraction, sep=":")
 FracByAgeIR$FDR = ifelse(FracByAgeIR$padj<=0.05, "FDR<0.05", "FDR>0.05")
@@ -245,6 +299,7 @@ dim(FracByAgeIR[which(FracByAgeIR$genes!=FracByAgeIR$ensemblID),])
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/RNA_localization_byIRratio.pdf",width=7,height=5)
 ggplot(FracByAgeIR, aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) + 
   geom_violin() +
+  scale_fill_manual(values=c("red3","gray47")) +
   facet_grid(. ~ Comparison) +
   ylab("Log2 Fold Change") + 
   xlab("IR Ratio") +
@@ -256,6 +311,31 @@ ggplot(FracByAgeIR, aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) +
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 ggplot(FracByAgeIR, aes(x=IR.10, y=log2FoldChange, fill=FDR), color=FDR) + 
   geom_violin() +
+  scale_fill_manual(values=c("red3","gray47")) +
+  facet_grid(. ~ Comparison) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  ggtitle("RNA Localization by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(FracByAgeIR, aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  scale_fill_manual(values=c("red3","gray47")) +
+  facet_grid(. ~ Comparison) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  ggtitle("RNA Localization by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(FracByAgeIR, aes(x=IR.10, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  scale_fill_manual(values=c("red3","gray47")) +
   facet_grid(. ~ Comparison) +
   ylab("Log2 Fold Change") + 
   xlab("IR Ratio") +
@@ -270,7 +350,7 @@ dev.off()
 # Plot LFC by Age and IR
 AgebyFrac = list(Cpres.down = data.frame(Cpres.down), Npres = data.frame(Npres))
 AgebyFrac = Map(cbind, AgebyFrac,lapply(AgebyFrac, function(x) geneMap[match(rownames(x),rownames(geneMap)),]),
-                Comparison = list("Cytosol", "Nucleus"))
+                Comparison = list("Cytoplasm", "Nucleus"))
 r = lapply(irbyGene, function(x) x[which((as.character(x$genes) %in% as.character(AgebyFrac[["Cpres.down"]][,"ensemblID"])) &
                                            (as.character(x$genes) %in% as.character(AgebyFrac[["Npres"]][,"ensemblID"]))),])
 AgebyFracIR = list(Map(cbind, r, lapply(r, function(x) AgebyFrac[["Cpres.down"]][match(x$genes, AgebyFrac[["Cpres.down"]][,"ensemblID"]),])),
@@ -278,7 +358,7 @@ AgebyFracIR = list(Map(cbind, r, lapply(r, function(x) AgebyFrac[["Cpres.down"]]
 AgebyFracIR = do.call(rbind, lapply(AgebyFracIR, function(x) do.call(rbind, x)))
 AgebyFracIR$SampleID = gsub("\\..*","", rownames(AgebyFracIR))
 AgebyFracIR$rownum = c(1:nrow(AgebyFracIR))
-AgebyFracIR$Fraction = ifelse((AgebyFracIR$rownum %in% grep("C", AgebyFracIR$SampleID)), "Cytosol", "Nucleus")
+AgebyFracIR$Fraction = ifelse((AgebyFracIR$rownum %in% grep("C", AgebyFracIR$SampleID)), "Cytoplasm", "Nucleus")
 AgebyFracIR$Age = ifelse(AgebyFracIR$rownum %in% grep("53", AgebyFracIR$SampleID), "Prenatal", "Adult")
 AgebyFracIR$Group = paste(AgebyFracIR$Age, AgebyFracIR$Fraction, sep=":")
 AgebyFracIR$FDR = ifelse(AgebyFracIR$padj<=0.05, "FDR<0.05", "FDR>0.05")
@@ -291,6 +371,7 @@ pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gen
 ggplot(AgebyFracIR, aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) + 
   geom_violin() +
   facet_grid(. ~ Comparison) +
+  scale_fill_manual(values=c("red3","gray47")) +
   ylab("Log2 Fold Change") + 
   xlab("IR Ratio") +
   ggtitle("Developmental Expression\nTrajectory by IR Ratio") + 
@@ -304,6 +385,31 @@ ggplot(AgebyFracIR, aes(x=IR.10, y=log2FoldChange, fill=FDR), color=FDR) +
   facet_grid(. ~ Comparison) +
   ylab("Log2 Fold Change") + 
   xlab("IR Ratio") +
+  scale_fill_manual(values=c("red3","gray47")) +
+  ggtitle("Developmental Expression\nTrajectory by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) # Save as Devel_expression_trajectory_byIRratio
+ggplot(AgebyFracIR, aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  facet_grid(. ~ Comparison) +
+  scale_fill_manual(values=c("red3","gray47")) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  ggtitle("Developmental Expression\nTrajectory by IR Ratio") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent")) # Save as Devel_expression_trajectory_byIRratio
+ggplot(AgebyFracIR, aes(x=IR.10, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  facet_grid(. ~ Comparison) +
+  ylab("Log2 Fold Change") + 
+  xlab("IR Ratio") +
+  scale_fill_manual(values=c("red3","gray47")) +
   ggtitle("Developmental Expression\nTrajectory by IR Ratio") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
@@ -314,9 +420,9 @@ dev.off()
 
 
 fracDevel = lapply(sig, function(x) AgebyFracIR[which(AgebyFracIR$genes %in% x$ensID),])
-gr = c("Both Retained", "Both Exported", "Retained in Prenatal", "Retained in Adult",
-       "Exported in Prenatal", "Exported in Adult", "Retained in Adult/\nExported in Prenatal",
-       "Retained in Prenatal/\nExported in Adult", "Interaction")
+gr = c("Both Nuclear", "Both Cytoplasmic", "Nuclear in Prenatal", "Nuclear in Adult",
+       "Cytoplasmic in Prenatal", "Cytoplasmic in Adult", "Nuclear in Adult/\nCytoplasmic in Prenatal",
+       "Nuclear in Prenatal/\nCytoplasmic in Adult", "Interaction")
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/RetainedbyAge_LFCxFDRxIR.pdf", width=8, height=6)
 for (i in c(1:6,9)){
   g = ggplot(fracDevel[[i]], aes(x=IR.50, y=log2FoldChange, fill=FDR), color=FDR) + 
@@ -324,6 +430,7 @@ for (i in c(1:6,9)){
     facet_grid(. ~ Comparison) +
     ylab("Log2 Fold Change") + 
     xlab("IR Ratio") +
+    scale_fill_manual(values=c("red3","gray47")) +
     ggtitle(paste0("Age Expression Changes by IR Ratio:\n",gr[i])) + 
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20)) +
@@ -336,6 +443,7 @@ for (i in c(1:6,9)){
     facet_grid(. ~ Comparison) +
     ylab("Log2 Fold Change") + 
     xlab("IR Ratio") +
+    scale_fill_manual(values=c("red3","gray47")) +
     ggtitle(paste0("Age Expression Changes by IR Ratio:\n",gr[i])) + 
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20)) +
@@ -347,28 +455,28 @@ for (i in c(1:6,9)){
 dev.off()
 
 ### Is there a relationship between direction of expression of significantly DE genes by age and IR being > or < 0.50 or 0.10?
-# In cytosol:
-unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+# In Cytoplasm:
+unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange>0 &
                                                                                            x$padj<=0.05 & x$IR.50=="<0.5"),"genes"])),
-                                                                     length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                     length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange<0 &
                                                                                            x$padj<=0.05 & x$IR.50=="<0.5"),"genes"]))),
-                                                                   c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+                                                                   c(length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange>0 &
                                                                                            x$padj<=0.05 & x$IR.50==">0.5"),"genes"])),
-                                                                     length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                     length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange<0 &
                                                                                            x$padj<=0.05 & x$IR.50==">0.5"),"genes"])))))),function(x) x$p.value))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#0.8136241      1.0000000      0.3500000      0.3243825      1.0000000      0.8094819      1.0000000      1.0000000      0.1006644 
+# both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
+#   0.373284578    1.000000000    0.578392622    0.152100669    1.000000000    0.533118379    1.000000000    1.000000000    0.009861048 
 
-unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange>0 &
                                                                                              x$padj<=0.05 & x$IR.10=="<0.1"),"genes"])),
-                                                                     length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                     length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange<0 &
                                                                                              x$padj<=0.05 & x$IR.10=="<0.1"),"genes"]))),
-                                                                   c(length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange>0 &
+                                                                   c(length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange>0 &
                                                                                              x$padj<=0.05 & x$IR.10==">0.1"),"genes"])),
-                                                                     length(unique(x[which(x$Comparison=="Cytosol" & x$log2FoldChange<0 &
+                                                                     length(unique(x[which(x$Comparison=="Cytoplasm" & x$log2FoldChange<0 &
                                                                                              x$padj<=0.05 & x$IR.10==">0.1"),"genes"])))))),function(x) x$p.value))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#0.87326397     1.00000000     1.00000000     0.94828157     1.00000000     0.59759582     1.00000000     1.00000000     0.02381284
+# both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
+#   0.283520158    0.719976209    0.736240267    1.000000000    1.000000000    0.676810029    1.000000000    1.000000000    0.001621381 
 
 # In nucleus
 unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
@@ -379,8 +487,8 @@ unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(uniq
                                                                                            x$padj<=0.05 & x$IR.50==">0.5"),"genes"])),
                                                                      length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
                                                                                            x$padj<=0.05 & x$IR.50==">0.5"),"genes"])))))),function(x) x$p.value))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#0.6112488      1.0000000      0.4736842      0.1136210      1.0000000      1.0000000      1.0000000      1.0000000      1.0000000
+# both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
+#    0.57336751     0.68251619     0.09834369     0.27529318     1.00000000     0.47065787     1.00000000     1.00000000     0.56873148 
 
 unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange>0 &
                                                                                              x$padj<=0.05 & x$IR.10=="<0.1"),"genes"])),
@@ -390,5 +498,5 @@ unlist(lapply(lapply(fracDevel, function(x) fisher.test(data.frame(c(length(uniq
                                                                                              x$padj<=0.05 & x$IR.10==">0.1"),"genes"])),
                                                                      length(unique(x[which(x$Comparison=="Nucleus" & x$log2FoldChange<0 &
                                                                                              x$padj<=0.05 & x$IR.10==">0.1"),"genes"])))))),function(x) x$p.value))
-#both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
-#0.8693460      1.0000000      1.0000000      0.9463244      1.0000000      0.5775031      1.0000000      1.0000000      0.4395440
+# both_retained  both_exported   Fet_retained    Ad_retained   Fet_exported    Ad_exported ret_Ad_exp_Fet ret_Fet_exp_Ad    interacting 
+#     0.3432458      0.7384542      0.7379863      0.8186349      1.0000000      0.8508929      1.0000000      1.0000000      0.6351638 

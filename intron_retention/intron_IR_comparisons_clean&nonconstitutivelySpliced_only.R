@@ -57,6 +57,23 @@ do.call(rbind, lapply(IRcomp, function(x) table(x$LowSplicing)))
 #Nuclear_byAge     2108      7      3
 
 elementNROWS(lapply(IRcomp, function(y) y[which(y$NonUniformIntronCover=="No:No" & y$p.diff<=0.05),]))
+# Adult_byFraction Fetal_byFraction    Cytosol_byAge    Nuclear_byAge 
+#              167               99              101              241 
+
+
+## Add introns that were included in test but not reported
+
+for (i in 1:length(full)) { colnames(full[[i]])[1:7] = c("Chr","Start","End","Intron.GeneName.GeneID","X.","Direction","ExcludedBases") }
+full = lapply(full, function(x) data.frame(x[,1:7], "p.diff"=NA,"p.increased"=NA,"p.decreased"=NA,"A.IRratio"=NA,"A.warnings"=NA,"A.IntronCover"=NA,"A.IntronDepth"=NA,"A.SplicesMax"=NA,
+                                           "A.SplicesExact"=NA,"B.IRratio"=NA,"B.warnings"=NA,"B.IntronCover"=NA,"B.IntronDepth"=NA,"B.SplicesMax"=NA,"B.SplicesExact"=NA,"replicates"=NA,
+                                           "A1.IRratio"=NA,"A2.IRratio"=NA,"A3.IRratio"=NA,"B1.IRratio"=NA,"B2.IRratio"=NA,"B3.IRratio"=NA))
+full = Map(cbind, full, intronID = lapply(full, function(x) paste0(x$Intron.GeneName.GeneID,"/",x$Chr,":",x$Start,"-",x$End,":",x$Direction)),
+             ensID = lapply(lapply(full, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),"/", fixed = TRUE),recursive = FALSE)), function(y) y[grep("ENSG", y)]),
+             IR.diff = NA, Sign = NA, NonUniformIntronCover = NA, LowCover = NA, LowSplicing = NA, padj=1)
+IRcomp$Adult_byFraction = rbind(IRcomp$Adult_byFraction, full$adult[-which(full$adult$intronID %in% IRcomp$Adult_byFraction$intronID),])
+IRcomp$Fetal_byFraction = rbind(IRcomp$Fetal_byFraction, full$prenatal[-which(full$prenatal$intronID %in% IRcomp$Fetal_byFraction$intronID),])
+IRcomp$Cytosol_byAge = rbind(IRcomp$Cytosol_byAge, full$cytosol[-which(full$cytosol$intronID %in% IRcomp$Cytosol_byAge$intronID),])
+IRcomp$Nuclear_byAge = rbind(IRcomp$Nuclear_byAge, full$nucleus[-which(full$nucleus$intronID %in% IRcomp$Nuclear_byAge$intronID),])
 
 
 ## Explore the results
@@ -70,7 +87,10 @@ counts = data.frame(rbind(unlist(total), elementNROWS(IRcomp),
                     row.names = c("total measured","all reported", "FDR < 0.05", "MoreIRInNuc.Fetal", "FDR < 0.05 and MoreIRInNuc.Fetal",
                                   "IRratio > 0.5","IRratio > 0.5 and MoreIRInNuc.Fetal"))
 write.csv(counts, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/numIntrons_clean_nonconstitutivelySpliced.csv")
-                 
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/numIntrons_clean_nonconstitutivelySpliced.csv")
+df[df$X=="FDR < 0.05 and MoreIRInNuc.Fetal",2:5]/df[df$X=="FDR < 0.05",2:5]
+#Adult_byFraction Fetal_byFraction Cytosol_byAge Nuclear_byAge
+#               1                1           0.9     0.9047619
 
 
 ## Comparison of significantly vs nonsignificantly retained introns by zone/age
@@ -84,12 +104,15 @@ for (i in 1:4){
 }
 names(tables) = colnames(counts)
 
-write.csv(data.frame(rbind(unlist(lapply(lapply(tables, fisher.test), function(x) x$p.value)),unlist(lapply(lapply(tables, fisher.test), function(x) x$estimate))),row.names=c("p.value","OR")), 
-          quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_byFraction_byAge.csv")
-                     
+df = data.frame(p.value = unlist(lapply(lapply(tables, fisher.test), function(x) x$p.value)), OR = unlist(lapply(lapply(tables, fisher.test), function(x) x$estimate)))
+df$FDR = p.adjust(df$p.value, method = "fdr")
+write.csv(df, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_byFraction_byAge.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_byFraction_byAge.csv")
+df
 
 
 # Get the DEG pval and LFC sign by Fraction for differentially retained introns
+
 degs = list(Apres = data.frame(Apres, Sign = ifelse(Apres$log2FoldChange>0, "Pos","Neg")), Fpres = data.frame(Fpres.down, Sign = ifelse(Fpres.down$log2FoldChange>0, "Pos","Neg")), 
             Cpres = data.frame(Cpres.down), Npres = data.frame(Npres))
 degs = Map(cbind, degs, lapply(degs, function(x) geneMap[match(rownames(x),rownames(geneMap)),]))
@@ -121,10 +144,11 @@ for (i in 1:length(IRcomp)){
 }
 names(tables) = names(IRcomp)
 fisher = lapply(tables, function(x) lapply(x, fisher.test))
-write.csv(data.frame(rbind(unlist(lapply(fisher, function(x) lapply(x, function(y) y$p.value))),unlist(lapply(fisher, function(x) lapply(x, function(y) y$estimate)))),
-                     row.names=c("p.value","OR")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_sig_vs_nonSig_DEG_byFraction_byAge.csv")
-
+df = data.frame(pval = unlist(lapply(fisher, function(x) lapply(x, function(y) y$p.value))), OR = unlist(lapply(fisher, function(x) lapply(x, function(y) y$estimate))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F,file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_sig_vs_nonSig_DEG_byFraction_byAge.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_sig_vs_nonSig_DEG_byFraction_byAge.csv")
+df[df$FDR<=0.05,]
 
 
 # Are genes with significantly differentially retained introns more likely to have LFC in one direction by fraction?
@@ -140,10 +164,10 @@ for (i in 1:length(IRcomp)){
 }
 names(tables) = names(IRcomp)
 fisher = lapply(tables, function(x) lapply(x, fisher.test))
-write.csv(data.frame(rbind(unlist(lapply(fisher, function(x) lapply(x, function(y) y$p.value))),unlist(lapply(fisher, function(x) lapply(x, function(y) y$estimate)))),
-                     row.names=c("p.value","OR")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_pos_vs_neg_geneLFC_byFraction_byAge.csv")
-
+df = data.frame(pval = unlist(lapply(fisher, function(x) lapply(x, function(y) y$p.value))), OR = unlist(lapply(fisher, function(x) lapply(x, function(y) y$estimate))))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F,file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_pos_vs_neg_geneLFC_byFraction_byAge.csv")
+df[df$FDR<=0.05,]
 
 
 # Are significantly differentially retained introns by fraction more likely to have a higher IR ratio in nuclear RNA?
@@ -156,185 +180,250 @@ for (i in 1:length(IRcomp)){
 }
 names(tables) = names(IRcomp)
 fisher = lapply(tables, fisher.test)
-write.csv(data.frame(rbind(unlist(lapply(fisher, function(x) x$p.value)),unlist(lapply(fisher, function(x) x$estimate))),
-                     row.names=c("p.value","OR")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_MoreIRInNuc.Fetal_byFraction_byAge.csv")
-
+df = data.frame(pval = unlist(lapply(fisher, function(y) y$p.value)), OR = unlist(lapply(fisher, function(y) y$estimate)))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F,file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_sig_vs_nonSig_IR_byIntron_and_MoreIRInNuc.Fetal_byFraction_byAge.csv")
+df
 
 
 # IR regulated genes 
 
 IRlist = unlist(lapply(IRcomp, function(x) split(x, x$Sign)), recursive = F)
-names(IRlist) = names = c("Adult:Cytosol-Enriched","Adult:Nuclear-Enriched","Prenatal:Cytosol-Enriched","Prenatal:Nuclear-Enriched",
-                          "Cytosol:Adult-Enriched","Cytosol:Prenatal-Enriched","Nucleus:Adult-Enriched","Nucleus:Prenatal-Enriched")
-degs = Map(cbind, degs, Comparison = list("Adult","Prenatal","Cytosol","Nucleus"), Collapsed.Comparison = list("Fraction","Fraction","Age","Age"), 
+names(IRlist) = names = c("Adult:Cytoplasm-Enriched","Adult:Nuclear-Enriched","Prenatal:Cytoplasm-Enriched","Prenatal:Nuclear-Enriched",
+                          "Cytoplasm:Adult-Enriched","Cytoplasm:Prenatal-Enriched","Nucleus:Adult-Enriched","Nucleus:Prenatal-Enriched")
+degs = Map(cbind, degs, Comparison = list("Adult","Prenatal","Cytoplasm","Nucleus"), Collapsed.Comparison = list("Fraction","Fraction","Age","Age"), 
            FDR = lapply(degs, function(x) ifelse(x$padj<=0.05, "FDR<0.05", "FDR>0.05")))
 degs = do.call(rbind, degs)
 degs = degs[which(degs$padj!="NA"),]
 IRlist = lapply(IRlist, function(x) x[which(x$padj <= 0.05),])
 IRlist = lapply(IRlist, function(x) degs[which(degs$ensemblID %in% x$ensID),])
 elementNROWS(IRlist)
+IRlist = do.call(rbind, Map(cbind, IRlist[elementNROWS(IRlist)>0], IRgroup = as.list(names(IRlist[elementNROWS(IRlist)>0]))))
+IRlist$IRgroup = gsub(":",":\n", IRlist$IRgroup, fixed = T)
+IRlist$IRgroup = factor(IRlist$IRgroup, levels=c("Adult:\nNuclear-Enriched","Prenatal:\nNuclear-Enriched","Cytoplasm:\nAdult-Enriched",
+                                                 "Nucleus:\nAdult-Enriched","Cytoplasm:\nPrenatal-Enriched","Nucleus:\nPrenatal-Enriched"))
 
 # Plot DEG by fraction LFC and FDR for genes that contain introns that are differentially retained
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byFraction.pdf", width=8, height=8)
-for (i in 1:length(IRlist)){
-  g = ggplot(IRlist[[i]][which(IRlist[[i]][,"Collapsed.Comparison"]=="Fraction"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
-    geom_violin() +
-    ylab("Log2 Fold Change") + 
-    xlab("IR Ratio") +
-    ggtitle(paste0("RNA Localization by IR Ratio:\n",names[i])) + 
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
-  print(g)
-}
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byFraction.pdf", width=14, height=5)
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Fraction"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_violin() + facet_grid(. ~ IRgroup) +
+  scale_fill_manual(values=c("red3","gray47")) +
+  ylab("Log2 Fold Change") + 
+  xlab("") + geom_hline(yintercept=0, linetype="dotted") +
+  ggtitle("Fraction Expression Changes in Retained Introns") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.position = "bottom",
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Fraction"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  scale_fill_manual(values=c("red3","gray47")) +
+  ylab("Log2 Fold Change") + 
+  xlab("") + facet_grid(. ~ IRgroup) +
+  ggtitle("Fraction Expression Changes in Retained Introns") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.position = "bottom",
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
+
 
 # Plot DEG by age LFC and FDR for genes that contain introns that are differentially retained
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byAge.pdf", width=8, height=8)
-for (i in 1:length(IRlist)){
-  g = ggplot(IRlist[[i]][which(IRlist[[i]][,"Collapsed.Comparison"]=="Age"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
-    geom_violin() +
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byAge.pdf", width=14, height=5)
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Age"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_violin() + geom_hline(yintercept=0, linetype="dotted") +
+    scale_fill_manual(values=c("red3","gray47")) +
     ylab("Log2 Fold Change") + 
-    xlab("IR Ratio") +
-    ggtitle(paste0("Age Expression Changes by IR Ratio:\n",names[i])) + 
+    xlab("") + facet_grid(. ~ IRgroup) +
+    ggtitle("Age Expression Changes in Retained Introns") + 
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20)) +
     labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
+    theme(legend.background = element_rect(fill = "transparent"), legend.position = "bottom",
           legend.key = element_rect(fill = "transparent", color = "transparent"))
-  print(g)
-}
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Age"),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+    geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+    scale_fill_manual(values=c("red3","gray47")) +
+    xlab("") + facet_grid(. ~ IRgroup) +
+    ggtitle("Age Expression Changes in Retained Introns") + 
+    theme(title = element_text(size = 20)) +
+    theme(text = element_text(size = 20)) +
+    labs(fill="") +
+    theme(legend.background = element_rect(fill = "transparent"), legend.position = "bottom",
+          legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byFrac_forPaper.pdf", width=11, height=5)
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Fraction" & IRlist$IRgroup %in% c("Cytoplasm:\nAdult-Enriched",
+"Cytoplasm:\nPrenatal-Enriched","Nucleus:\nAdult-Enriched","Nucleus:\nPrenatal-Enriched")),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  scale_fill_manual(values=c("red3","gray47")) +
+  ylab("Log2 Fold Change") + 
+  xlab("") + facet_grid(. ~ IRgroup) +
+  ggtitle("Fraction Expression Changes in dIRs") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"), legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/IRgenes_byAge_forPaper.pdf", width=7, height=5)
+ggplot(IRlist[which(IRlist$Collapsed.Comparison=="Age" & IRlist$IRgroup %in% c("Adult:\nNuclear-Enriched","Prenatal:\nNuclear-Enriched")),], aes(x=Comparison, y=log2FoldChange, fill=FDR), color=FDR) + 
+  geom_boxplot() + geom_hline(yintercept=0, linetype="dotted") +
+  scale_fill_manual(values=c("red3","gray47")) +
+  xlab("") + facet_grid(. ~ IRgroup) +
+  ggtitle("Age Expression Changes in dIRs") + 
+  theme(title = element_text(size = 20)) +
+  theme(text = element_text(size = 20)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
 
 ## Are the Fraction or Age LFC values greater in genes containing a retained intron differentially?
 
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"])
-tables = list(t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Adult"),"log2FoldChange"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Prenatal"),"log2FoldChange"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"log2FoldChange"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"log2FoldChange"]))
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Adult"),"log2FoldChange"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Adult"),"log2FoldChange"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Prenatal"),"log2FoldChange"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Prenatal"),"log2FoldChange"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Nucleus"),"log2FoldChange"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Nucleus"),"log2FoldChange"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Adult"),"log2FoldChange"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Adult"),"log2FoldChange"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Prenatal"),"log2FoldChange"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Prenatal"),"log2FoldChange"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Nucleus"),"log2FoldChange"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Nucleus"),"log2FoldChange"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Adult"),"log2FoldChange"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Adult"),"log2FoldChange"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Prenatal"),"log2FoldChange"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Prenatal"),"log2FoldChange"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Nucleus"),"log2FoldChange"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Nucleus"),"log2FoldChange"])
+tables = list(t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Adult"),"log2FoldChange"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Adult"),"log2FoldChange"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Prenatal"),"log2FoldChange"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Prenatal"),"log2FoldChange"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Cytoplasm"),"log2FoldChange"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Nucleus"),"log2FoldChange"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Nucleus"),"log2FoldChange"]))
 names(tables) = paste0("Nucleus_byAge_", unique(degs$Comparison), "_LFC")
-write.csv(data.frame(rbind(unlist(lapply(tables, function(x) x$statistic)),unlist(lapply(tables, function(x) x$p.value)),data.frame(lapply(tables, function(x) x$conf.int)),
-                           data.frame(lapply(tables, function(x) x$estimate))), row.names=c("Tstat","p.value","conf.int1","conf.int2","mean of x","mean of y")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_nuclearIntrons_byAge_geneLFC_diff.csv")
-
+df = data.frame(Comp = names(tables), tstat = unlist(lapply(tables, function(x) x$statistic)),pval = unlist(lapply(tables, function(x) x$p.value)),
+                ConfInt1 = unlist(lapply(tables, function(x) x$conf.int[1])), ConfInt2 = unlist(lapply(tables, function(x) x$conf.int[2])),
+                Mean1 = unlist(lapply(tables, function(x) x$estimate[1])), Mean2 = unlist(lapply(tables, function(x) x$estimate[2])), row.names = NULL)
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_nuclearIntrons_byAge_geneLFC_diff.csv")
+df
 
 
 ## Are the Fraction or Age p.values lower in genes containing a retained intron differentially?
 
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"padj"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"padj"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Cytosol"),"padj"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Cytosol"),"padj"])
-t.test(x = IRlist[["Adult:Cytosol-Enriched"]][which(IRlist[["Adult:Cytosol-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
-       y = IRlist[["Adult:Nuclear-Enriched"]][which(IRlist[["Adult:Nuclear-Enriched"]][,"Comparison"]=="Nucleus"),"padj"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Adult"),"padj"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Adult"),"padj"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Prenatal"),"padj"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Prenatal"),"padj"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Cytosol"),"padj"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Cytosol"),"padj"])
-t.test(x = IRlist[["Prenatal:Cytosol-Enriched"]][which(IRlist[["Prenatal:Cytosol-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
-       y = IRlist[["Prenatal:Nuclear-Enriched"]][which(IRlist[["Prenatal:Nuclear-Enriched"]][,"Comparison"]=="Nucleus"),"padj"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Adult"),"padj"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Adult"),"padj"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Prenatal"),"padj"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Prenatal"),"padj"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"])
-t.test(x = IRlist[["Cytosol:Adult-Enriched"]][which(IRlist[["Cytosol:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
-       y = IRlist[["Cytosol:Prenatal-Enriched"]][which(IRlist[["Cytosol:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"])
-tables = list(t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Adult"),"padj"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Adult"),"padj"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Prenatal"),"padj"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Prenatal"),"padj"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Cytosol"),"padj"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Cytosol"),"padj"]),
-              t.test(x = IRlist[["Nucleus:Adult-Enriched"]][which(IRlist[["Nucleus:Adult-Enriched"]][,"Comparison"]=="Nucleus"),"padj"],
-                     y = IRlist[["Nucleus:Prenatal-Enriched"]][which(IRlist[["Nucleus:Prenatal-Enriched"]][,"Comparison"]=="Nucleus"),"padj"]))
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Adult"),"padj"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Adult"),"padj"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Prenatal"),"padj"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Prenatal"),"padj"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Cytoplasm"),"padj"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Cytoplasm"),"padj"])
+t.test(x = IRlist$"Adult:Cytoplasm-Enriched"[which(IRlist$"Adult:Cytoplasm-Enriched"$Comparison=="Nucleus"),"padj"],
+       y = IRlist$"Adult:Nuclear-Enriched"[which(IRlist$"Adult:Nuclear-Enriched"$Comparison=="Nucleus"),"padj"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Adult"),"padj"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Adult"),"padj"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Prenatal"),"padj"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Prenatal"),"padj"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Cytoplasm"),"padj"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Cytoplasm"),"padj"])
+t.test(x = IRlist$"Prenatal:Cytoplasm-Enriched"[which(IRlist$"Prenatal:Cytoplasm-Enriched"$Comparison=="Nucleus"),"padj"],
+       y = IRlist$"Prenatal:Nuclear-Enriched"[which(IRlist$"Prenatal:Nuclear-Enriched"$Comparison=="Nucleus"),"padj"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Adult"),"padj"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Adult"),"padj"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Prenatal"),"padj"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Prenatal"),"padj"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Cytoplasm"),"padj"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Cytoplasm"),"padj"])
+t.test(x = IRlist$"Cytoplasm:Adult-Enriched"[which(IRlist$"Cytoplasm:Adult-Enriched"$Comparison=="Nucleus"),"padj"],
+       y = IRlist$"Cytoplasm:Prenatal-Enriched"[which(IRlist$"Cytoplasm:Prenatal-Enriched"$Comparison=="Nucleus"),"padj"])
+tables = list(t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Adult"),"padj"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Adult"),"padj"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Prenatal"),"padj"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Prenatal"),"padj"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Cytoplasm"),"padj"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Cytoplasm"),"padj"]),
+              t.test(x = IRlist$"Nucleus:Adult-Enriched"[which(IRlist$"Nucleus:Adult-Enriched"$Comparison=="Nucleus"),"padj"],
+                     y = IRlist$"Nucleus:Prenatal-Enriched"[which(IRlist$"Nucleus:Prenatal-Enriched"$Comparison=="Nucleus"),"padj"]))
 names(tables) = paste0("Nucleus_byAge_", unique(degs$Comparison), "_padj")
-write.csv(data.frame(rbind(unlist(lapply(tables, function(x) x$statistic)),unlist(lapply(tables, function(x) x$p.value)),data.frame(lapply(tables, function(x) x$conf.int)),
-                           data.frame(lapply(tables, function(x) x$estimate))), row.names=c("Tstat","p.value","conf.int1","conf.int2","mean of x","mean of y")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_nuclearIntrons_byAge_padj_diff.csv")
+df = data.frame(Comp = names(tables), tstat = unlist(lapply(tables, function(x) x$statistic)),pval = unlist(lapply(tables, function(x) x$p.value)),
+                ConfInt1 = unlist(lapply(tables, function(x) x$conf.int[1])), ConfInt2 = unlist(lapply(tables, function(x) x$conf.int[2])),
+                Mean1 = unlist(lapply(tables, function(x) x$estimate[1])), Mean2 = unlist(lapply(tables, function(x) x$estimate[2])), row.names = NULL)
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F,file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_nuclearIntrons_byAge_padj_diff.csv")
+df
 
 
-
-# plot IR ratio in cytosolic prenatal samples and LFC by age in cytosol
+# plot IR ratio in Cytoplasmic prenatal samples and LFC by age in Cytoplasm
 ggplot(IRcomp$Fetal_byFraction[which(IRcomp$Fetal_byFraction$padj<0.05),], aes(x=IR.diff, y=CP.LFC)) + 
   geom_point() +
-  ylab("Log2 Fold Change") + ylim(-10,10) + 
+  ylab("Log2 Fold Change") + ylim(-2,2) + 
   xlab("Difference in IR Ratio") +
   ggtitle("Age LFC and IR Ratio") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 
 
-# Are genes with greater IR in cytosol in prenatal higher- or lower-expressed in prenatal than adult in cytosol?
+# Are genes with greater IR in Cytoplasm in prenatal higher- or lower-expressed in prenatal than adult in Cytoplasm?
 
 for (i in 1:length(IRcomp)){
-tables[[i]] = list(inAdult = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]!="MoreIRInNuc.Fetal"),"AP.LFC"],
+tables[[i]] = list(inAdult = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInCyt.Adult"),"AP.LFC"],
                                     IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInNuc.Fetal"),"AP.LFC"]),
-                   inPrenatal = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]!="MoreIRInNuc.Fetal"),"FP.LFC"],
+                   inPrenatal = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInCyt.Adult"),"FP.LFC"],
                                        IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInNuc.Fetal"),"FP.LFC"]),
-                   inCytosol = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]!="MoreIRInNuc.Fetal"),"CP.LFC"],
+                   inCytoplasm = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInCyt.Adult"),"CP.LFC"],
                                       IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInNuc.Fetal"),"CP.LFC"]),
-                   inNucleus = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]!="MoreIRInNuc.Fetal"),"NP.LFC"],
+                   inNucleus = t.test(IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInCyt.Adult"),"NP.LFC"],
                                       IRcomp[[i]][which(IRcomp[[i]][,"Sign"]=="MoreIRInNuc.Fetal"),"NP.LFC"]))
 }
 names(tables) = names(IRcomp)
-write.csv(data.frame(rbind(unlist(lapply(tables, function(x) lapply(x, function(y) y$statistic))),
-                           unlist(lapply(tables, function(x) lapply(x, function(y) y$p.value))),
-                           data.frame(lapply(tables, function(x) lapply(x, function(y) y$conf.int))),
-                           data.frame(lapply(tables, function(x) lapply(x, function(y) y$estimate)))), 
-                     row.names=c("Tstat","p.value","conf.int1","conf.int2","mean of x","mean of y")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_MoreIRInNuc.Fetal_IR_vs_geneLFC_inGroup.csv")
-
+df = data.frame(Comp = names(unlist(tables))[grep("alternative",names(unlist(tables)))], 
+                tstat = unlist(lapply(tables, function(x) lapply(x, function(y) y$statistic))),
+                pval = unlist(lapply(tables, function(x) lapply(x, function(y) y$p.value))),
+                ConfInt1 = unlist(lapply(tables, function(x) lapply(x, function(y) y$conf.int[1]))), 
+                ConfInt2 = unlist(lapply(tables, function(x) lapply(x, function(y) y$conf.int[2]))),
+                Mean1 = unlist(lapply(tables, function(x) lapply(x, function(y) y$estimate[1]))), 
+                Mean2 = unlist(lapply(tables, function(x) lapply(x, function(y) y$estimate[2]))), row.names = NULL)
+df$Comp = gsub(".alternative", "", df$Comp)
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F,file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_MoreIRInNuc.Fetal_IR_vs_geneLFC_inGroup.csv")
+df[df$FDR<=.05,]
 
 
 ## Are dIR introns by age more likely to be dIR introns by fraction?
 
 sigIR.intron = lapply(IRcomp, function(x) as.character(x[which(x$padj<=0.05),"intronID"])) 
+path = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_"
+venn.diagram(sigIR.intron, paste0(path, "sig_byFrac_byAge", ".jpeg"), 
+             main="Significantly differentially retains\nintrons by group", col = "transparent",
+             fill = c("lightpink2","cornflowerblue", "olivedrab2", "darkorchid1"),alpha = 0.50,
+             label.col = c("olivedrab4", "white", "darkorchid4", "white", "white", "white", "white",
+                           "white", "palevioletred4", "white", "white", "white", "white", "darkblue", "white"),
+             fontfamily = "Arial", fontface = "bold", cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
+             cat.fontfamily = "Arial", sub.cex=3,margin=0.2)
+
+
 nonsigIR.intron = lapply(IRcomp, function(x) as.character(x[which(x$padj>0.05),"intronID"]))
 sigIR.intron.combined = list("Significantly IR\nBy Fraction" = c(sigIR.intron$Adult_byFraction, sigIR.intron$Prenatal_byFraction),
                              "Significantly IR\nBy Age" = c(sigIR.intron$Cytosol_byAge, sigIR.intron$Nuclear_PolyA_Age))
 nonsigIR.intron.combined = list("Non-Significantly IR\nBy Fraction" = c(nonsigIR.intron$Adult_byFraction, nonsigIR.intron$Prenatal_byFraction),
                                 "Non-Significantly IR\nBy Age" = c(nonsigIR.intron$Cytosol_byAge, nonsigIR.intron$Nuclear_PolyA_Age))
 comps = list(c(1,3), c(1,4), c(1:2), c(2,3), c(2,4), c(3,4))
-path = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/dIR_"
 ids = c("FractionbyAge_adult_cytosol", "FractionbyAge_adult_nucleus", "Fraction_adult_prenatal",
         "FractionbyAge_prenatal_cytosol","FractionbyAge_prenatal_nucleus","Age_cytosol_nucleus")
 
@@ -374,10 +463,10 @@ fisher = c(lapply(tables, fisher.test), list(combined_fraction_age = fisher.test
   nonsig1 = c(length(nonsigIR.intron.combined[[1]][nonsigIR.intron.combined[[1]] %in% sigIR.intron.combined[[2]]]),
               length(nonsigIR.intron.combined[[1]][nonsigIR.intron.combined[[1]] %in% nonsigIR.intron.combined[[2]]])),
   row.names = c("sig2","nonsig2")))))
-write.csv(data.frame(rbind(unlist(lapply(fisher, function(x) x$p.value)),unlist(lapply(fisher, function(x) x$estimate))),
-                     row.names=c("p.value","OR")), quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_overlap_sig_vs_nonSig_IR_byIntron_byGroup.csv")
-
+df = data.frame(pval = unlist(lapply(fisher, function(y) y$p.value)), OR = unlist(lapply(fisher, function(y) y$estimate)))
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_overlap_sig_vs_nonSig_IR_byIntron_byGroup.csv")
+df
 
 
 ## Are genes that have a dIR intron by age more likely to have a dIR intron by fraction?
@@ -432,10 +521,12 @@ fisher = c(lapply(tables, fisher.test), list(combined_fraction_age = fisher.test
   nonsig1 = c(length(nonsigIR.gene.combined[[1]][nonsigIR.gene.combined[[1]] %in% sigIR.gene.combined[[2]]]),
               length(nonsigIR.gene.combined[[1]][nonsigIR.gene.combined[[1]] %in% nonsigIR.gene.combined[[2]]])),
   row.names = c("sig2","nonsig2")))))
+df = data.frame(pval = unlist(lapply(fisher, function(y) y$p.value)), OR = unlist(lapply(fisher, function(y) y$estimate)))
+df$FDR = p.adjust(df$pval, method = "fdr")
 write.csv(data.frame(rbind(unlist(lapply(fisher, function(x) x$p.value)),unlist(lapply(fisher, function(x) x$estimate))),
                      row.names=c("p.value","OR")), quote = F,
           file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/fisher_overlap_genesContaining_sig_vs_nonSig_IR_byGroup.csv")
-
+df
 
 
 ## What about direction of retention in shared introns?

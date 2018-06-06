@@ -1,5 +1,6 @@
 library(GenomicRanges)
 library(plyr)
+library(ggplot2)
 
 load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
@@ -24,12 +25,24 @@ total = as.list(elementNROWS(full))
 names(total) = names(IRcomp)
 IRcomp = Map(cbind, IRcomp, padj = mapply(function(p,t) p.adjust(p, method = "fdr", n = t), lapply(IRcomp, function(x) x$p.diff), total))
 
+for (i in 1:length(full)) { colnames(full[[i]])[1:7] = c("Chr","Start","End","Intron.GeneName.GeneID","X.","Direction","ExcludedBases") }
+full = lapply(full, function(x) data.frame(x[,1:7], "p.diff"=NA,"p.increased"=NA,"p.decreased"=NA,"A.IRratio"=NA,"A.warnings"=NA,"A.IntronCover"=NA,"A.IntronDepth"=NA,"A.SplicesMax"=NA,
+                                           "A.SplicesExact"=NA,"B.IRratio"=NA,"B.warnings"=NA,"B.IntronCover"=NA,"B.IntronDepth"=NA,"B.SplicesMax"=NA,"B.SplicesExact"=NA,"replicates"=NA,
+                                           "A1.IRratio"=NA,"A2.IRratio"=NA,"A3.IRratio"=NA,"B1.IRratio"=NA,"B2.IRratio"=NA,"B3.IRratio"=NA))
+full = Map(cbind, full, intronID = lapply(full, function(x) paste0(x$Intron.GeneName.GeneID,"/",x$Chr,":",x$Start,"-",x$End,":",x$Direction)),
+           ensID = lapply(lapply(full, function(y) unlist(strsplit(as.character(y$Intron.GeneName.GeneID),"/", fixed = TRUE),recursive = FALSE)), function(y) y[grep("ENSG", y)]),
+           IR.diff = NA, Sign = NA, padj=1)
+IRcomp$Adult_byFraction = rbind(IRcomp$Adult_byFraction, full$adult[-which(full$adult$intronID %in% IRcomp$Adult_byFraction$intronID),])
+IRcomp$Fetal_byFraction = rbind(IRcomp$Fetal_byFraction, full$prenatal[-which(full$prenatal$intronID %in% IRcomp$Fetal_byFraction$intronID),])
+IRcomp$Cytosol_byAge = rbind(IRcomp$Cytosol_byAge, full$cytosol[-which(full$cytosol$intronID %in% IRcomp$Cytosol_byAge$intronID),])
+IRcomp$Nuclear_byAge = rbind(IRcomp$Nuclear_byAge, full$nucleus[-which(full$nucleus$intronID %in% IRcomp$Nuclear_byAge$intronID),])
+
+
 sigdIR = lapply(IRcomp, function(x) x[which(x$padj<=0.05),])
 sigdIR = unlist(lapply(sigdIR, function(x) split(x, x$Sign)), recursive=F)
-names(sigdIR) = c("Adult:Cytosol-Increased","Adult:Nucleus-Increased","Prenatal:Cytosol-Increased","Prenatal:Nucleus-Increased",
-                  "Cytosol:Adult-Increased","Cytosol:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased")
-
-introns = c("Introns (Fraction)" = list(do.call(rbind, IRcomp[1:2])),"Introns (Age)" = list(do.call(rbind, IRcomp[3:4])), sigdIR)
+names(sigdIR) = c("Adult:Cytoplasm-Increased","Adult:Nucleus-Increased","Prenatal:Cytoplasm-Increased","Prenatal:Nucleus-Increased",
+                  "Cytoplasm:Adult-Increased","Cytoplasm:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased")
+introns = c(list("All Introns" = do.call(rbind, IRcomp)), sigdIR)
 for (i in 1:length(introns)) { if (nrow(introns[[i]]) > 0) { introns[[i]][,"Chr"] = paste0("chr", introns[[i]][,"Chr"]) } }
 elementNROWS(introns)
 
@@ -50,17 +63,9 @@ lastinTx$matchID = paste0(lastinTx$TxID, ":", lastinTx$LastStart)
 exonMap$matchID = paste0(exonMap$TxID, ":", exonMap$Start)
 exonMap$lastinTx = ifelse(exonMap$matchID %in% lastinTx$matchID, "Last", "NotLast")
 exonMap = makeGRangesFromDataFrame(exonMap, keep.extra.columns = T)
-introns = lapply(introns, function(x) makeGRangesFromDataFrame(na.omit(x), 
-                                                               seqnames.field="Chr",
-                                                               start.field="Start",
-                                                               end.field="End",
-                                                               strand.field="Direction",
-                                                               keep.extra.columns = T))
-introns = c(lapply(introns[c("Introns (Fraction)","Introns (Age)")],unique), 
-            introns[c("Adult:Cytosol-Increased","Adult:Nucleus-Increased","Prenatal:Cytosol-Increased","Prenatal:Nucleus-Increased",
-                      "Cytosol:Adult-Increased","Cytosol:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased")])
+introns = lapply(introns, function(x) reduce(makeGRangesFromDataFrame(x, seqnames.field="Chr", start.field="Start", end.field="End", strand.field="Direction")))
 overlaps = lapply(introns, function(x) findOverlaps(exonMap, x))
-introns = lapply(introns, function(x) as.data.frame(x))
+introns = lapply(introns, as.data.frame)
 exonMap = as.data.frame(exonMap)
 colnames(exonMap) = c("seqnames","exonStart","exonEnd","width","strand","exonID","TxID","Length","gencodeID","ensemblID",
                       "gene_type","Symbol","EntrezID","Class","meanExprs","NumTx","gencodeTx","exonID.1","matchID","lastinTx")
@@ -90,9 +95,9 @@ lapply(position, head)
 
 # summary statistics on position
 stats = data.frame(mean = unlist(lapply(position, mean)), median = unlist(lapply(position, median)), SD = unlist(lapply(position, sd)))
-stats$group = c("All", "All", "Cytosolic Retention\nIn Adult","Nuclear Retention\nIn Adult","Cytosolic Retention\nIn Prenatal","Nuclear Retention\nIn Prenatal",
-                "Adult Retention\nIn Cytosol","Prenatal Retention\nIn Cytosol","Adult Retention\nIn Nucleus","Prenatal Retention\nIn Nucleus")
-stats$retention = c("NA","NA","Cytosolic","Nuclear","Cytosolic","Nuclear","Adult","Prenatal","Adult","Prenatal")
+stats$group = c("All", "Cytoplasmic\nIn Adult","Nuclear\nIn Adult","Cytoplasmic\nIn Prenatal","Nuclear\nIn Prenatal",
+                "Adult\nIn Cytoplasm","Prenatal\nIn Cytoplasm","Adult\nIn Nucleus","Prenatal\nIn Nucleus")
+stats$retention = c("NA","Cytoplasmic","Nuclear","Cytoplasmic","Nuclear","Adult","Prenatal","Adult","Prenatal")
 
 
 # distribution of introns measured
@@ -101,25 +106,25 @@ for (i in 1:length(posDF)) { colnames(posDF[[i]]) = c("Position", "Comparison") 
 posDF = do.call(rbind, posDF)
 posDF = posDF[posDF$Position!="no",]
 posDF$Comparison = factor(posDF$Comparison, 
-                          levels = c("Introns (Fraction)","Introns (Age)","Adult:Cytosol-Increased","Adult:Nucleus-Increased","Prenatal:Cytosol-Increased",
-                                     "Prenatal:Nucleus-Increased","Cytosol:Adult-Increased","Cytosol:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased"))
+                          levels = c("All Introns","Adult:Cytoplasm-Increased","Adult:Nucleus-Increased","Prenatal:Cytoplasm-Increased","Prenatal:Nucleus-Increased",
+                                     "Cytoplasm:Adult-Increased","Cytoplasm:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased"))
 posDF$FracAge = NA
-posDF[c(grep("Nucleus-Increased", posDF$Comparison),grep("Cytosol-Increased", posDF$Comparison),grep("Fraction", posDF$Comparison)),"FracAge"] = "Fraction"
+posDF[c(grep("Nucleus-Increased", posDF$Comparison),grep("Cytoplasm-Increased", posDF$Comparison),grep("Fraction", posDF$Comparison)),"FracAge"] = "Fraction"
 posDF[c(grep("Adult-Increased", posDF$Comparison),grep("Prenatal-Increased", posDF$Comparison),grep("Age", posDF$Comparison)),"FracAge"] = "Age"
 posDF$Position = as.numeric(posDF$Position)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_fraction.pdf", width=8.5,height=5)
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_fraction.pdf", width=7,height=5)
 ggplot(posDF[which(posDF$FracAge=="Fraction"),], aes(x=Position)) +
     geom_density(aes(group=Comparison, colour=Comparison)) +
     ylab("") +
     xlim(0,1) +
-    xlab("Proportion of Transcript") +
+    xlab("Proportion of Transcript") + ylab("Density") +
     ggtitle("Distance from Transcript End") +
     theme(title = element_text(size = 20)) +
     theme(text = element_text(size = 20)) +
     labs(fill="") +
     theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
+          legend.key = element_rect(fill = "transparent", color = "transparent"), legend.position = "bottom", legend.title = element_blank())
 dev.off()
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_age.pdf", width=8.5,height=5)
@@ -127,50 +132,50 @@ ggplot(posDF[which(posDF$FracAge=="Age"),], aes(x=Position)) +
   geom_density(aes(group=Comparison, colour=Comparison)) +
   ylab("") +
   xlim(0,1) +
-  xlab("Proportion of Transcript") +
+  xlab("Proportion of Transcript") + ylab("Density") +
   ggtitle("Distance from Transcript End") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
-        legend.key = element_rect(fill = "transparent", color = "transparent"))
+        legend.key = element_rect(fill = "transparent", color = "transparent"),legend.title = element_blank())
 dev.off()
 
 ## Is there a difference by fraction
 
-byFraction = t.test(x=c(position$'Adult:Cytosol-Increased', position$'Prenatal:Cytosol-Increased'), 
+byFraction = t.test(x=c(position$'Adult:Cytoplasm-Increased', position$'Prenatal:Cytoplasm-Increased'), 
                     y=c(position$'Adult:Nucleus-Increased', position$'Prenatal:Nucleus-Increased'))
-byFrac.InAdults = t.test(x=position$'Adult:Cytosol-Increased', y=position$'Adult:Nucleus-Increased')
-byFrac.InPrenatal = t.test(x=position$'Prenatal:Cytosol-Increased', y=position$'Prenatal:Nucleus-Increased')
-upCyt.VS.allFrac = t.test(x=c(position$'Adult:Cytosol-Increased', position$'Prenatal:Cytosol-Increased'), 
-                          y=position$'Introns (Fraction)')
-upCyt.inAdult.Vs.allFrac = t.test(x=position$'Adult:Cytosol-Increased', y=position$'Introns (Fraction)')
-upCyt.inPrenatal.Vs.allFrac = t.test(x=position$'Prenatal:Cytosol-Increased', y=position$'Introns (Fraction)')
+byFrac.InAdults = t.test(x=position$'Adult:Cytoplasm-Increased', y=position$'Adult:Nucleus-Increased')
+byFrac.InPrenatal = t.test(x=position$'Prenatal:Cytoplasm-Increased', y=position$'Prenatal:Nucleus-Increased')
+upCyt.VS.allFrac = t.test(x=c(position$'Adult:Cytoplasm-Increased', position$'Prenatal:Cytoplasm-Increased'), 
+                          y=position$'All Introns')
+upCyt.inAdult.Vs.allFrac = t.test(x=position$'Adult:Cytoplasm-Increased', y=position$'All Introns')
+upCyt.inPrenatal.Vs.allFrac = t.test(x=position$'Prenatal:Cytoplasm-Increased', y=position$'All Introns')
 
-ttests = list(IRfrac.VS.allFrac = t.test(x=c(position$'Adult:Cytosol-Increased', position$'Prenatal:Cytosol-Increased',
-                                             position$'Adult:Nucleus-Increased', position$'Prenatal:Nucleus-Increased'), 
-                                         y=position$'Introns (Fraction)'),
-              upNuc.VS.allFrac = t.test(x=c(position$'Adult:Nucleus-Increased', position$'Prenatal:Nucleus-Increased'), 
-                                        y=position$'Introns (Fraction)'),
-              upNuc.inAdult.Vs.allFrac = t.test(x=position$'Adult:Nucleus-Increased', y=position$'Introns (Fraction)'),
-              upNuc.inPrenatal.Vs.allFrac = t.test(x=position$'Prenatal:Nucleus-Increased', y=position$'Introns (Fraction)'),
-              byAge = t.test(x=c(position$'Cytosol:Adult-Increased', position$'Nucleus:Adult-Increased'), 
-                             y=c(position$'Cytosol:Prenatal-Increased', position$'Nucleus:Prenatal-Increased')),
-              byAge.inCytosol = t.test(x=position$'Cytosol:Adult-Increased', y=position$'Cytosol:Prenatal-Increased'),
+ttests = list(IRfrac.VS.all = t.test(x=c(position$'Adult:Cytoplasm-Increased', position$'Prenatal:Cytoplasm-Increased',
+                                         position$'Adult:Nucleus-Increased', position$'Prenatal:Nucleus-Increased'), 
+                                     y=position$'All Introns'),
+              upNuc.VS.all = t.test(x=c(position$'Adult:Nucleus-Increased', position$'Prenatal:Nucleus-Increased'), 
+                                    y=position$'All Introns'),
+              upNuc.inAdult.Vs.all = t.test(x=position$'Adult:Nucleus-Increased', y=position$'All Introns'),
+              upNuc.inPrenatal.Vs.all = t.test(x=position$'Prenatal:Nucleus-Increased', y=position$'All Introns'),
+              byAge = t.test(x=c(position$'Cytoplasm:Adult-Increased', position$'Nucleus:Adult-Increased'), 
+                             y=c(position$'Cytoplasm:Prenatal-Increased', position$'Nucleus:Prenatal-Increased')),
+              byAge.inCytoplasm = t.test(x=position$'Cytoplasm:Adult-Increased', y=position$'Cytoplasm:Prenatal-Increased'),
               byAge.inNucleus = t.test(x=position$'Nucleus:Adult-Increased', y=position$'Nucleus:Prenatal-Increased'),
-              IRage.VS.allAge = t.test(x=c(position$'Cytosol:Adult-Increased', position$'Nucleus:Adult-Increased',
-                                           position$'Cytosol:Prenatal-Increased', position$'Nucleus:Prenatal-Increased'), 
-                                       y=position$'Introns (Age)'),
-              upAd.inCytosol.Vs.allAge = t.test(x=position$'Cytosol:Adult-Increased', y=position$'Introns (Age)'),
-              upAd.inNucleus.Vs.allAge = t.test(x=position$'Nucleus:Adult-Increased', y=position$'Introns (Age)'),
-              upPren.inCytosol.Vs.allAge = t.test(x=position$'Cytosol:Prenatal-Increased', y=position$'Introns (Age)'),
-              upPren.inNucleus.Vs.allAge = t.test(x=position$'Nucleus:Prenatal-Increased', y=position$'Introns (Age)'))
+              IRage.VS.all = t.test(x=c(position$'Cytoplasm:Adult-Increased', position$'Nucleus:Adult-Increased',
+                                        position$'Cytoplasm:Prenatal-Increased', position$'Nucleus:Prenatal-Increased'), 
+                                    y=position$'All Introns'),
+              upAd.inCytoplasm.Vs.all = t.test(x=position$'Cytoplasm:Adult-Increased', y=position$'All Introns'),
+              upAd.inNucleus.Vs.all = t.test(x=position$'Nucleus:Adult-Increased', y=position$'All Introns'),
+              upPren.inCytoplasm.Vs.all = t.test(x=position$'Cytoplasm:Prenatal-Increased', y=position$'All Introns'),
+              upPren.inNucleus.Vs.all = t.test(x=position$'Nucleus:Prenatal-Increased', y=position$'All Introns'))
 
-ttests = data.frame(rbind(unlist(lapply(ttests, function(x) x$statistic)),unlist(lapply(ttests, function(x) x$p.value)),data.frame(lapply(ttests, function(x) x$conf.int)),
-                          data.frame(lapply(ttests, function(x) x$estimate))), row.names=c("Tstat","p.value","conf.int1","conf.int2","mean of x","mean of y"))
-write.csv(ttests, quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_intronPosition_inTx.csv")
-colnames(ttests[,which(ttests["p.value",]<=(0.05/18))])
-#"byAge" "byAge.inNucleus" "upAd.inNucleus.Vs.allAge"
-# adult-increased are more 3' than prenatal-increased, and nuclear Adult-enriched introns are more 3' than all the general introns.
+df = data.frame(Comp = names(ttests), tstat = unlist(lapply(ttests, function(x) x$statistic)),pval = unlist(lapply(ttests, function(x) x$p.value)),
+                ConfInt1 = unlist(lapply(ttests, function(x) x$conf.int[1])), ConfInt2 = unlist(lapply(ttests, function(x) x$conf.int[2])),
+                Mean1 = unlist(lapply(ttests, function(x) x$estimate[1])), Mean2 = unlist(lapply(ttests, function(x) x$estimate[2])), row.names = NULL)
+df$FDR = p.adjust(df$pval, method = "fdr")
+write.csv(df, quote=F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/ttest_intronPosition_inTx.csv")
+df[df$FDR<=0.05,]
+
 

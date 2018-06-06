@@ -107,6 +107,7 @@ proportion$variant = factor(proportion$variant, levels = c("SE","S2E","RI","MXE"
 proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
+write.csv(proportion, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf")
 ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
@@ -139,9 +140,9 @@ psi$suminFetNuc = rowSums(psi[,c("Br5339N1_polyA","Br5340N1_polyA","Br5341N1_pol
 psi$suminFetCyt = rowSums(psi[,c("Br5341C1_polyA","Br5339C1_downsamp","Br5340C1_downsamp")])
 psi$variantID = rownames(psi)
 
-psiByGroup = list("Adult:Cytosol" = psi[which(psi$suminAdCyt!="NA" & psi$suminAdCyt>0),], 
+psiByGroup = list("Adult:Cytoplasm" = psi[which(psi$suminAdCyt!="NA" & psi$suminAdCyt>0),], 
                   "Adult:Nucleus" = psi[which(psi$suminAdNuc!="NA" & psi$suminAdNuc>0),],
-                  "Prenatal:Cytosol" = psi[which(psi$suminFetCyt!="NA" & psi$suminFetCyt>0),], 
+                  "Prenatal:Cytoplasm" = psi[which(psi$suminFetCyt!="NA" & psi$suminFetCyt>0),], 
                   "Prenatal:Nucleus" = psi[which(psi$suminFetNuc!="NA" & psi$suminFetNuc>0),])
 VariantsByGroup = lapply(psiByGroup, function(x) x$variantID)
 numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("SE",x)])))),
@@ -185,12 +186,20 @@ psi$suminAdNuc = rowSums(psi[,c("Br1113N1_polyA","Br2046N_polyA","Br2074N_polyA"
 psi$suminAdCyt = rowSums(psi[,c("Br1113C1_polyA","Br2046C_polyA","Br2074C_polyA")])
 psi$suminFetNuc = rowSums(psi[,c("Br5339N1_polyA","Br5340N1_polyA","Br5341N1_polyA")])
 psi$suminFetCyt = rowSums(psi[,c("Br5341C1_polyA","Br5339C1_downsamp","Br5340C1_downsamp")])
+psi$suminNuc = rowSums(psi[,c("Br1113N1_polyA","Br2046N_polyA","Br2074N_polyA","Br5339N1_polyA","Br5340N1_polyA","Br5341N1_polyA")])
+psi$suminCyt = rowSums(psi[,c("Br1113C1_polyA","Br2046C_polyA","Br2074C_polyA","Br5341C1_polyA","Br5339C1_downsamp","Br5340C1_downsamp")])
+psi$suminFet = rowSums(psi[,c("Br5339N1_polyA","Br5340N1_polyA","Br5341N1_polyA","Br5341C1_polyA","Br5339C1_downsamp","Br5340C1_downsamp")])
+psi$suminAd = rowSums(psi[,c("Br1113N1_polyA","Br2046N_polyA","Br2074N_polyA","Br1113C1_polyA","Br2046C_polyA","Br2074C_polyA")])
 psi$variantID = rownames(psi)
 
-psiByGroup = list("Adult:Cytosol" = psi[which(psi$suminAdCyt!="NA" & psi$suminAdCyt>0),], 
+psiByGroup = list("Adult:Cytoplasm" = psi[which(psi$suminAdCyt!="NA" & psi$suminAdCyt>0),], 
                   "Adult:Nucleus" = psi[which(psi$suminAdNuc!="NA" & psi$suminAdNuc>0),],
-                  "Prenatal:Cytosol" = psi[which(psi$suminFetCyt!="NA" & psi$suminFetCyt>0),], 
-                  "Prenatal:Nucleus" = psi[which(psi$suminFetNuc!="NA" & psi$suminFetNuc>0),])
+                  "Prenatal:Cytoplasm" = psi[which(psi$suminFetCyt!="NA" & psi$suminFetCyt>0),], 
+                  "Prenatal:Nucleus" = psi[which(psi$suminFetNuc!="NA" & psi$suminFetNuc>0),],
+                  "Nucleus" = psi[which(psi$suminNuc!="NA" & psi$suminNuc>0),],
+                  "Cytoplasm" = psi[which(psi$suminCyt!="NA" & psi$suminCyt>0),],
+                  "Prenatal" = psi[which(psi$suminFet!="NA" & psi$suminFet>0),],
+                  "Adult" = psi[which(psi$suminAd!="NA" & psi$suminAd>0),])
 VariantsByGroup = lapply(psiByGroup, function(x) x$variantID)
 numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("SE",x)])))),
                      S2E = unlist(lapply(VariantsByGroup, function(x) length(unique(x[grep("S2E",x)])))),
@@ -203,6 +212,9 @@ numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(uniq
 numVars$Group = as.factor(rownames(numVars))
 numVars = melt(numVars)
 head(numVars)
+write.csv(numVars, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
+(sum(numVars[numVars$Group=="Nucleus","value"])-sum(numVars[numVars$Group=="Cytoplasm","value"]))/sum(numVars[numVars$Group=="Cytoplasm","value"])*100 # 42.79054
+(sum(numVars[numVars$Group=="Prenatal","value"])-sum(numVars[numVars$Group=="Adult","value"]))/sum(numVars[numVars$Group=="Adult","value"])*100 # 72.88765
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.pdf",width = 10,height = 8)
 dodge <- position_dodge(width=0.9)
@@ -234,10 +246,10 @@ psi_df = do.call(rbind, psi_df)
 psi_df10 = do.call(rbind, psi_df10)
 colnames(psi_df) = colnames(psi_df10) = c("rowID", "SampleID", "PSI", "VariantType")
 psi_df$rowNum = rownames(psi_df)
-psi_df$Fraction = ifelse((psi_df$rowNum %in% grep("C", psi_df$SampleID)), "Cytosol", "Nucleus")
+psi_df$Fraction = ifelse((psi_df$rowNum %in% grep("C", psi_df$SampleID)), "Cytoplasm", "Nucleus")
 psi_df$Age = ifelse((psi_df$rowNum %in% grep("53", psi_df$SampleID)), "Prenatal", "Adult")
 psi_df10$rowNum = rownames(psi_df10)
-psi_df10$Fraction = ifelse((psi_df10$rowNum %in% grep("C", psi_df10$SampleID)), "Cytosol", "Nucleus")
+psi_df10$Fraction = ifelse((psi_df10$rowNum %in% grep("C", psi_df10$SampleID)), "Cytoplasm", "Nucleus")
 psi_df10$Age = ifelse((psi_df10$rowNum %in% grep("53", psi_df10$SampleID)), "Prenatal", "Adult")
 
 pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/PSI_by_SpliceVariantType_Fraction_Age.pdf",width = 24,height = 6)
@@ -264,7 +276,7 @@ dev.off()
 
 tfrac = tAge = list()
 for (i in 1:length(names(psi))){
-  tfrac[[i]] = t.test(psi_df[which(psi_df$VariantType==names(psi)[i] & psi_df$Fraction=="Cytosol"),"PSI"], 
+  tfrac[[i]] = t.test(psi_df[which(psi_df$VariantType==names(psi)[i] & psi_df$Fraction=="Cytoplasm"),"PSI"], 
                  psi_df[which(psi_df$VariantType==names(psi)[i] & psi_df$Fraction=="Nucleus"),"PSI"])
   tAge[[i]] = t.test(psi_df[which(psi_df$VariantType==names(psi)[i] & psi_df$Age=="Adult"),"PSI"], 
                 psi_df[which(psi_df$VariantType==names(psi)[i] & psi_df$Age=="Prenatal"),"PSI"])
@@ -280,7 +292,7 @@ colnames(tfracage)[which(tfracage["pval.age",]<=0.005)] # "SE"
 
 tfrac = tAge = list()
 for (i in 1:length(names(psi10))){
-  tfrac[[i]] = t.test(psi_df10[which(psi_df10$VariantType==names(psi10)[i] & psi_df10$Fraction=="Cytosol"),"PSI"], 
+  tfrac[[i]] = t.test(psi_df10[which(psi_df10$VariantType==names(psi10)[i] & psi_df10$Fraction=="Cytoplasm"),"PSI"], 
                       psi_df10[which(psi_df10$VariantType==names(psi10)[i] & psi_df10$Fraction=="Nucleus"),"PSI"])
   tAge[[i]] = t.test(psi_df10[which(psi_df10$VariantType==names(psi10)[i] & psi_df10$Age=="Adult"),"PSI"], 
                      psi_df10[which(psi_df10$VariantType==names(psi10)[i] & psi_df10$Age=="Prenatal"),"PSI"])
@@ -338,7 +350,7 @@ psi_byGene_df = do.call(rbind, psi_byGene_collapsed)
 
 colnames(psi_byGene_df) = c("rowID", "SampleID", "PSI", "VariantType", "GeneGroup")
 psi_byGene_df$rowNum = 1:nrow(psi_byGene_df)
-psi_byGene_df$Fraction = ifelse((psi_byGene_df$rowNum %in% grep("C", psi_byGene_df$SampleID)), "Cytosol", "Nucleus")
+psi_byGene_df$Fraction = ifelse((psi_byGene_df$rowNum %in% grep("C", psi_byGene_df$SampleID)), "Cytoplasm", "Nucleus")
 psi_byGene_df$Age = ifelse((psi_byGene_df$rowNum %in% grep("53", psi_byGene_df$SampleID)), "Prenatal", "Adult")
 
 psi_byGene_df$GeneGroup = gsub("both_retained", "Retained:\nBoth", psi_byGene_df$GeneGroup)
@@ -391,7 +403,7 @@ fracdxd = DEXSeqDataSet(countData = sgv.counts, featureID = vid, groupID = eid, 
 save(agedxd,fracdxd, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_objects.rda")
 
 agedxd.cyt = DEXSeqDataSet(countData = sgv.counts[,grep("C", colnames(sgv.counts))], featureID = vid, groupID = eid, 
-                           sampleData = sampleData[which(sampleData$Zone=="Cytosol"),],
+                           sampleData = sampleData[which(sampleData$Zone=="Cytoplasm"),],
                            design= ~ sample + exon + Fetal:exon)
 agedxd.nuc = DEXSeqDataSet(countData = sgv.counts[,grep("N", colnames(sgv.counts))], featureID = vid, groupID = eid, 
                            sampleData = sampleData[which(sampleData$Zone=="Nucleus"),],
@@ -452,7 +464,7 @@ agedxr.nuc = DEXSeqResults(agedxd.nuc)
 save(fracdxd.adult,fracdxr.adult,agedxd.nuc,agedxr.nuc, 
      file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
 
-# by Age in Cytosol
+# by Age in Cytoplasm
 agedxd.cyt = estimateSizeFactors(agedxd.cyt)
 agedxd.cyt = estimateDispersions(agedxd.cyt, formula = ~ sample + exon + Fetal:exon)
 agedxd.cyt = testForDEU(agedxd.cyt, reducedModel = ~ sample + exon, fullModel = ~ sample + exon + Fetal:exon)
@@ -469,7 +481,7 @@ plotMA(agedxr, ylim = c(-15,15), main = "Differential Splicing by Age", alpha=0.
 plotMA(fracdxr.adult, ylim = c(-15,15), main = "Differential Splicing by Fraction in Adult", alpha=0.05)
 plotMA(fracdxr.prenatal, ylim = c(-15,15), main = "Differential Splicing by Fraction in Prenatal", alpha=0.05)
 plotMA(agedxr.nuc, ylim = c(-15,15), main = "Differential Splicing by Age in Nucleus", alpha=0.05)
-plotMA(agedxr.cyt, ylim = c(-15,15), main = "Differential Splicing by Age in Cytosol", alpha=0.05)
+plotMA(agedxr.cyt, ylim = c(-15,15), main = "Differential Splicing by Age in Cytoplasm", alpha=0.05)
 dev.off()
 
 
@@ -497,11 +509,11 @@ elementNROWS(dexres.sig)
 #         2158          4608          2512           131          2182          2226 
 type = lapply(dexres.sig, function(x) unlist(x$variantType))
 type = lapply(type, function(x) data.frame(table(x)[which(names(table(x)) %in% c("SE:S","S2E:S","RI:R","MXE","A5SS:D","A3SS:D","AFE"))]))
-type =  Map(cbind, type, comparison = list("By Fraction","By Age","By Fraction\nIn Adult","By Fraction\nIn Prenatal","By Age\nIn Cytosol","By Age\nIn Nucleus"))
+type =  Map(cbind, type, comparison = list("By Fraction","By Age","By Fraction\nIn Adult","By Fraction\nIn Prenatal","By Age\nIn Cytoplasm","By Age\nIn Nucleus"))
 type = do.call(rbind, type)
 type$comparison = factor(type$comparison, 
-                         levels = c("By Age\nIn Nucleus","By Age\nIn Cytosol","By Age","By Fraction\nIn Prenatal","By Fraction\nIn Adult","By Fraction"))
-
+                         levels = c("By Age\nIn Nucleus","By Age\nIn Cytoplasm","By Age","By Fraction\nIn Prenatal","By Fraction\nIn Adult","By Fraction"))
+type$x = gsub("RI:R", "IR", type$x)
 
 pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/DSE_counts_byGroup_byFrac_byAge.pdf")
 ggplot(type[which(type$comparison!="By Fraction" & type$comparison!="By Age"),], 
@@ -535,7 +547,7 @@ dev.off()
 
 lapply(dexres,head)
 df = Map(cbind, lapply(dexres, function(x) data.frame(x[,c("groupID","featureID","padj")],LFC = x[,10], x[,c("more.in.nuc.prenatal","geneName","variantType","variantName")])),
-         comparison = list("By Fraction","By Age","By Fraction\nIn Adult","By Fraction\nIn Prenatal","By Age\nIn Cytosol","By Age\nIn Nucleus"))
+         comparison = list("By Fraction","By Age","By Fraction\nIn Adult","By Fraction\nIn Prenatal","By Age\nIn Cytoplasm","By Age\nIn Nucleus"))
 df = do.call(rbind, df)
 df$geneName = as.character(df$geneName)
 df$variantType = as.character(df$variantType)
@@ -544,26 +556,21 @@ df$threshold = ifelse(df$padj<=0.05, "FDR < 0.05", "FDR > 0.05")
 dt = data.table(df)
 dt = dt[variantType %in% c("SE:S","S2E:S","RI:R","MXE","A5SS:P","A3SS:P","A5SS:D","A3SS:D","AFE","ALE"),,]
 dt = dt[threshold!="NA",,]
-dt$variantType = factor(dt$variantType, levels = c("SE:S","S2E:S","RI:R","MXE","A5SS:P","A3SS:P","A5SS:D","A3SS:D","AFE","ALE"))
+dt$variantType = gsub("RI:R", "IR", dt$variantType)
+dt$variantType = factor(dt$variantType, levels = c("SE:S","S2E:S","IR","MXE","A5SS:P","A3SS:P","A5SS:D","A3SS:D","AFE","ALE"))
 
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/volcano_plots_byComparison_byVariantType.pdf",width=30,height=10)
-ggplot(dt[grep("Fraction", dt$comparison),,], aes(x=LFC, y=-log10(padj), colour=threshold)) +
-  geom_point(alpha=0.4, size=1.75) +
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/volcano_plots_byComparison_byVariantType.pdf",width=20,height=8)
+ggplot(dt[comparison!="By Age" & comparison!="By Fraction",,], aes(x=LFC, y=-log10(padj), colour=threshold)) +
+  geom_point(alpha=0.4, size=1.5) +
+  ylim(0,60) + xlim(-15,15) +
+  scale_colour_manual(values=c("red3","gray47")) +
   geom_vline(xintercept=0, linetype="dotted") +
   facet_grid(comparison ~ variantType) +
-  xlab("log2 fold change") + ylab("-log10(FDR)") +
-  ggtitle("Differential Splicing by Fraction and Variant Type") +
+  xlab("log2 Fold Change") + ylab("-log10(FDR)") +
+  ggtitle("Differential Splicing by Fraction, Age and Variant Type") +
   theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 14))
-ggplot(dt[grep("Age", dt$comparison),,], aes(x=LFC, y=-log10(padj), colour=threshold)) +
-  geom_point(alpha=0.4, size=1.75) + 
-  geom_vline(xintercept=0, linetype="dotted") +
-  facet_grid(comparison ~ variantType) +
-  xlab("log2 fold change") + ylab("-log10(FDR)") +
-  ggtitle("Differential Splicing by Age and Variant Type") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 14))
+  theme(text = element_text(size = 18), legend.position="none")
 dev.off()
 
 
@@ -593,15 +600,25 @@ for (i in (1:length(unique(df$comparison)))) {
   }
 names(prop[[i]]) = colnames(df)[12:21]
 }
-names(prop) = c("ByFraction","ByAge","ByFraction:Adult","ByFraction:Prenatal","ByAge:Cytosol","ByAge:Nucleus")
+names(prop) = c("ByFraction","ByAge","ByFraction:Adult","ByFraction:Prenatal","ByAge:Cytoplasm","ByAge:Nucleus")
 fisher.prop = lapply(prop, function(x) lapply(x, fisher.test))
 write.csv(rbind(pvalue = data.frame(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value)))),
                 data.frame(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$estimate))))),quote=F,
           file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType.csv")
-names(unlist(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value))))
-      )[which(unlist(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value))))<=0.0008333333)] 
-# 34 of 60 tests show a significant relationship between a variant being significantly regulated by fraction and/or age and being a certain type of variant
 
+d = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType.csv")
+d = reshape2::melt(d)
+x = d[grep("pvalue", d$X),]
+x$X = gsub("pvalue.","", x$X)
+y = d[grep("odds", d$X),]
+y$X = gsub(".odds ratio", "", y$X)
+x$comp = paste(x$X, x$variable, sep = ".")
+y$comp = paste(y$X, y$variable, sep = ".")
+d = cbind(x, OR = y[match(x$comp, y$comp),"value"])
+d$FDR = p.adjust(d$value, method="fdr")
+colnames(d) = c("VariantType","Comparison","Pvalue","comp","OddsRatio","FDR")
+d = d[,colnames(d)!="comp"]
+write.csv(d,quote=F,file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType.csv")
 
 
 ### is there a relationship between proportion of sig vs non-sig and direction of expression in a variant type?
@@ -617,10 +634,28 @@ for (i in (1:length(unique(df$comparison)))) {
   }
   names(prop[[i]]) = colnames(df)[12:21]
 }
-names(prop) = c("ByFraction","ByAge","ByFraction:Adult","ByFraction:Prenatal","ByAge:Cytosol","ByAge:Nucleus")
+names(prop) = c("ByFraction","ByAge","ByFraction:Adult","ByFraction:Prenatal","ByAge:Cytoplasm","ByAge:Nucleus")
 fisher.prop = lapply(prop, function(x) lapply(x, fisher.test))
 write.csv(rbind(pvalue = data.frame(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value)))),
                 data.frame(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$estimate))))),quote=F,
           file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType_byLFC_Dir.csv")
-names(unlist(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value))))
-)[which(unlist(lapply(fisher.prop, function(x) unlist(lapply(x, function(y) y$p.value))))<=0.0008333333)]
+
+d = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType_byLFC_Dir.csv")
+d = reshape2::melt(d)
+x = d[grep("pvalue", d$X),]
+x$X = gsub("pvalue.","", x$X)
+y = d[grep("odds", d$X),]
+y$X = gsub(".odds ratio", "", y$X)
+x$comp = paste(x$X, x$variable, sep = ".")
+y$comp = paste(y$X, y$variable, sep = ".")
+d = cbind(x, OR = y[match(x$comp, y$comp),"value"])
+d$FDR = p.adjust(d$value, method="fdr")
+colnames(d) = c("VariantType","Comparison","Pvalue","comp","OddsRatio","FDR")
+d = d[,colnames(d)!="comp"]
+write.csv(d,quote=F,file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DSE_byComparison_byVariantType_byLFC_Dir.csv")
+
+
+
+
+
+

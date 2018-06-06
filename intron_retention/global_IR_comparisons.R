@@ -29,16 +29,19 @@ head(IRfiltered[[1]])
 introns = data.frame(num.introns = elementNROWS(IRfiltered))
 introns$SampleID = as.factor(rownames(introns))
 introns$rownum = c(1:nrow(introns))
-introns$Fraction = ifelse(introns$rownum %in% grep("N",introns$SampleID), "Nucleus","Cytosol")
+introns$Fraction = ifelse(introns$rownum %in% grep("N",introns$SampleID), "Nucleus","Cytosplasm")
 introns$Age = ifelse(introns$rownum %in% grep("Br53",introns$SampleID), "Prenatal","Adult")
-introns$Group = factor(paste0(introns$Age,":",introns$Fraction), levels = c("Adult:Cytosol","Prenatal:Cytosol", "Adult:Nucleus","Prenatal:Nucleus"))
+introns$Group = factor(paste0(introns$Age,"\n",introns$Fraction), levels = c("Adult\nCytosplasm","Prenatal\nCytosplasm", "Adult\nNucleus","Prenatal\nNucleus"))
 introns$num.genes = as.numeric(lapply(lapply(lapply(IRfiltered, function(x) unlist(strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE), recursive = F)), 
                                              function(x) x[grep("ENSG", x)]), function(x) length(unique(x))))
 introns$MeanIntronDepth = as.numeric(lapply(IRfiltered, function(x) mean(x$IntronDepth)))
 write.csv(introns, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
+range(df$num.introns) # 166661 173125
+range(df$num.genes) # 15345 15389
 
 
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/introns_passingQC.pdf", width =8,height = 5)
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/introns_passingQC.pdf", width =7,height = 5)
 ggplot(introns, aes(x=Group, y=num.introns)) + 
   geom_boxplot() + geom_jitter() +
   ylab("Number") + xlab("") +
@@ -47,7 +50,7 @@ ggplot(introns, aes(x=Group, y=num.introns)) +
   theme(text = element_text(size = 20)) +
   labs(fill="")
 dev.off()
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/unique_genes_introns_passingQC.pdf", width =8,height = 5)
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/unique_genes_introns_passingQC.pdf", width =7,height = 5)
 ggplot(introns, aes(x=Group, y=num.genes)) + 
   geom_boxplot() + geom_jitter() +
   ylab("Number") + xlab("") +
@@ -56,7 +59,7 @@ ggplot(introns, aes(x=Group, y=num.genes)) +
   theme(text = element_text(size = 20)) +
   labs(fill="")  
 dev.off()
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/meanIntronDepth_introns_passingQC.pdf", width =8,height = 5)
+pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/meanIntronDepth_introns_passingQC.pdf", width =7,height = 5)
 ggplot(introns, aes(x=Group, y=MeanIntronDepth)) + 
   geom_boxplot() + geom_jitter() +
   ylab("Number") + 
@@ -78,8 +81,8 @@ length(allintrons) # 152432 of the introns pass QC in all four groups
 IRratios = do.call(rbind, Map(cbind, lapply(IRfiltered, function(x) data.frame(IRratio=x$IRratio,intronID=x$intronID)), SampleID = as.list(names(IRfiltered))))
 IRratios$rnum = 1:nrow(IRratios)
 IRratios$Age = ifelse(IRratios$rnum %in% grep("53", IRratios$SampleID), "Prenatal","Adult")
-IRratios$Fraction = ifelse(IRratios$rnum %in% grep("C", IRratios$SampleID), "Cytosol","Nucleus")
-IRratios$Group = factor(paste(IRratios$Age, IRratios$Fraction, sep=":"), levels = c("Adult:Cytosol","Prenatal:Cytosol","Adult:Nucleus","Prenatal:Nucleus"))
+IRratios$Fraction = ifelse(IRratios$rnum %in% grep("C", IRratios$SampleID), "Cytosplasm","Nucleus")
+IRratios$Group = factor(paste(IRratios$Age, IRratios$Fraction, sep=":"), levels = c("Adult:Cytosplasm","Prenatal:Cytosplasm","Adult:Nucleus","Prenatal:Nucleus"))
 
 pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/IRratio_byGroup.pdf", width =6,height = 5)
 ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) +
@@ -89,7 +92,7 @@ ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) 
   xlim(0,.06) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  theme(legend.position = c(0.8, 0.55)) +
+  theme(legend.position = c(0.75, 0.55)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
@@ -105,7 +108,7 @@ ggplot(ratio.overlaps, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Gr
   xlim(0,.06) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  theme(legend.position = c(0.8, 0.55)) +
+  theme(legend.position = c(0.75, 0.55)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
@@ -125,12 +128,14 @@ PercentIRs = data.frame(unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRr
                         unlist(lapply(IRfiltered, function(x) nrow(x[which(x$IRratio>=.9),]))))
 Total = elementNROWS(IRfiltered)
 PercentIRs = cbind(round(PercentIRs / Total *100, digits = 2), SampleID = rownames(PercentIRs), 
-                   Age = c(rep.int("Adult", 6), rep.int("Prenatal", 6)), Fraction = rep.int(c("Cytosol", "Nucleus"), 6))
+                   Age = c(rep.int("Adult", 6), rep.int("Prenatal", 6)), Fraction = rep.int(c("Cytosplasm", "Nucleus"), 6))
 colnames(PercentIRs) = c("Constitutively\nSpliced",">0%",">5%",">10%",">20%",">30%",">40%",">50%",">75%",">90%","SampleID","Age","Fraction")
 PercentIRs = melt(PercentIRs)
 PercentIRs$Group = factor(paste(PercentIRs$Age, PercentIRs$Fraction, sep=":"), 
-                          levels = c("Adult:Cytosol", "Prenatal:Cytosol", "Adult:Nucleus", "Prenatal:Nucleus"))
+                          levels = c("Adult:Cytosplasm", "Prenatal:Cytosplasm", "Adult:Nucleus", "Prenatal:Nucleus"))
 PercentIRs$variable = factor(PercentIRs$variable, levels=c("Constitutively\nSpliced",">0%",">5%",">10%",">20%",">30%",">40%",">50%",">75%",">90%"))
+(PercentIRs[PercentIRs$variable=="Constitutively\nSpliced","value"])[order(PercentIRs[PercentIRs$variable=="Constitutively\nSpliced","value"])]
+# range of 58.68-85.33% are constitutively spliced
 (PercentIRs[PercentIRs$variable==">0%","value"]-PercentIRs[PercentIRs$variable==">5%","value"])[order(PercentIRs[PercentIRs$variable==">0%","value"]-PercentIRs[PercentIRs$variable==">5%","value"])]
 # range of 12.20-34.63% have 0% < IR ratio < 5%
 
@@ -144,7 +149,7 @@ ggplot(PercentIRs, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.position = c(.85, 0.6)) +
+  theme(legend.position = c(.8, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
@@ -158,7 +163,7 @@ ggplot(PercentIRs[which(PercentIRs$variable != "Constitutively\nSpliced" & Perce
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.position = c(.85, 0.6)) +
+  theme(legend.position = c(.8, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
@@ -177,12 +182,14 @@ PercentIRsOverlap = data.frame(unlist(lapply(overlaps, function(x) nrow(x[which(
                                unlist(lapply(overlaps, function(x) nrow(x[which(x$IRratio>=.75),]))),
                                unlist(lapply(overlaps, function(x) nrow(x[which(x$IRratio>=.9),]))))
 PercentIRsOverlap = cbind(round(PercentIRsOverlap / length(allintrons) * 100, digits = 2), SampleID = rownames(PercentIRsOverlap), 
-                   Age = c(rep.int("Adult", 6), rep.int("Prenatal", 6)), Fraction = rep.int(c("Cytosol", "Nucleus"), 6))
+                   Age = c(rep.int("Adult", 6), rep.int("Prenatal", 6)), Fraction = rep.int(c("Cytosplasm", "Nucleus"), 6))
 colnames(PercentIRsOverlap) = c("Constitutively\nSpliced",">0%",">5%",">10%",">20%",">30%",">40%",">50%",">75%",">90%","SampleID","Age","Fraction")
 PercentIRsOverlap = melt(PercentIRsOverlap)
 PercentIRsOverlap$Group = factor(paste(PercentIRsOverlap$Age, PercentIRsOverlap$Fraction, sep=":"), 
-                          levels = c("Adult:Cytosol", "Prenatal:Cytosol", "Adult:Nucleus", "Prenatal:Nucleus"))
+                          levels = c("Adult:Cytosplasm", "Prenatal:Cytosplasm", "Adult:Nucleus", "Prenatal:Nucleus"))
 PercentIRsOverlap$variable = factor(PercentIRsOverlap$variable, levels=c("Constitutively\nSpliced",">0%",">5%",">10%",">20%",">30%",">40%",">50%",">75%",">90%"))
+(PercentIRsOverlap[PercentIRsOverlap$variable=="Constitutively\nSpliced","value"])[order(PercentIRsOverlap[PercentIRsOverlap$variable=="Constitutively\nSpliced","value"])]
+# range of 61.33-87.02% are constitutively spliced
 (PercentIRsOverlap[PercentIRsOverlap$variable==">0%","value"]-PercentIRsOverlap[PercentIRsOverlap$variable==">5%","value"])[order(PercentIRsOverlap[PercentIRsOverlap$variable==">0%","value"]-PercentIRsOverlap[PercentIRsOverlap$variable==">5%","value"])]
 # range of 10.76-32.48% have 0% < IR ratio < 5%
 
@@ -196,7 +203,7 @@ ggplot(PercentIRsOverlap, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.position = c(.85, 0.6)) +
+  theme(legend.position = c(.8, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off() 
@@ -210,7 +217,7 @@ ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSp
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.position = c(.85, 0.6)) +
+  theme(legend.position = c(.8, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
@@ -218,42 +225,44 @@ dev.off()
 
 # Is IR increased in the nucleus or in adults?
 
-ttest = list(byFraction = t.test(x = IRratios[which(IRratios$Fraction=="Nucleus"),"IRratio"],y = IRratios[which(IRratios$Fraction=="Cytosol"),"IRratio"]),
-             byFrac.Adult = t.test(x = IRratios[which(IRratios$Group=="Adult:Nucleus"),"IRratio"],y = IRratios[which(IRratios$Group=="Adult:Cytosol"),"IRratio"]),
-             byFrac.Prenatal = t.test(x = IRratios[which(IRratios$Group=="Prenatal:Nucleus"),"IRratio"],y = IRratios[which(IRratios$Group=="Prenatal:Cytosol"),"IRratio"]),
+ttest = list(byFraction = t.test(x = IRratios[which(IRratios$Fraction=="Nucleus"),"IRratio"],y = IRratios[which(IRratios$Fraction=="Cytosplasm"),"IRratio"]),
+             byFrac.Adult = t.test(x = IRratios[which(IRratios$Group=="Adult:Nucleus"),"IRratio"],y = IRratios[which(IRratios$Group=="Adult:Cytosplasm"),"IRratio"]),
+             byFrac.Prenatal = t.test(x = IRratios[which(IRratios$Group=="Prenatal:Nucleus"),"IRratio"],y = IRratios[which(IRratios$Group=="Prenatal:Cytosplasm"),"IRratio"]),
              byFrac.50 = t.test(x = PercentIRs[which(PercentIRs$Fraction=="Nucleus" & PercentIRs$variable == ">50%"),"value"],
-                                y = PercentIRs[which(PercentIRs$Fraction=="Cytosol" & PercentIRs$variable == ">50%"),"value"]),
+                                y = PercentIRs[which(PercentIRs$Fraction=="Cytosplasm" & PercentIRs$variable == ">50%"),"value"]),
              byFrac.50.Adult = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">50%"),"value"],
-                                      y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">50%"),"value"]),
+                                      y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosplasm" & PercentIRs$variable==">50%"),"value"]),
              byFrac.50.Prenatal = t.test(x = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">50%"),"value"],
-                                         y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">50%"),"value"]),
+                                         y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosplasm" & PercentIRs$variable==">50%"),"value"]),
              byFrac.10 = t.test(x = PercentIRs[which(PercentIRs$Fraction=="Nucleus" & PercentIRs$variable == ">10%"),"value"],
-                                y = PercentIRs[which(PercentIRs$Fraction=="Cytosol" & PercentIRs$variable == ">10%"),"value"]),
+                                y = PercentIRs[which(PercentIRs$Fraction=="Cytosplasm" & PercentIRs$variable == ">10%"),"value"]),
              byFrac.10.Adult = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">10%"),"value"],
-                                      y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">10%"),"value"]),
+                                      y = PercentIRs[which(PercentIRs$Group=="Adult:Cytosplasm" & PercentIRs$variable==">10%"),"value"]),
              byFrac.10.Prenatal = t.test(x = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">10%"),"value"],
-                                         y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">10%"),"value"]),
+                                         y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosplasm" & PercentIRs$variable==">10%"),"value"]),
              byAge = t.test(x = IRratios[which(IRratios$Age=="Adult"),"IRratio"],y = IRratios[which(IRratios$Age=="Prenatal"),"IRratio"]),
              byAge.Nucleus = t.test(x = IRratios[which(IRratios$Group=="Adult:Nucleus"),"IRratio"],
                                     y = IRratios[which(IRratios$Group=="Prenatal:Nucleus"),"IRratio"]),
-             byAge.Cytosol = t.test(x = IRratios[which(IRratios$Group=="Adult:Cytosol"),"IRratio"],
-                                    y = IRratios[which(IRratios$Group=="Prenatal:Cytosol"),"IRratio"]),
+             byAge.Cytosplasm = t.test(x = IRratios[which(IRratios$Group=="Adult:Cytosplasm"),"IRratio"],
+                                    y = IRratios[which(IRratios$Group=="Prenatal:Cytosplasm"),"IRratio"]),
              byAge.50 = t.test(x = PercentIRs[which(PercentIRs$Age=="Adult" & PercentIRs$variable==">50%"),"value"],
                                y = PercentIRs[which(PercentIRs$Age=="Prenatal" & PercentIRs$variable==">50%"),"value"]),
              byAge.50.Nucleus = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">50%"),"value"],
                                        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">50%"),"value"]),
-             byAge.50.Cytosol = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">50%"),"value"],
-                                       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">50%"),"value"]),
+             byAge.50.Cytosplasm = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosplasm" & PercentIRs$variable==">50%"),"value"],
+                                       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosplasm" & PercentIRs$variable==">50%"),"value"]),
              byAge.10 = t.test(x = PercentIRs[which(PercentIRs$Age=="Adult" & PercentIRs$variable==">10%"),"value"],
                                y = PercentIRs[which(PercentIRs$Age=="Prenatal" & PercentIRs$variable==">10%"),"value"]),
              byAge.10.Nucleus = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Nucleus" & PercentIRs$variable==">10%"),"value"],
                                        y = PercentIRs[which(PercentIRs$Group=="Prenatal:Nucleus" & PercentIRs$variable==">10%"),"value"]),
-             byAge.10.Cytosol = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosol" & PercentIRs$variable==">10%"),"value"],
-                                       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosol" & PercentIRs$variable==">10%"),"value"]))
-write.csv(rbind(Tstat = data.frame(lapply(ttest, function(x) round(x$statistic,3))), pval = data.frame(lapply(ttest, function(x) x$p.value)),
-                confInt = data.frame(lapply(ttest, function(x) round(x$conf.int,3))), estMeans = data.frame(lapply(ttest, function(x) round(x$estimate,3)))), quote=F,
-          file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/Ttest_results_IRratio_byFraction_byAge.csv")
-names(unlist(lapply(ttest, function(x) x$p.value))[unlist(lapply(ttest, function(x) x$p.value))<=0.002777778])
-# "byFraction"      "byFrac.Adult"    "byFrac.Prenatal" "byFrac.10"       "byAge"           "byAge.Nucleus"   "byAge.Cytosol"
-names(unlist(lapply(ttest, function(x) x$statistic))[unlist(lapply(ttest, function(x) x$statistic))>0])
-#IR ratios are greater in Nuclear RNA in both ages, and greater in adult than prenatal when combined and in nuclear RNA but the opposite in cytosol
+             byAge.10.Cytosplasm = t.test(x = PercentIRs[which(PercentIRs$Group=="Adult:Cytosplasm" & PercentIRs$variable==">10%"),"value"],
+                                       y = PercentIRs[which(PercentIRs$Group=="Prenatal:Cytosplasm" & PercentIRs$variable==">10%"),"value"]))
+x = data.frame(Comp = names(ttest), Tstat = unlist(lapply(ttest, function(x) round(x$statistic,3))), pval = unlist(lapply(ttest, function(x) x$p.value)),
+               confInt1 = unlist(lapply(ttest, function(x) round(x$conf.int,3)[1])), confInt2 = unlist(lapply(ttest, function(x) round(x$conf.int,3)[2])),
+               estMeans1 = unlist(lapply(ttest, function(x) round(x$estimate,3)[1])), estMeans2 = unlist(lapply(ttest, function(x) round(x$estimate,3)[2])),
+               row.names = NULL)
+x$FDR = p.adjust(x$pval, method="fdr")
+write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/Ttest_results_IRratio_byFraction_byAge.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/Ttest_results_IRratio_byFraction_byAge.csv")
+df
+
