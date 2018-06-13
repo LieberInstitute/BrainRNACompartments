@@ -103,13 +103,14 @@ proportion = as.data.frame(unlist(varnames))
 proportion$variant = rownames(proportion)
 proportion = proportion[-grep("P",proportion$variant),]
 proportion$variant = gsub(".D","", proportion$variant)
-proportion$variant = factor(proportion$variant, levels = c("SE","S2E","RI","MXE","A5SS","A3SS","AFE","ALE"))
+proportion$variant = gsub("RI","IR", proportion$variant)
+proportion$variant = factor(proportion$variant, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
 proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
-write.csv(proportion, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
+write.csv(proportion, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf")
 ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
   geom_text(aes(label=perc), vjust=1.5, colour="white") +
   labs(fill="") +
@@ -212,11 +213,16 @@ numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(uniq
 numVars$Group = as.factor(rownames(numVars))
 numVars = melt(numVars)
 head(numVars)
-write.csv(numVars, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
+write.csv(numVars, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
+numVars = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
 (sum(numVars[numVars$Group=="Nucleus","value"])-sum(numVars[numVars$Group=="Cytoplasm","value"]))/sum(numVars[numVars$Group=="Cytoplasm","value"])*100 # 42.79054
 (sum(numVars[numVars$Group=="Prenatal","value"])-sum(numVars[numVars$Group=="Adult","value"]))/sum(numVars[numVars$Group=="Adult","value"])*100 # 72.88765
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.pdf",width = 10,height = 8)
+numVars = numVars[grep(":", numVars$Group, fixed = T),]
+numVars$variable = gsub("RI","IR", numVars$variable)
+numVars$variable = factor(numVars$variable, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
+
+pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.pdf",width = 6,height = 5)
 dodge <- position_dodge(width=0.9)
 ggplot(numVars, aes(x = variable, y = value, fill = Group)) +
   stat_summary(position=position_dodge(),geom="bar") +
@@ -225,7 +231,7 @@ ggplot(numVars, aes(x = variable, y = value, fill = Group)) +
   xlab("") +
   ggtitle("Unique Splice Variants by Type") +
   theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  theme(text = element_text(size = 20), legend.position = "bottom") + guides(fill=guide_legend(nrow=2,byrow=TRUE))
 dev.off()
 
 

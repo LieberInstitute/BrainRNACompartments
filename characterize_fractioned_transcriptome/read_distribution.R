@@ -109,3 +109,5 @@ df = data.frame(test = names(ttests), p.value = unlist(lapply(ttests, function(x
                 mean.y = unlist(lapply(ttests, function(x) x$estimate[2])), row.names = NULL)
 df$FDR = p.adjust(df$p.value, method = "fdr")
 write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")
+df

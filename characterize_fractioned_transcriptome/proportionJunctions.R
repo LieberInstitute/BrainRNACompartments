@@ -110,5 +110,6 @@ df = data.frame(Group = names(ttests), t.stat = unlist(lapply(ttests, function(x
            p.value = unlist(lapply(ttests, function(x) x$p.value)))
 df$FDR = p.adjust(df$p.value, method="fdr")
 rownames(df) = NULL
-write.csv(df, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/junction_proportions_tstat.csv")
-
+write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/junction_proportions_tstat.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/junction_proportions_tstat.csv")
+df
