@@ -103,14 +103,16 @@ proportion = as.data.frame(unlist(varnames))
 proportion$variant = rownames(proportion)
 proportion = proportion[-grep("P",proportion$variant),]
 proportion$variant = gsub(".D","", proportion$variant)
-proportion$variant = gsub("RI","IR", proportion$variant)
-proportion$variant = factor(proportion$variant, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
 proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
 write.csv(proportion, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
+proportion = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_10denom.csv")
+proportion$variant = gsub("RI","IR", proportion$variant)
+proportion$variant = factor(proportion$variant, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf", width = 6, height = 5)
 ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
   geom_text(aes(label=perc), vjust=1.5, colour="white") +
   labs(fill="") +
@@ -521,7 +523,7 @@ type$comparison = factor(type$comparison,
                          levels = c("By Age\nIn Nucleus","By Age\nIn Cytoplasm","By Age","By Fraction\nIn Prenatal","By Fraction\nIn Adult","By Fraction"))
 type$x = gsub("RI:R", "IR", type$x)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/DSE_counts_byGroup_byFrac_byAge.pdf")
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/DSE_counts_byGroup_byFrac_byAge.pdf", width = 6,height = 5)
 ggplot(type[which(type$comparison!="By Fraction" & type$comparison!="By Age"),], 
        aes(x = comparison, y = Freq, fill = x)) + geom_bar(stat = "identity") +
   coord_flip() +
