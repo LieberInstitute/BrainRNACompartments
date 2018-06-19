@@ -10,16 +10,16 @@ aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/B
 
 ## Enrichment in genes differentially expressed by fraction
 
-geneuniverse = as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% rownames(Ipres.down)),"EntrezID"]))) # all edited genes
-aej_sets_expressed = aej_sets[which(as.character(aej_sets$EntrezGene.ID) %in% geneuniverse), ] # drop genes that are not present in the test set
-aej_sets_expressed$EntrezGene.ID = as.character(aej_sets_expressed$EntrezGene.ID)
+geneuniverse = as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% rownames(Ipres.down)),"Symbol"]))) # all expressed genes
+aej_sets_expressed = aej_sets[which(as.character(aej_sets$Gene.Symbol) %in% geneuniverse ), ] # drop genes that are not present in the test set
+aej_sets_expressed$Gene.Symbol = as.character(aej_sets_expressed$Gene.Symbol)
 splitSets = split(aej_sets_expressed, aej_sets_expressed$Gene.Set)
-inGroup = lapply(sig, function(x) as.character(na.omit(unique(x$EntrezID))))
-outGroup = lapply(sig, function(x) geneuniverse[!(geneuniverse %in% as.character(x$EntrezID))])
+inGroup = lapply(sig, function(x) as.character(na.omit(unique(x$Symbol))))
+outGroup = lapply(sig, function(x) geneuniverse[!(geneuniverse %in% as.character(x$Symbol))])
 
 enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
-  INGROUP_OVERLAP = c( sum(inG %in% x$EntrezGene.ID),sum(!(inG %in% x$EntrezGene.ID)))
-  OUTGROUP_OVERLAP= c(sum(outG %in% x$EntrezGene.ID), sum(!(outG %in% x$EntrezGene.ID)))
+  INGROUP_OVERLAP = c( sum(inG %in% x$Gene.Symbol),sum(!(inG %in% x$Gene.Symbol)))
+  OUTGROUP_OVERLAP= c(sum(outG %in% x$Gene.Symbol), sum(!(outG %in% x$Gene.Symbol)))
   enrich_table = cbind(INGROUP_OVERLAP, OUTGROUP_OVERLAP)
   res = fisher.test(enrich_table)
   dat=c(res$p.value, res$estimate)
@@ -32,33 +32,41 @@ enrich = do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), lapply(e
              row.names=NULL))))
 enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
 write.csv(enrich, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_FractionDEGs.csv")
-
+enrich = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_FractionDEGs.csv")
 
 enrich[enrich$FDR<=0.05,]
-#      Comparison           GeneSet      P.Value OddsRatio         FDR
-#1  both_retained           ASD.CNV 1.741394e-05  6.701774 0.001567255
-#2  both_retained      ASD.DATABASE 4.417327e-04  4.278013 0.013251982
-#7  both_retained           SCZ.CNV 2.568253e-03  5.655885 0.037575888
-#14 both_exported                ID 1.798478e-03 13.516748 0.034433895
-#33   Ad_retained         BPAD.GWAS 1.912994e-03  2.358939 0.034433895
-#54   Ad_exported                ID 2.922569e-03  2.278997 0.037575888
-#56   Ad_exported Neurodegenerative 2.791624e-04  3.567415 0.012562308
+#      Comparison           GeneSet      P.Value OddsRatio          FDR
+#1  both_retained           ASD.CNV 7.298168e-06  7.484935 0.0006568351
+#2  both_retained      ASD.DATABASE 1.785385e-04  4.853614 0.0040171163
+#7  both_retained           SCZ.CNV 1.446259e-03  6.463768 0.0144625894
+#14 both_exported                ID 1.094979e-03 16.104118 0.0123185143
+#32   Ad_retained      ASD.DATABASE 5.400726e-04  2.145052 0.0077731442
+#33   Ad_retained         BPAD.GWAS 3.361111e-05  3.137994 0.0015125000
+#40   Ad_retained           SCZ.SNV 2.758216e-04  2.315756 0.0049647884
+#54   Ad_exported                ID 6.045779e-04  2.677269 0.0077731442
+#56   Ad_exported Neurodegenerative 5.153724e-05  4.251756 0.0015461171
 
 
 # what the what??? These are the genes in the both retained set:
 
-genes = list(cnv = cbind(geneMap[which(as.character(geneMap$EntrezID) %in% 
-                                         inGroup$both_retained[(inGroup$both_retained %in% splitSets$"ASD CNV"$EntrezGene.ID)]),], 
+genes = list(cnv = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                         inGroup$both_retained[(inGroup$both_retained %in% splitSets$"ASD CNV"$Gene.Symbol)]),], 
                          Comparison = "both_retained", variable = "ASD.CNV"),
-             db = cbind(geneMap[which(as.character(geneMap$EntrezID) %in% 
-                                        inGroup$both_retained[(inGroup$both_retained %in% splitSets$"ASD DATABASE"$EntrezGene.ID)]),],
+             db = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                        inGroup$both_retained[(inGroup$both_retained %in% splitSets$"ASD DATABASE"$Gene.Symbol)]),],
                         Comparison = "both_retained", variable = "ASD.DATABASE"),
-             sz.cnv = cbind(geneMap[which(as.character(geneMap$EntrezID) %in% 
-                                            inGroup$both_retained[(inGroup$both_retained %in% splitSets$"SCZ CNV"$EntrezGene.ID)]),],
+             sz.cnv = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                            inGroup$both_retained[(inGroup$both_retained %in% splitSets$"SCZ CNV"$Gene.Symbol)]),],
                             Comparison = "both_retained", variable = "SCZ.CNV"),
-             BPAD = cbind(geneMap[which(as.character(geneMap$EntrezID) %in% 
-                                          inGroup$Ad_retained[(inGroup$both_retained %in% splitSets$"BPAD GWAS"$EntrezGene.ID)]),],
-                          Comparison = "Ad_retained", variable = "BPAD.GWAS"))
+             BPAD = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                          inGroup$Ad_retained[(inGroup$Ad_retained %in% splitSets$"BPAD GWAS"$Gene.Symbol)]),],
+                          Comparison = "Ad_retained", variable = "BPAD.GWAS"),
+             ASD.DATABASE = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                          inGroup$Ad_retained[(inGroup$Ad_retained %in% splitSets$"ASD DATABASE"$Gene.Symbol)]),],
+                          Comparison = "Ad_retained", variable = "ASD.DATABASE"),
+             SCZ.SNV = cbind(geneMap[which(as.character(geneMap$Symbol) %in% 
+                                          inGroup$Ad_retained[(inGroup$Ad_retained %in% splitSets$"SCZ SNV"$Gene.Symbol)]),],
+                          Comparison = "Ad_retained", variable = "SCZ.SNV"))
 
 write.csv(do.call(rbind, genes), quote=F,
           file="./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_ASDenrichedGenes_retainedInBoth.csv")
@@ -68,16 +76,16 @@ counts = geneRpkm.down[rownames(geneRpkm.down) %in% c(rownames(genes$cnv),rownam
 counts = melt(counts)
 counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
 counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
-counts[grep("53", counts$Var2),"Age"] = "P"
-counts[-grep("53", counts$Var2),"Age"] = "A"
+counts[grep("53", counts$Var2),"Age"] = "Prenatal"
+counts[-grep("53", counts$Var2),"Age"] = "Adult"
 counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
-pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ASD_rpkm_plots.pdf", width=24, height=3)
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ASD_rpkm_plots.pdf", width=26, height=3)
 ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
   geom_boxplot() + scale_fill_brewer(palette="Dark2") +
   facet_grid(. ~ sym) +
   ylab("Log(RPKM+1)") + 
   xlab("") +
-  ggtitle(paste0("Expression of Genes Associated with Autism")) + 
+  ggtitle(paste0("Expression of Genes Associated with Autism (Both Ages)")) + 
   theme(title = element_text(size = 16)) +
   theme(text = element_text(size = 16)) +
   labs(fill="") +
@@ -89,8 +97,8 @@ counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$sz.cnv),grep(
 counts = melt(counts)
 counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
 counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
-counts[grep("53", counts$Var2),"Age"] = "P"
-counts[-grep("53", counts$Var2),"Age"] = "A"
+counts[grep("53", counts$Var2),"Age"] = "Prenatal"
+counts[-grep("53", counts$Var2),"Age"] = "Adult"
 counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
 pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/SZ.CNV_rpkm_plots.pdf", width=10, height=3)
 ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
@@ -98,7 +106,7 @@ ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) +
   facet_grid(. ~ sym) +
   ylab("Log(RPKM+1)") + 
   xlab("") +
-  ggtitle(paste0("Expression of Genes Associated with Schizophrenia")) + 
+  ggtitle(paste0("Expression of Genes Associated with Schizophrenia (Both Ages)")) + 
   theme(title = element_text(size = 16)) +
   theme(text = element_text(size = 16)) +
   labs(fill="") +
@@ -110,16 +118,58 @@ counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$BPAD),grep("p
 counts = melt(counts)
 counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
 counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
-counts[grep("53", counts$Var2),"Age"] = "P"
-counts[-grep("53", counts$Var2),"Age"] = "A"
+counts[grep("53", counts$Var2),"Age"] = "Prenatal"
+counts[-grep("53", counts$Var2),"Age"] = "Adult"
 counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
-pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/BPAD_rpkm_plots.pdf", width=12, height=3)
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/BPAD_rpkm_plots.pdf", width=30, height=3)
 ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
   geom_boxplot() + scale_fill_brewer(palette="Dark2") +
   facet_grid(. ~ sym) +
   ylab("Log(RPKM+1)") + 
   xlab("") +
-  ggtitle(paste0("Expression of Genes Associated with Bipolar")) + 
+  ggtitle(paste0("Expression of Genes Associated with Bipolar (Adult Only)")) + 
+  theme(title = element_text(size = 16)) +
+  theme(text = element_text(size = 16)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
+counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$ASD.DATABASE),grep("poly", colnames(geneRpkm.down))]
+counts = melt(counts)
+counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
+counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
+counts[grep("53", counts$Var2),"Age"] = "Prenatal"
+counts[-grep("53", counts$Var2),"Age"] = "Adult"
+counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/ASD.DATABASE_adultOnly_rpkm_plots.pdf", width=42, height=3)
+ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
+  geom_boxplot() + scale_fill_brewer(palette="Dark2") +
+  facet_grid(. ~ sym) +
+  ylab("Log(RPKM+1)") + 
+  xlab("") +
+  ggtitle(paste0("Expression of Genes Associated with Autism (Adult Only)")) + 
+  theme(title = element_text(size = 16)) +
+  theme(text = element_text(size = 16)) +
+  labs(fill="") +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()
+
+counts = geneRpkm.down[rownames(geneRpkm.down) %in% rownames(genes$SCZ.SNV),grep("poly", colnames(geneRpkm.down))]
+counts = melt(counts)
+counts[grep("N", counts$Var2),"Fraction"] = "Nucleus"
+counts[grep("C", counts$Var2),"Fraction"] = "Cytoplasm"
+counts[grep("53", counts$Var2),"Age"] = "Prenatal"
+counts[-grep("53", counts$Var2),"Age"] = "Adult"
+counts$sym = geneMap[match(counts$Var1, geneMap$gencodeID),"Symbol"]
+pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/SCZ.SNV_adultOnly_rpkm_plots.pdf", width=42, height=3)
+ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) + 
+  geom_boxplot() + scale_fill_brewer(palette="Dark2") +
+  facet_grid(. ~ sym) +
+  ylab("Log(RPKM+1)") + 
+  xlab("") +
+  ggtitle(paste0("Expression of Genes Associated with Schizophrenia (Adult Only)")) + 
   theme(title = element_text(size = 16)) +
   theme(text = element_text(size = 16)) +
   labs(fill="") +
@@ -128,6 +178,13 @@ ggplot(counts, aes(x=Age, y=log(value+1), fill=Fraction), color=Fraction) +
 dev.off()
 
 
+## Check diseases with other etiologies
+unique(enrich$GeneSet)
+enrich[enrich$GeneSet %in% c("ID","NDD","Neurodegenerative") & enrich$FDR<=0.05,]
+#    X    Comparison           GeneSet      P.Value OddsRatio         FDR
+#14 14 both_exported                ID 1.094979e-03 16.104118 0.012318514
+#54 54   Ad_exported                ID 6.045779e-04  2.677269 0.007773144
+#56 56   Ad_exported Neurodegenerative 5.153724e-05  4.251756 0.001546117
 
 
 ## Enrichment in genes differentially expressed by age
@@ -136,8 +193,8 @@ inGroup = lapply(age.sig, function(x) as.character(na.omit(unique(x$EntrezID))))
 outGroup = lapply(age.sig, function(x) geneuniverse[!(geneuniverse %in% as.character(x$EntrezID))])
 
 enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
-  INGROUP_OVERLAP = c( sum(inG %in% x$EntrezGene.ID),sum(!(inG %in% x$EntrezGene.ID)))
-  OUTGROUP_OVERLAP= c(sum(outG %in% x$EntrezGene.ID), sum(!(outG %in% x$EntrezGene.ID)))
+  INGROUP_OVERLAP = c( sum(inG %in% x$Gene.Symbol),sum(!(inG %in% x$Gene.Symbol)))
+  OUTGROUP_OVERLAP= c(sum(outG %in% x$Gene.Symbol), sum(!(outG %in% x$Gene.Symbol)))
   enrich_table = cbind(INGROUP_OVERLAP, OUTGROUP_OVERLAP)
   res = fisher.test(enrich_table)
   dat=c(res$p.value, res$estimate)
@@ -165,17 +222,17 @@ enrich[enrich$FDR<=0.05,]
 
 # Are the ASD genes the same as the ones that were in "both retained"?
 
-age = rbind(cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"ASD DATABASE"$EntrezGene.ID)]),], 
+age = rbind(cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"ASD DATABASE"$Gene.Symbol)]),], 
                   Comparison = "both_decreasing", variable = "ASD.DATABASE"),
-            cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"ID"$EntrezGene.ID)]),], 
+            cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"ID"$Gene.Symbol)]),], 
                   Comparison = "both_decreasing", variable = "ID"),
-            cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"NDD"$EntrezGene.ID)]),], 
+            cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"NDD"$Gene.Symbol)]),], 
                   Comparison = "both_decreasing", variable = "NDD"),
-            cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"SCZ SNV"$EntrezGene.ID)]),], 
+            cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_decreasing[(inGroup$both_decreasing %in% splitSets$"SCZ SNV"$Gene.Symbol)]),], 
                   Comparison = "both_decreasing", variable = "SCZ.SNV"),
-            cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_increasing[(inGroup$both_increasing %in% splitSets$"ASD CNV"$EntrezGene.ID)]),], 
+            cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_increasing[(inGroup$both_increasing %in% splitSets$"ASD CNV"$Gene.Symbol)]),], 
                   Comparison = "both_increasing", variable = "ASD.CNV"),
-            cbind(geneMap[which(as.character(geneMap$EntrezID) %in% inGroup$both_increasing[(inGroup$both_increasing %in% splitSets$"SCZ CNV"$EntrezGene.ID)]),], 
+            cbind(geneMap[which(as.character(geneMap$Symbol) %in% inGroup$both_increasing[(inGroup$both_increasing %in% splitSets$"SCZ CNV"$Gene.Symbol)]),], 
                   Comparison = "both_increasing", variable = "SCZ.CNV"))
 head(age)
 genes = list("Age\nASD CNVs\n(Increasing)" = unique(as.character(age[age$Comparison=="both_increasing" & age$variable=="ASD.CNV","gencodeID"])),
@@ -200,8 +257,8 @@ inGroup = lapply(sig.1, function(x) as.character(na.omit(unique(x$EntrezID))))
 outGroup = lapply(sig.1, function(x) geneuniverse[!(geneuniverse %in% as.character(x$EntrezID))])
 
 enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
-  INGROUP_OVERLAP = c( sum(inG %in% x$EntrezGene.ID),sum(!(inG %in% x$EntrezGene.ID)))
-  OUTGROUP_OVERLAP= c(sum(outG %in% x$EntrezGene.ID), sum(!(outG %in% x$EntrezGene.ID)))
+  INGROUP_OVERLAP = c( sum(inG %in% x$Gene.Symbol),sum(!(inG %in% x$Gene.Symbol)))
+  OUTGROUP_OVERLAP= c(sum(outG %in% x$Gene.Symbol), sum(!(outG %in% x$Gene.Symbol)))
   enrich_table = cbind(INGROUP_OVERLAP, OUTGROUP_OVERLAP)
   res = fisher.test(enrich_table)
   dat=c(res$p.value, res$estimate)
