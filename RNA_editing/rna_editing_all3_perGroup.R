@@ -8,9 +8,9 @@ library(plyr)
 library(clusterProfiler)
 require("org.Hs.eg.db")
 
-load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/rna_editing_results.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
+load("./Dropbox/sorted_figures/github_controlled/rna_editing/data/rna_editing_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Explore results
 lapply(editingres, head)
@@ -38,7 +38,7 @@ editingres_df$rate = editingres_df$alt.count / editingres_df$valdepth
 editingres_dt = data.table(editingres_df)
 
 # Annotate editing sites to features in the genome
-txdb = loadDb("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
+txdb = loadDb("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
 features = list(genes = genes(txdb), CDS = cdsBy(txdb, by="tx", use.names=T), Introns = intronsByTranscript(txdb, use.names=T), 
                 UTR5 = fiveUTRsByTranscript(txdb, use.names=T), UTR3 = threeUTRsByTranscript(txdb, use.names=T))
 features = lapply(features, function(x) unlist(x, recursive = TRUE, use.names = TRUE))
@@ -150,9 +150,9 @@ unique_bySamp = Map(cbind, unique_bySamp,
                                   PNnotPC = rowSums(as.matrix(unique_bySamp$PNnotPC[,samps])=="no")))
 lapply(unique_bySamp, head)
 
-save(unique_bySamp, all, editing_anno, geneMap, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
+save(unique_bySamp, all, editing_anno, geneMap, file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 
-load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
+load("./Dropbox/sorted_figures/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 elementNROWS(lapply(unique_bySamp[1:4], function(x) x[which(x$nos<3),]))
 #cytosolOnly  nucleusOnly    adultOnly prenatalOnly 
 #          9           59          619          384
@@ -182,11 +182,11 @@ unique_3more = lapply(unique_bySamp_3more, function(x) editing_anno[which(editin
 elementNROWS(unique_all)
 elementNROWS(lapply(unique_all, function(x) unique(x$editingID)))
 write.csv(t(data.frame(elementNROWS(lapply(unique_all, function(x) unique(x$editingID))))), quote=F,row.names = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/number_unique_editingSite_inAll.csv")
+          file = "./Dropbox/sorted_figures/github_controlled/rna_editing/data/number_unique_editingSite_inAll.csv")
 
 ## What is the distribution of features edited across groups?
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_uniqueEditingSites_inAllSamps.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/Genomic_features_uniqueEditingSites_inAllSamps.pdf")
 for (i in 3:length(unique_all)){
 tmp = unique_all[[i]]
 g = ggplot(tmp[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
@@ -201,7 +201,7 @@ g = ggplot(tmp[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = 
 print(g)
 }
 dev.off()
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_uniqueEditingSites_inAllSamps_percent.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/Genomic_features_uniqueEditingSites_inAllSamps_percent.pdf")
 for (i in 3:length(unique_all)){
   tmp = unique_all[[i]]
   g = ggplot(tmp[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
@@ -224,7 +224,7 @@ unique_alldt = do.call(rbind, unique_all[3:12])
 unique_alldt$Status = factor(unique_alldt$Status, levels = c("cytosolOnly", "nucleusOnly", "adultOnly", "prenatalOnly", "ACnotAN", "ANnotAC", 
                                                              "PCnotPN", "PNnotPC","ACnotPC", "PCnotAC","ANnotPN", "PNnotAN"))
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/valdepth_unique_editing_sites_byGroup_bySample_inAllSamps.pdf", width = 28, height = 7)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/valdepth_unique_editing_sites_byGroup_bySample_inAllSamps.pdf", width = 28, height = 7)
 ggplot(unique_alldt, aes(x = sampleID, y = valdepth, fill = Group)) + geom_boxplot() +
   facet_grid(. ~ Status, scales = "free") +
   labs(fill="") +
@@ -267,7 +267,7 @@ anno.comps = lapply(anno.comps, lapply, fisher.test)
 df = do.call(rbind, Map(cbind, Comparison = as.list(names(anno.comps)), lapply(anno.comps, function(x) do.call(rbind, Map(cbind, annotation = as.list(names(x)), 
                                                                                  lapply(x, function(y) data.frame(pval=y$p.value, OddsRatio=y$estimate, row.names = NULL)))))))
 df$FDR = p.adjust(df$pval, method = "fdr")
-write.csv(df, quote=F, file= "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_inAllSamps_byGroup.csv")
+write.csv(df, quote=F, file= "./Dropbox/sorted_figures/github_controlled/rna_editing/data/fisher_annotationEnrichment_inUniqueSites_inAllSamps_byGroup.csv")
 df[df$FDR<=0.05,]
 #    Comparison annotation         pval OddsRatio         FDR
 # byFracInAdult     Intron 0.0004544449 0.1693807 0.009785001
@@ -319,9 +319,9 @@ compareCC = compareCluster(entrez.editing, fun="enrichGO",  ont = "CC", OrgDb = 
 # Disease Ontology
 compareDO = compareCluster(entrez.editing, fun="enrichDO",  ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 save(compareKegg, compareBP, compareMF, compareCC, compareDO, 
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/interaction.kegg.GO.DO.objects.RNAediting_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/interaction.kegg.GO.DO.objects.RNAediting_inAllSamps.rda")
 # Plot
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/interaction.kegg.GO.DO_unsplit_by_annotation_inAllSamps.pdf", width=10, height=6)
+pdf(file="./Dropbox/sorted_figures/github_controlled/rna_editing/figures/interaction.kegg.GO.DO_unsplit_by_annotation_inAllSamps.pdf", width=10, height=6)
 plot(compareKegg,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment")
 plot(compareBP,colorBy="p.adjust",  showCategory = 45, title= "Biological Process GO Enrichment")
 plot(compareMF,colorBy="p.adjust",  showCategory = 45, title= "Molecular Function GO Enrichment")
@@ -343,9 +343,9 @@ Kegg.PCnotAC = compareCluster(PCnotAC, fun="enrichKEGG", qvalueCutoff = 0.05, pv
 Kegg.PNnotPC = compareCluster(PNnotPC, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 Kegg.PCnotPN = compareCluster(PCnotPN, fun="enrichKEGG", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 save(Kegg.adultOnly,Kegg.ANnotAC,Kegg.ACnotAN,Kegg.ANnotPN,Kegg.PNnotAN,Kegg.PCnotAC,Kegg.PCnotPN,Kegg.PNnotPC, 
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/kegg.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/kegg.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Kegg_split_by_annotation_inAllSamps.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/Kegg_split_by_annotation_inAllSamps.pdf")
 plot(Kegg.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: adultOnly")
 plot(Kegg.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ANnotAC")
 plot(Kegg.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "KEGG Pathway Enrichment: ACnotAN")
@@ -371,9 +371,9 @@ goList_BP = lapply(entrez.editing, function(x) enrichGO(entrez.editing$adultOnly
                                                         universe= as.character(unique(all$adultAll$EntrezID)), pAdjustMethod="BH"))
 
 save(goList_BP, BP.adultOnly,BP.prenatalOnly,BP.ANnotAC,BP.ACnotAN,BP.ANnotPN,BP.PNnotAN,BP.ACnotPC,BP.PCnotAC,BP.PCnotPN,BP.PNnotPC, 
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/sorted/BP.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/sorted/BP.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/BP_split_by_annotation_inAllSamps.pdf", height = 12, width = 11)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/BP_split_by_annotation_inAllSamps.pdf", height = 12, width = 11)
 plot(BP.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: adultOnly")
 plot(BP.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: prenatalOnly")
 plot(BP.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "BP Pathway Enrichment: ANnotAC")
@@ -398,9 +398,9 @@ MF.PCnotAC = compareCluster(PCnotAC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.
 MF.PCnotPN = compareCluster(PCnotPN, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 MF.PNnotPC = compareCluster(PNnotPC, fun="enrichGO", ont = "MF", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 save(MF.adultOnly,MF.prenatalOnly,MF.ANnotAC,MF.ACnotAN,MF.ANnotPN,MF.PNnotAN,MF.PCnotAC,MF.PCnotPN,MF.PNnotPC, 
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/MF.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/MF.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/MF_split_by_annotation_inAllSamps.pdf", height = 12, width = 12)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/MF_split_by_annotation_inAllSamps.pdf", height = 12, width = 12)
 plot(MF.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: adultOnly")
 plot(MF.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: prenatalOnly")
 plot(MF.ANnotAC,colorBy="p.adjust",  showCategory = 45, title= "MF Pathway Enrichment: ANnotAC")
@@ -424,9 +424,9 @@ CC.PCnotAC = compareCluster(PCnotAC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.
 CC.PCnotPN = compareCluster(PCnotPN, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 CC.PNnotPC = compareCluster(PNnotPC, fun="enrichGO", ont = "CC", OrgDb = org.Hs.eg.db, qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 save(CC.adultOnly,CC.prenatalOnly,CC.ACnotAN,CC.ANnotPN,CC.PNnotAN,CC.ACnotPC,CC.PCnotPN,CC.PNnotPC,  
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/CC.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/CC.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/CC_split_by_annotation_inAllSamps.pdf", height = 8, width = 10)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/CC_split_by_annotation_inAllSamps.pdf", height = 8, width = 10)
 plot(CC.adultOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: adultOnly")
 plot(CC.prenatalOnly,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: prenatalOnly")
 plot(CC.ACnotAN,colorBy="p.adjust",  showCategory = 45, title= "CC Pathway Enrichment: ACnotAN")
@@ -449,9 +449,9 @@ DO.PCnotAC = compareCluster(PCnotAC, fun="enrichDO", ont = "DO", qvalueCutoff = 
 DO.PCnotPN = compareCluster(PCnotPN, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 DO.PNnotPC = compareCluster(PNnotPC, fun="enrichDO", ont = "DO", qvalueCutoff = 0.05, pvalueCutoff = 0.05)
 save(DO.prenatalOnly,DO.ANnotAC,DO.ANnotPN,DO.PNnotAN,DO.PCnotAC,DO.PCnotPN,DO.PNnotPC,
-     file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/DO.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
+     file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/DO.objects.RNAediting.SplitByAnnotation_inAllSamps.rda")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/DO_split_by_annotation_inAllSamps.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/DO_split_by_annotation_inAllSamps.pdf")
 plot(DO.prenatalOnly, colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: prenatalOnly")
 plot(DO.ANnotAC, colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ANnotAC")
 plot(DO.ANnotPN, colorBy="p.adjust",  showCategory = 45, title= "DO Pathway Enrichment: ANnotPN")
@@ -464,7 +464,7 @@ dev.off()
 ### Characterize the overlap with retained introns
 
 # read in results files
-load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/intron_IR_comparisons/introns_object.rda")
+load("./Dropbox/sorted_figures/github_controlled/intron_retention/data/intron_IR_comparisons/introns_object.rda")
 
 # Find overlaps with RNA editing sites
 IRranges = lapply(introns, function(x) makeGRangesFromDataFrame(x, seqnames.field = "Chr", start.field="Start",end.field="End",strand.field="Direction",keep.extra.columns = T))

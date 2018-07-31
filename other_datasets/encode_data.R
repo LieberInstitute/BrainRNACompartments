@@ -2,12 +2,12 @@ library(DESeq2)
 library(pheatmap)
 library(RColorBrewer)
 
-load("./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/rawCounts_Amanda_ENCODE_n65.rda")
+load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/rawCounts_Amanda_ENCODE_n65.rda")
 encCounts = geneCounts
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 # load the phenotype table
-encpd = read.table("./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/ENCODEpd.txt")
+encpd = read.table("./Dropbox/sorted_figures/github_controlled/other_datasets/data/ENCODEpd.txt")
 length(unique(encpd$CellType)) # 11 cell types included
 encpd = encpd[grep("FastqRd1", encpd$File_Uploaded_to_SRA),]
 encpd = encpd[match(colnames(encCounts), encpd$SRA_Run),]
@@ -34,8 +34,8 @@ combdds = DESeqDataSetFromMatrix(countData = combinedCounts, colData = combPD, d
 # Euclidean distance heatmap
 rlog  = rlog(encCounts)
 combRLog = rlog(combinedCounts)
-save(rlog,combRLog,file="./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
+save(rlog,combRLog,file="./Dropbox/sorted_figures/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
+load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
 
 # Euclidean distance between samples heatmap
 sampleDists <- dist(t(rlog))
@@ -60,10 +60,10 @@ pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists, clustering_dista
 
 
 # PCA
-load("./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
+load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
 rlogdds  = rlog(dds)
 rlog.comb.dds = rlog(combdds)
-save(rlog,combRLog,rlogdds,rlog.comb.dds,file="./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
+save(rlog,combRLog,rlogdds,rlog.comb.dds,file="./Dropbox/sorted_figures/github_controlled/other_datasets/data/rlog_transformed_encode_counts.rda")
 
 # PCA Functions:
 
