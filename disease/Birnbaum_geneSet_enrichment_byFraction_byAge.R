@@ -6,7 +6,7 @@ load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rpkmCounts_
 load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 
-aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
+aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
 
 ## Enrichment in genes differentially expressed by fraction
 
