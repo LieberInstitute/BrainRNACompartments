@@ -3,8 +3,8 @@ library(data.table)
 library(VennDiagram)
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Load IRFinder Results
 names = scan("./Dropbox/BrainRNACompartments/SampleIDs.txt", what = "character")
@@ -118,18 +118,18 @@ write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intro
 gr = c("Both Nuclear", "Both Cytoplasmic", "Nuclear in Prenatal", "Nuclear in Adult",
        "Cytoplasmic in Prenatal", "Cytoplasmic in Adult", "Nuclear in Adult/\nCytoplasmic in Prenatal",
        "Nuclear in Prenatal/\nCytoplasmic in Adult", "Interaction")
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byFraction.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byFraction.pdf", width=5,height=5)
 for (i in 1:length(sigIR)){
 sigIR[[i]]$Group = factor(sigIR[[i]]$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
 x = ggplot(sigIR[[i]], aes(x=IRratio)) +
-  geom_density(aes(group=Group, colour=Group)) +
+  geom_density(aes(group=Group, colour=Group), size=1) +
   ylab("") + 
   xlim(0,0.15) +
   xlab("IR Ratio") +
   ggtitle(paste0("Intron Retention: ", gr[i])) +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  theme(legend.position = c(0.8, 0.65)) +
+  theme(legend.position = c(0.75, 0.65)) +
   labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
@@ -137,16 +137,11 @@ print(x)
 }
 x = rbind(cbind(sigIR[["both_retained"]], Genes = "Both Nuclear"), cbind(sigIR[["both_exported"]], Genes = "Both Cytoplasmic"))
 x$Genes = factor(x$Genes, levels = c("Both Cytoplasmic","Both Nuclear"))
-ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
-  geom_density() +
-  ylab("") + 
-  xlim(0,0.15) +
-  xlab("IR Ratio") +
-  ggtitle("Intron Retention By Fraction") +
+ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) + labs(fill="") +
+  geom_density(size=1) + ylab("Density") + theme_classic() + xlim(0,0.15) + xlab("IR Ratio") +
   theme(title = element_text(size = 28)) +
   theme(text = element_text(size = 28)) +
-  theme(legend.position = c(0.7, 0.65)) +
-  labs(fill="") +
+  theme(legend.position = c(0.6, 0.65)) +
   theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()

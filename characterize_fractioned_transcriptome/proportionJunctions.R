@@ -1,6 +1,6 @@
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 jcountsP = as.data.frame(jCountsP)
 jcountsR = as.data.frame(jCountsR)
@@ -28,10 +28,10 @@ df$Fraction = gsub("Cytosol", "Cytoplasm", df$Fraction)
 df$Fraction = factor(df$Fraction)
 
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_full.pdf", 
+pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_full.pdf", 
     width = 8.5, height = 4)
 ggplot(df, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
-  geom_jitter() + facet_grid(. ~ Library) +
+  facet_grid(. ~ Library) +
   scale_fill_brewer(palette="Dark2") +
   ylim(0, 0.4) + xlab("") +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
@@ -67,10 +67,10 @@ df.down$Fraction = pd[match(df.down$ID, pd$SampleID),"Zone"]
 df.down$Fraction = gsub("Cytosol", "Cytoplasm", df.down$Fraction)
 df.down$Fraction = factor(df.down$Fraction)
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
+pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
     width = 8.5, height = 4)
 ggplot(df.down, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
-  geom_jitter() + facet_grid(. ~ Library) +
+  facet_grid(. ~ Library) +
   scale_fill_brewer(palette="Dark2") +
   ylim(0, 0.4) + xlab("") +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
