@@ -1,6 +1,6 @@
 library("VennDiagram")
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 ### Which Age DEGs overlap? ###
 
@@ -69,6 +69,17 @@ venn.ageD.down <- venn.diagram(Names.AgeD.down, "./Dropbox/sorted_figures/new/gi
                           fontface = "bold",
                           cat.col = c("palevioletred4", "darkblue", "olivedrab4", "darkorchid4"),
                           cat.fontfamily = "Arial", margin=0.2)
+
+
+## Redo in black and white
+
+names(Names.Age.down) = c("Cytoplasm\nPolyA\n(8356)","Nucleus\nPolyA\n(7660)",
+                          "Cytoplasm\nRibozero\n(7163)","Nucleus\nRibozero\n(5436)")
+venn.diagram(Names.Age.down, "./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/venn.age.downsampled.jpeg", 
+             main="Differentially expressed Genes\nOver Brain Development\n(LFC≥1, FDR<0.05)",
+             fill = c("#1b9e77","#d95f02","#1b9e77", "#d95f02"),
+             alpha = 0.50, fontfamily = "Arial", fontface = "bold", cex=1.5, cat.cex=1.5, cat.dist=0.3,
+             cat.fontfamily = "Arial", margin=0.2)
 
 
 # How many of the total of all age genes in all four groups not broken down by direction overlap?

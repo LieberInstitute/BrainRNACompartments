@@ -1,9 +1,10 @@
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/MA_plots_fraction.pdf", width=4,height=4)
 #Apres = DE based on Fraction in adult polyA
-plotMA(Apres, alpha=0.05, main="Adult PolyA Samples", ylim=c(-3,3))
+plotMA(Apres, alpha=0.05, main="Adult PolyA Samples", ylim=c(-3,3), ps=3)
 #Fpres = DE based on Fraction in Prenatal polyA
 plotMA(Fpres, alpha=0.05, main="Prenatal PolyA Samples", ylim=c(-3,3))
 #Fpres.down = DE based on Fraction in Prenatal polyA
@@ -12,6 +13,7 @@ plotMA(Fpres.down, alpha=0.05, main="Prenatal PolyA Samples", ylim=c(-3,3))
 plotMA(Arres, alpha=0.05, main="Adult RiboZero Samples", ylim=c(-3,3))
 # Frres = DE based on fraction in Prenatal RiboZero
 plotMA(Frres, alpha=0.05, main="Prenatal RiboZero Samples", ylim=c(-3,3))
+dev.off()
 
 ### DE for Fraction over several LCF and FDR ###
 FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres), 

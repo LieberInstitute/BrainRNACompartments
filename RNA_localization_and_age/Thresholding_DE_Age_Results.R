@@ -1,6 +1,6 @@
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 #Cpres = DE based on Age in Cytoplasm polyA
 plotMA(Cpres, alpha=0.05, main="Cytoplasm PolyA Samples", ylim=c(-10,10))
@@ -32,7 +32,7 @@ list = list(UP.05.1 = do.call(rbind, lapply(AgeList, function(x) nrow(x[which(x$
             D.001.2 = do.call(rbind, lapply(AgeList, function(x) nrow(x[which(x$padj<=0.001 & x$log2FoldChange <=-2),]))))
 
 DEbyAge = data.frame(Number = do.call(rbind,lapply(list, function(x) data.frame(Number=x[1:4,]))),
-                          Direction = factor(c(rep.int("Decreasing",24), rep.int("Increasing",24)), levels=c("Decreasing", "Increasing")),
+                          Direction = factor(c(rep.int("Decreasing",24), rep.int("Increasing",24)), levels=c("Increasing", "Decreasing")),
                           FDR = factor(c(rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
                                          rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
                                          rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
@@ -43,22 +43,23 @@ DEbyAge = data.frame(Number = do.call(rbind,lapply(list, function(x) data.frame(
                           Group = factor(rep.int(c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero"),12), 
                                          levels=c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero")))
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/age_DEG_different_LFC&FDR_downsampled.pdf", height = 6.5, width = 17)
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/age_DEG_different_LFC&FDR.pdf", height = 6.5, width = 16)
 ggplot(DEbyAge, aes(x=Group, y=Number, fill=Direction), color=Direction) + 
+  scale_fill_brewer(palette="Set1") +
   stat_summary(position=position_dodge(),geom="bar") +
   facet_grid(LFC ~ FDR) +
   ylab("Gene Count") + 
   xlab("") +
-  ggtitle("Number of Genes Increasing or Decreasing Over Development") + 
+  ggtitle("Genes With Increasing or Decreasing Expression Over Development") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.background = element_rect(fill = "transparent"),
+  theme(legend.background = element_rect(fill = "transparent"), legend.position = c(0.925, 0.95),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()
 
 DEbyAge.down = data.frame(Number = do.call(rbind,lapply(list, function(x) data.frame(Number=x[c(5,2:4),]))),
-                     Direction = factor(c(rep.int("Decreasing",24), rep.int("Increasing",24)), levels=c("Decreasing", "Increasing")),
+                     Direction = factor(c(rep.int("Decreasing",24), rep.int("Increasing",24)), levels=c("Increasing", "Decreasing")),
                      FDR = factor(c(rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
                                     rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
                                     rep.int("FDR: 0.05",4), rep.int("FDR: 0.01",4), rep.int("FDR: 0.001",4),
@@ -69,14 +70,17 @@ DEbyAge.down = data.frame(Number = do.call(rbind,lapply(list, function(x) data.f
                      Group = factor(rep.int(c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero"),12), 
                                     levels=c("Cytoplasm\nPolyA", "Nucleus\nPolyA", "Cytoplasm\nRiboZero", "Nucleus\nRiboZero")))
 
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/age_DEG_different_LFC&FDR_downsampled.pdf", height = 6.5, width = 16)
 ggplot(DEbyAge.down, aes(x=Group, y=Number, fill=Direction), color=Direction) + 
+  scale_fill_brewer(palette="Set1") +
   stat_summary(position=position_dodge(),geom="bar") +
   facet_grid(LFC ~ FDR) +
   ylab("Gene Count") + 
   xlab("") +
-  ggtitle("Number of Genes Increasing or Decreasing Over Development") + 
+  ggtitle("Genes With Increasing or Decreasing Expression Over Development") + 
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="") +
-  theme(legend.background = element_rect(fill = "transparent"),
+  theme(legend.background = element_rect(fill = "transparent"),legend.position = c(0.925, 0.95),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
+dev.off()

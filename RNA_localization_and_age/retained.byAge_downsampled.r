@@ -6,8 +6,8 @@ library(DESeq2)
 library(GenomicRanges)
 library(data.table)
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 # Plot Fraction:Age interaction genes
 Ipdds.down = DESeqDataSetFromMatrix(countData = geneCounts.down[,grep("polyA", colnames(geneCounts.down))], 

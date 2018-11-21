@@ -1,7 +1,7 @@
 library(GenomicRanges)
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
 
 # Prepare significant genes in a list
 FracList = list(Apres = data.frame(Apres), Fpres = data.frame(Fpres), 
@@ -39,64 +39,58 @@ polya$quad = ifelse(polya$Sign.A==polya$Sign.F, "same","diff")
 polya.down$quad = ifelse(polya.down$Sign.A==polya.down$Sign.F, "same","diff")
 ribo$quad = ifelse(ribo$Sign.A==ribo$Sign.F, "same","diff")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_allGenes.pdf", width=7, height=5)
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_allGenes.pdf", width=4, height=5)
 ggplot(polya[which(polya$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   scale_colour_manual(values=c("dimgray","black")) +
   ylab("Prenatal") + 
   xlab("Adult") +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fraction (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(polya.down[which(polya.down$quad!="NA"),], 
        aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fraction (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(ribo[which(ribo$quad!="NA"),], aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fraction (RiboZero)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 dev.off()
 
 
 # in significant genes
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_sigGenes.pdf", width=7, height=5)
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/sigLFC_byFractions_sigGenes.pdf", width=7, height=5)
 ggplot(polya[which((polya$Sig.A=="YES" | polya$Sig.F=="YES") & polya$quad!="NA"),], 
        aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fractions (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(polya.down[which((polya.down$Sig.A=="YES" | polya.down$Sig.F=="YES") & polya.down$quad!="NA"),], 
        aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fractions (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(ribo[which((ribo$Sig.A=="YES" | ribo$Sig.F=="YES") & ribo$quad!="NA"),],
        aes(LFC.A, LFC.F)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Prenatal") + 
   xlab("Adult") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-3,3) + xlim(-3,3) +
-  ggtitle("Log2 Fold Change\nBetween Fractions (RiboZero)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Fractions (RiboZero)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 dev.off()
 
 
@@ -128,88 +122,85 @@ elementNROWS(DirList)
 
 # in all genes
 DirList = lapply(DirList, function(x) x[order(x$GeneID),])
-polya = data.frame(gene.C = DirList[["Cpres"]][,7], gene.F = DirList[["Npres"]][,7],
-                   LFC.C = DirList[["Cpres"]][,2], LFC.N = DirList[["Npres"]][,2],
-                   Sign.C = DirList[["Cpres"]][,8], Sign.N = DirList[["Npres"]][,8],
-                   Sig.C = DirList[["Cpres"]][,10], Sig.N = DirList[["Npres"]][,10])
-ribo = data.frame(gene.C = DirList[["Crres"]][,7], gene.N = DirList[["Nrres"]][,7],
-                  LFC.C = DirList[["Crres"]][,2], LFC.N = DirList[["Nrres"]][,2],
-                  Sign.C = DirList[["Crres"]][,8], Sign.N = DirList[["Nrres"]][,8],
-                  Sig.C = DirList[["Crres"]][,10], Sig.N = DirList[["Nrres"]][,10])
+polya = data.frame(gene.C = DirList[["Cpres"]][,"GeneID"], gene.F = DirList[["Npres"]][,"GeneID"],
+                   LFC.C = DirList[["Cpres"]][,"log2FoldChange"], LFC.N = DirList[["Npres"]][,"log2FoldChange"],
+                   Sign.C = DirList[["Cpres"]][,"Sign"], Sign.N = DirList[["Npres"]][,"Sign"],
+                   Sig.C = DirList[["Cpres"]][,"Sig"], Sig.N = DirList[["Npres"]][,"Sig"])
+ribo = data.frame(gene.C = DirList[["Crres"]][,"GeneID"], gene.N = DirList[["Nrres"]][,"GeneID"],
+                  LFC.C = DirList[["Crres"]][,"log2FoldChange"], LFC.N = DirList[["Nrres"]][,"log2FoldChange"],
+                  Sign.C = DirList[["Crres"]][,"Sign"], Sign.N = DirList[["Nrres"]][,"Sign"],
+                  Sig.C = DirList[["Crres"]][,"Sig"], Sig.N = DirList[["Nrres"]][,"Sig"])
 x = DirList[["Npres"]]
 x = x[match(as.character(DirList[["Cpres_down"]][,7]),as.character(x$GeneID)),]
-polya.down = data.frame(gene.N = x[,7], gene.C = DirList[["Cpres_down"]][,7],
-                        LFC.N = x[,2], LFC.C = DirList[["Cpres_down"]][,2],
-                        Sign.N = x[,8], Sign.C = DirList[["Cpres_down"]][,8],
-                        Sig.N = x[,10], Sig.C = DirList[["Cpres_down"]][,10])
+polya.down = data.frame(gene.C = DirList[["Cpres_down"]][,"GeneID"], gene.F = x[,"GeneID"],
+                        LFC.C = DirList[["Cpres_down"]][,"log2FoldChange"], LFC.N = x[,"log2FoldChange"],
+                        Sign.C = DirList[["Cpres_down"]][,"Sign"], Sign.N = x[,"Sign"],
+                        Sig.C = DirList[["Cpres_down"]][,"Sig"], Sig.N = x[,"Sig"])
+
 identical(as.character(polya.down$gene.C),as.character(polya.down$gene.N))
 x = ifelse(as.character(polya.down$gene.C)==as.character(polya.down$gene.N), "YES","NO")
 x[which(x=="NO")]
 identical(as.character(polya$gene.C),as.character(polya$gene.N))
+x = ifelse(as.character(polya$gene.C)==as.character(polya.down$gene.N), "YES","NO")
+x[which(x=="NO")]
 identical(as.character(ribo$gene.C),as.character(ribo$gene.N))
 polya$quad = ifelse(polya$Sign.C==polya$Sign.N, "same","diff")
 polya.down$quad = ifelse(polya.down$Sign.C==polya.down$Sign.N, "same","diff")
 ribo$quad = ifelse(ribo$Sign.C==ribo$Sign.N, "same","diff")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_allGenes.pdf", width=7, height=5)
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_allGenes.pdf", width=4, height=5)
 ggplot(polya[which(polya$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(ribo[which(ribo$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (RiboZero)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (RiboZero)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(polya.down[which(polya.down$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 dev.off()
 
 # in significant genes
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_sigGenes.pdf", width=7, height=5)
+pdf("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/figures/sigLFC_byAge_sigGenes.pdf", width=4, height=5)
 ggplot(polya[which((polya$Sig.C=="YES" | polya$Sig.N=="YES") & polya$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(ribo[which((ribo$Sig.C=="YES" | ribo$Sig.N=="YES") & ribo$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (RiboZero)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (RiboZero)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 ggplot(polya.down[which((polya.down$Sig.C=="YES" | polya.down$Sig.N=="YES") & polya.down$quad!="NA"),],
        aes(LFC.C, LFC.N)) + geom_point(aes(colour = factor(quad)), alpha = 1/2) +
   ylab("Nucleus") + 
   xlab("Cytoplasm") +
   scale_colour_manual(values=c("dimgray","black")) +
   ylim(-8,8) + xlim(-8,8) +
-  ggtitle("Log2 Fold Change\nBetween Ages (PolyA)") + 
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Log2 Fold Change\nBy Ages (PolyA)") + 
+  theme(title = element_text(size = 20), legend.position="none", text = element_text(size = 20))
 dev.off()
 
 
