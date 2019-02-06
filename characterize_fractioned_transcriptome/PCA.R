@@ -8,7 +8,7 @@ rlog  = rlog(dds)
 rlog.down = rlog(dds.down)
 save(rlog, rlog.down, 
      file="./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_dds.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_dds.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/rlog_transformed_dds.rda")
 ### PCA Functions ###
 
 plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE) 
@@ -121,8 +121,7 @@ require(genefilter)
 colData(rlog)$Zone = gsub("Cytosol", "Cytoplasm", colData(rlog)$Zone)
 colData(rlog)$Zone = factor(colData(rlog)$Zone)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2.pdf", 
-    height = 5, width = 8)
+pdf("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2.pdf", width = 6.75,height = 3.25)
 plotPCA(rlog, intgroup = c("Fetal", "Zone", "Library"))
 dev.off()
 
@@ -133,8 +132,7 @@ plotPCA4(rlog, intgroup = c("Fetal", "Zone", "Library"))
 colData(rlog.down)$Zone = gsub("Cytosol", "Cytoplasm", colData(rlog.down)$Zone)
 colData(rlog.down)$Zone = factor(colData(rlog.down)$Zone)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2_downsampled.pdf", 
-    height = 5, width = 8)
+pdf("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2_downsampled.pdf", width = 6.75,height = 3.25)
 plotPCA(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
 dev.off()
 

@@ -2,12 +2,12 @@ library(GenomicRanges)
 library(ggplot2)
 library(plyr)
 
-load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
+load("./Dropbox/sorted_figures/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 
 
 ### Check repetitive element overlap
 
-rpmsk = read.table("./Dropbox/sorted_figures/new/github_controlled/RepeatMasker_genomewide_HG19.txt", header=T)
+rpmsk = read.table("./Dropbox/sorted_figures/github_controlled/RepeatMasker_genomewide_HG19.txt", header=T)
 rpmskgr = makeGRangesFromDataFrame(rpmsk, seqnames.field="genoName",start.field="genoStart",end.field="genoEnd",keep.extra.columns=TRUE)
 editing_annogr = makeGRangesFromDataFrame(editing_anno, keep.extra.columns = T)
 hits = findOverlaps(editing_annogr, rpmskgr)
@@ -61,47 +61,43 @@ editing_anno[repFamily=="Alu" & collapsedconversion=="A:G / T:C",length(unique(e
 #3: 41.95933
 #4: 41.75090
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/numberEditingSites_overlapping_repeats.pdf",width=10,height=6)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/numberEditingSites_overlapping_repeats.pdf",width=10,height=6)
 ggplot(class, aes(x = Fraction, y = V1, fill = repClass)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Repetitive Element Classes Overlapping Editing Sites") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(class[repClass != "NA",,], aes(x = Fraction, y = V1, fill = repClass)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Repetitive Element Classes Overlapping Editing Sites") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(family, aes(x = Fraction, y = V1, fill = repFamily)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Repetitive Element Families Overlapping Editing Sites") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
 ggplot(family[repFamily != "NA",,], aes(x = Fraction, y = V1, fill = repFamily)) + geom_bar(stat = "identity") +
   facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Repetitive Element Families Overlapping Editing Sites") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
-ggplot(family, aes(x = Fraction, y = V1, fill = alu)) + geom_bar(stat = "identity") +
-  facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
-  ggtitle("Distribution of Editing Sites in Alu Sequence") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+dev.off()
+
+family = as.data.frame(family)
+family$alu = factor(family$alu, levels = c("Alu", "non-Alu","non-repeat"))
+family$Fraction = gsub("Cytosol","Cytoplasm", family$Fraction)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/numberEditingSites_overlapping_alu.pdf",width=5.25,height=3.5)
+ggplot(as.data.frame(family), aes(x = Fraction, y = V1, fill = alu)) + geom_bar(stat = "identity") +
+  facet_grid(. ~ Age) + scale_fill_brewer(palette = "Accent") +
+  labs(fill="") + ylab("Count") + xlab("") +
+  ggtitle("Editing Site Distribution\nin Alu Sequence") +
+  theme(title = element_text(size = 20), text = element_text(size = 20),
+        axis.text.x = element_text(angle = 15, hjust = .5, vjust=.9))
 dev.off()
 
 
@@ -122,7 +118,7 @@ class$group = factor(class$group, levels= c("adultOnly","prenatalOnly","ACnotPC"
 family$group = factor(family$group, levels= c("adultOnly","prenatalOnly","ACnotPC","PCnotAC","ANnotPN","PNnotAN","ACnotAN","ANnotAC","PCnotPN","PNnotPC"))
 
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/numberEditingSites_overlapping_repeats_uniqueAll3.pdf",width=18,height=8)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/numberEditingSites_overlapping_repeats_uniqueAll3.pdf",width=18,height=8)
 ggplot(class, aes(x = fracage, y = V1, fill = repClass)) + geom_bar(stat = "identity") +
   facet_grid(. ~ group, scales = "free_x") +
   labs(fill="") + theme(axis.text.x=element_text(angle=45,hjust=1)) +

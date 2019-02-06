@@ -111,3 +111,25 @@ df$FDR = p.adjust(df$p.value, method = "fdr")
 write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")
 df = read.csv("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.csv")
 df
+
+ttests = list(introns.perc.both = t.test(x = dist[Age=="Adult" & Group =="Introns",list(Percent),], 
+                                         y = dist[Age=="Prenatal" & Group =="Introns",list(Percent),]),
+              introns.perc.polyA = t.test(x = dist[Library=="polyA" & Age=="Adult" & Group =="Introns",list(Percent),], 
+                                          y = dist[Library=="polyA" & Age=="Prenatal" & Group =="Introns",list(Percent),]),
+              introns.perc.ribo = t.test(x = dist[Library=="RiboZero" & Age=="Adult" & Group =="Introns",list(Percent),], 
+                                         y = dist[Library=="RiboZero" & Age=="Prenatal" & Group =="Introns",list(Percent),]),
+              introns.tags.kb.both = t.test(x = dist[Age=="Adult" & Group =="Introns",list(Tags.Kb),], 
+                                            y = dist[Age=="Prenatal" & Group =="Introns",list(Tags.Kb),]),
+              introns.tags.kb.polyA = t.test(x = dist[Library=="polyA" & Age=="Adult" & Group =="Introns",list(Tags.Kb),], 
+                                             y = dist[Library=="polyA" & Age=="Prenatal" & Group =="Introns",list(Tags.Kb),]),
+              introns.tags.kb.ribo = t.test(x = dist[Library=="RiboZero" & Age=="Adult" & Group =="Introns",list(Tags.Kb),], 
+                                            y = dist[Library=="RiboZero" & Age=="Prenatal" & Group =="Introns",list(Tags.Kb),]))
+df = data.frame(test = names(ttests), p.value = unlist(lapply(ttests, function(x) x$p.value)),
+                t.stat = unlist(lapply(ttests, function(x) x$statistic)),
+                mean.x = unlist(lapply(ttests, function(x) x$estimate[1])),
+                mean.y = unlist(lapply(ttests, function(x) x$estimate[2])), row.names = NULL)
+df$FDR = p.adjust(df$p.value, method = "fdr")
+write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.byAge.csv")
+df = read.csv("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_intron_tstat.byAge.csv")
+df
+

@@ -5,19 +5,19 @@ library(reshape2)
 library(ggplot2)
 library(plyr)
 
-load("./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
+load("./Dropbox/sorted_figures/github_controlled/rna_editing/data/unique_editingSites_bySample.rda")
 
 
 ## load public editing site lists
-gtex_all = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/GTEX_Supp1_allSites.xlsx')
+gtex_all = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/other_datasets/data/GTEX_Supp1_allSites.xlsx')
 gtex_all = cbind(gtex_all, seqnames = unlist(strsplit(gtex_all$sites,"_",fixed=T))[grep("chr",unlist(strsplit(gtex_all$sites,"_",fixed=T)))],
                  start = unlist(strsplit(gtex_all$sites,"_",fixed=T))[-grep("chr",unlist(strsplit(gtex_all$sites,"_",fixed=T)))], site = gtex_all$sites)
 gtex_all = makeGRangesFromDataFrame(gtex_all, end.field = "start", keep.extra.columns = T)
 
-gtex_ts = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/GTEX_Supp3_tissueSpecificSites.xlsx')
+gtex_ts = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/other_datasets/data/GTEX_Supp3_tissueSpecificSites.xlsx')
 gtex_ts = makeGRangesFromDataFrame(gtex_ts[,1:4], seqnames.field="Chromosome",start.field="Position", end.field="Position",keep.extra.columns = T)
 
-increasing = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/other_datasets/data/Hwang_NatNeuro_SuppTables.xlsx',sheet =3)
+increasing = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/other_datasets/data/Hwang_NatNeuro_SuppTables.xlsx',sheet =3)
 increasing = increasing[-1,]
 incr = makeGRangesFromDataFrame(increasing, seqnames.field = "Chromosome",start.field = "Coordinate",end.field = "Coordinate", strand.field = "Strand")
 
@@ -89,17 +89,18 @@ df = data.frame(tissue = names(gtex),
                 percentOURS = elementNROWS(lapply(ov, function(x) unique(queryHits(x))))/length(reduced)*100,row.names = NULL)
 df[grep("Brain", df$tissue),"Brain"] = "Brain"
 df[-grep("Brain", df$tissue),"Brain"] = "Other"
-write.csv(df, quote=F,file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/GTEX_editingSites_inOurData_byTissue.csv")
+write.csv(df, quote=F,file = "./Dropbox/sorted_figures/github_controlled/rna_editing/data/GTEX_editingSites_inOurData_byTissue.csv")
+df = read.csv("./Dropbox/sorted_figures/github_controlled/rna_editing/data/GTEX_editingSites_inOurData_byTissue.csv")
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/GTEX_editingSites_inOurData_byTissue.pdf",width=18,height=8)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/GTEX_editingSites_inOurData_byTissue.pdf",width=18,height=6)
 df$tissue = factor(df$tissue, levels = as.character(df[order(df$percentOURS, decreasing = T),"tissue"]))
 ggplot(df, aes(x = tissue, y = percentOURS, fill=Brain)) + geom_bar(stat = "identity",position=position_dodge(width=1)) +
   labs(fill="") + ylab("Percent") + xlab("") +
   scale_fill_manual(values=c("blue1","gray30")) +
   theme(axis.text.x=element_text(angle = -45, hjust = 0)) +
   ggtitle("Percent of Our Editing Sites Found in Each GTEX Tissue") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  theme(title = element_text(size = 20),text = element_text(size = 20), legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"))
 df$tissue = factor(df$tissue, levels = as.character(df[order(df$percentGTEX, decreasing = T),"tissue"]))
 ggplot(df, aes(x = tissue, y = percentGTEX, fill=Brain)) + geom_bar(stat = "identity",position=position_dodge(width=1)) +
   labs(fill="") + ylab("Percent") + xlab("") +
@@ -114,20 +115,35 @@ dev.off()
 ## Plot the distribution
 
 editing_anno$Fraction = gsub("Cytosol","Cytoplasm", editing_anno$Fraction)
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/GTEX_HwangNatNeuro_editingSites_inOurData.pdf",width=8,height=5)
+x = editing_anno[collapsedconversion=="A:G / T:C",length(unique(id)),by=c("Fraction","Age","new")]
+x$perc = c(round(x$V1[1]/sum(x$V1[c(1,5)])*100,1),round(x$V1[c(2)]/sum(x$V1[c(2,6)])*100,1),round(x$V1[c(3)]/sum(x$V1[c(3,7)])*100,1),
+           round(x$V1[c(4)]/sum(x$V1[c(4,8)])*100,1),round(x$V1[5]/sum(x$V1[c(1,5)])*100,1),round(x$V1[c(6)]/sum(x$V1[c(2,6)])*100,1),
+           round(x$V1[c(7)]/sum(x$V1[c(3,7)])*100,1),round(x$V1[c(8)]/sum(x$V1[c(4,8)])*100,1))
+
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/GTEX_suppFigure.pdf",width=4.8,height=4.25)
+ggplot(x, aes(x = Fraction, y = V1, fill = new)) + geom_bar(stat = "identity",position=position_dodge(width=1)) +
+  facet_grid(. ~ Age) + scale_fill_brewer(palette="Accent") +
+  geom_text(aes(label = paste0(perc,"%")), vjust = -.5, position = position_dodge(width = 1)) +
+  labs(fill="") + ylab("Count") + xlab("") + ylim(0,10000) +
+  ggtitle("Our Editing Sites\nCompared to GTEX") +
+  theme(title = element_text(size = 20), text = element_text(size = 20),legend.position = c(0.82, 0.92),
+        axis.text.x = element_text(angle = 15, hjust = .5, vjust=.9),legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"),plot.title = element_text(hjust = 0.5))
+dev.off()
+
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/GTEX_HwangNatNeuro_editingSites_inOurData.pdf",width=8,height=5)
 x = editing_anno[collapsedconversion=="A:G / T:C",length(unique(id)),by=c("Fraction","Age","new")]
 x$perc = c(round(x$V1[1]/sum(x$V1[c(1,5)])*100,1),round(x$V1[c(2)]/sum(x$V1[c(2,6)])*100,1),round(x$V1[c(3)]/sum(x$V1[c(3,7)])*100,1),
            round(x$V1[c(4)]/sum(x$V1[c(4,8)])*100,1),round(x$V1[5]/sum(x$V1[c(1,5)])*100,1),round(x$V1[c(6)]/sum(x$V1[c(2,6)])*100,1),
            round(x$V1[c(7)]/sum(x$V1[c(3,7)])*100,1),round(x$V1[c(8)]/sum(x$V1[c(4,8)])*100,1))
 ggplot(x, aes(x = Fraction, y = V1, fill = new)) + geom_bar(stat = "identity",position=position_dodge(width=1)) +
-  facet_grid(. ~ Age) +
+  facet_grid(. ~ Age) + scale_fill_brewer(palette="Accent") +
   geom_text(aes(label = paste0(perc,"%")), vjust = -.5, position = position_dodge(width = 1)) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
-  ggtitle("Our Editing Sites Compared to GTEX") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  labs(fill="") + ylab("Count") + xlab("") + ylim(0,10000) +
+  ggtitle("Our Editing Sites\nCompared to GTEX") +
+  theme(title = element_text(size = 20), text = element_text(size = 20),legend.position = c(0.82, 0.92),
+        axis.text.x = element_text(angle = 15, hjust = .5, vjust=.9),legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"),plot.title = element_text(hjust = 0.5))
 x = editing_anno[collapsedconversion=="A:G / T:C",length(unique(id)),by=c("Fraction","Age","tissuespecific")]
 x$perc = c(round(x$V1[1]/sum(x$V1[c(1,3)])*100,1),round(x$V1[c(2)]/sum(x$V1[c(2,4)])*100,1),round(x$V1[c(3)]/sum(x$V1[c(1,3)])*100,1),
            round(x$V1[4]/sum(x$V1[c(2,4)])*100,1),round(x$V1[c(5)]/sum(x$V1[c(5,7)])*100,1),round(x$V1[c(6)]/sum(x$V1[c(6,8)])*100,1),
@@ -186,9 +202,9 @@ unique_all$name = gsub("ACnotPC", "AC not PC", unique_all$name)
 unique_all$name = gsub("PCnotAC", "PC not AC", unique_all$name)
 unique_all$name = gsub("PCnotPN", "PC not PN", unique_all$name)
 unique_all$name = gsub("PNnotPC", "PN not PC", unique_all$name)
-write.csv(unique_all, quote = F, file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/table4_editingSites_uniqueAll3.csv") 
+write.csv(unique_all, quote = F, file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/table4_editingSites_uniqueAll3.csv") 
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/GTEX_HwangNatNeuro_editingSites_inOurData_uniqueAll3.pdf",width=18,height=8)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/GTEX_HwangNatNeuro_editingSites_inOurData_uniqueAll3.pdf",width=18,height=8)
 x = unique_all[,length(unique(id)),by=c("name","new")]
 for (i in 1:length(unique(x$name))){ 
   x$perc[grep(unique(x$name)[i],x$name)] = round(x$V1[grep(unique(x$name)[i],x$name)]/sum(x$V1[grep(unique(x$name)[i],x$name)])*100,1)}
@@ -237,7 +253,7 @@ gtex_ts$ID = paste0(gtex_ts$seqnames, ":",gtex_ts$start, "-", gtex_ts$end)
 gtex_ts = gtex_ts[,length(unique(ID)),by="Specifically.edited.tissue"]
 gtex_ts$prop = round(gtex_ts$V1/sum(gtex_ts$V1)*100,1)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/GTEX_TissueSpecific_Annotation.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/GTEX_TissueSpecific_Annotation.pdf")
 ggplot(gtex_ts, aes(x = Specifically.edited.tissue, y = V1)) + geom_bar(stat = "identity") +
   geom_text(aes(label = paste0(prop,"%")), vjust = -.5) +
   labs(fill="") +
@@ -275,8 +291,8 @@ df = do.call(rbind, Map(cbind, Annotation = as.list(names(fisher)), lapply(fishe
                                                                                                           OddsRatio=x$estimate, row.names = NULL))))
 df$FDR = p.adjust(df$pval, method = "fdr")
 write.csv(do.call(rbind, Map(cbind, Annotation = as.list(names(inc)), lapply(inc, function(x) data.frame(Dir=rownames(x), x, row.names = NULL)))),quote = F,
-          file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/HwangNatNeuro_editingSites_contingencytables_inOurData.csv")
-write.csv(df, file = "./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/HwangNatNeuro_editingSites_enrichment_inOurData.csv", quote = F)
+          file = "./Dropbox/sorted_figures/github_controlled/rna_editing/data/HwangNatNeuro_editingSites_contingencytables_inOurData.csv")
+write.csv(df, file = "./Dropbox/sorted_figures/github_controlled/rna_editing/data/HwangNatNeuro_editingSites_enrichment_inOurData.csv", quote = F)
 df[df$FDR<=0.05,]
 #  Annotation         pval OddsRatio          FDR
 #1  adultOnly 7.423829e-26 13.455781 2.474610e-25
@@ -297,7 +313,7 @@ df = do.call(rbind, Map(cbind, In = as.list(names(ttests)),
                         lapply(ttests, function(x) data.frame(Tstat = x$statistic,pval = x$p.value, confInt1 = x$conf.int[1], 
                                                               confInt2 = x$conf.int[2], estMeans1 = x$estimate[1], estMeans2 = x$estimate[2]))))
 df$FDR = p.adjust(df$pval, method="fdr")
-write.csv(df,file="./Dropbox/sorted_figures/new/github_controlled/rna_editing/data/HwangNatNeuro_editingRate_ttest_byAge_inIncreasingSites.csv",quote=F)
+write.csv(df,file="./Dropbox/sorted_figures/github_controlled/rna_editing/data/HwangNatNeuro_editingRate_ttest_byAge_inIncreasingSites.csv",quote=F)
 df[df$FDR<=0.05,]
 #        In   Tstat      pval  confInt1    confInt2 estMeans1 estMeans2        FDR
 #t2 cytosol -2.4877 0.0140796 -0.127862 -0.01460146 0.5335726 0.6048043 0.04223879

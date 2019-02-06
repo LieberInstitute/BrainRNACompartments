@@ -48,7 +48,7 @@ sgfc = analyzeFeatures(si, features = txf)
 sgvc10 = analyzeVariants(sgfc, min_denominator = 10)
 save(sgfc, sgvc, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects.rda")
 save(sgfc, sgvc, sgvc10, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
+load("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
 
 # subset variant results by type
 
@@ -86,7 +86,7 @@ proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants.pdf")
+pdf("/Users/amanda/Dropbox/sorted_figures/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants.pdf")
 ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
   geom_text(aes(label=perc), vjust=1.5, colour="white") +
   labs(fill="") +
@@ -103,14 +103,16 @@ proportion = as.data.frame(unlist(varnames))
 proportion$variant = rownames(proportion)
 proportion = proportion[-grep("P",proportion$variant),]
 proportion$variant = gsub(".D","", proportion$variant)
-proportion$variant = gsub("RI","IR", proportion$variant)
-proportion$variant = factor(proportion$variant, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
 proportion$prop = proportion[,1] / sum(proportion[,1])
 colnames(proportion)[1] = "total"
 proportion$perc = paste0(round((proportion$prop*100),digits = 1),"%")
-write.csv(proportion, quote = F, file = "./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
+write.csv(proportion, quote = F, file = "./Dropbox/sorted_figures/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.csv")
+proportion = read.csv("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_10denom.csv")
+proportion$variant = gsub("RI","IR", proportion$variant)
+proportion$variant = factor(proportion$variant, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf")
+
+pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_10denom.pdf", width = 6, height = 5)
 ggplot(proportion, aes(x = variant, y = total)) + geom_col() +
   geom_text(aes(label=perc), vjust=1.5, colour="white") +
   labs(fill="") +
@@ -158,7 +160,7 @@ numVars$Group = as.factor(rownames(numVars))
 numVars = melt(numVars)
 head(numVars)
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup.pdf",width = 10,height = 8)
+pdf("/Users/amanda/Dropbox/sorted_figures/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup.pdf",width = 10,height = 8)
 dodge <- position_dodge(width=0.9)
 ggplot(numVars, aes(x = variable, y = value, fill = Group)) +
   stat_summary(position=position_dodge(),geom="bar") +
@@ -213,25 +215,25 @@ numVars = data.frame(SE = unlist(lapply(VariantsByGroup, function(x) length(uniq
 numVars$Group = as.factor(rownames(numVars))
 numVars = melt(numVars)
 head(numVars)
-write.csv(numVars, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
-numVars = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
+write.csv(numVars, quote = F, file = "/Users/amanda/Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
+numVars = read.csv("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/total_unique_splice_variants_byGroup_10denom.csv")
 (sum(numVars[numVars$Group=="Nucleus","value"])-sum(numVars[numVars$Group=="Cytoplasm","value"]))/sum(numVars[numVars$Group=="Cytoplasm","value"])*100 # 42.79054
 (sum(numVars[numVars$Group=="Prenatal","value"])-sum(numVars[numVars$Group=="Adult","value"]))/sum(numVars[numVars$Group=="Adult","value"])*100 # 72.88765
 
 numVars = numVars[grep(":", numVars$Group, fixed = T),]
 numVars$variable = gsub("RI","IR", numVars$variable)
 numVars$variable = factor(numVars$variable, levels = c("SE","S2E","IR","MXE","A5SS","A3SS","AFE","ALE"))
+numVars$Group = factor(numVars$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
 
-pdf("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/total_unique_splice_variants_byGroup_10denom.pdf",width = 6,height = 5)
+pdf("/Users/amanda/Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/total_unique_splice_variants_byGroup_10denom.pdf",width = 5.7,height = 4.5)
 dodge <- position_dodge(width=0.9)
 ggplot(numVars, aes(x = variable, y = value, fill = Group)) +
   stat_summary(position=position_dodge(),geom="bar") +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Unique Splice Variants by Type") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20), legend.position = "bottom") + guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  theme(title = element_text(size = 20), text = element_text(size = 20), legend.position = "bottom",
+        axis.text.x = element_text(angle = 20, hjust = 1)) + 
+  guides(fill=guide_legend(nrow=2,byrow=TRUE))
 dev.off()
 
 
@@ -491,9 +493,9 @@ plotMA(agedxr.cyt, ylim = c(-15,15), main = "Differential Splicing by Age in Cyt
 dev.off()
 
 
-load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_objects.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
+load("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/SGSeq_objects10.rda")
+load("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_objects.rda")
+load("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/DEXSeq_singlevariable_objects.rda")
 
 
 # Explore results
@@ -520,29 +522,26 @@ type = do.call(rbind, type)
 type$comparison = factor(type$comparison, 
                          levels = c("By Age\nIn Nucleus","By Age\nIn Cytoplasm","By Age","By Fraction\nIn Prenatal","By Fraction\nIn Adult","By Fraction"))
 type$x = gsub("RI:R", "IR", type$x)
+type$x = factor(type$x, levels = c("SE:S", "S2E:S", "IR", "MXE", "A5SS:D", "A3SS:D", "AFE"))
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/SGSeq_out/DSE_counts_byGroup_byFrac_byAge.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/DSE_counts_byGroup_byFrac_byAge.pdf", width = 6.25,height = 4.5)
 ggplot(type[which(type$comparison!="By Fraction" & type$comparison!="By Age"),], 
        aes(x = comparison, y = Freq, fill = x)) + geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(fill="") +
+  scale_fill_brewer(palette = "Accent") +
+  coord_flip() + labs(fill="") +
   ylab("Count") + xlab("") +
-  ggtitle("Differentially Spliced Events\n(FDR < 0.05)") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  ggtitle("Differentially Spliced\nEvents (FDR < 0.05)") +
+  theme(title = element_text(size = 20),text = element_text(size = 20))
 ggplot(type[grep("Fraction", type$comparison),], 
        aes(x = comparison, y = Freq, fill = x)) + geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(fill="") +
-  ylab("Count") + xlab("") +
+  scale_fill_brewer(palette = "Accent") +
+  coord_flip() +  labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Differentially Spliced Events\nBy Fraction (FDR < 0.05)") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  theme(title = element_text(size = 20),text = element_text(size = 20))
 ggplot(type[grep("Age", type$comparison),], 
        aes(x = comparison, y = Freq, fill = x)) + geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(fill="") +
-  ylab("Count") + xlab("") +
+  scale_fill_brewer(palette = "Accent") +
+  coord_flip() + labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Differentially Spliced Events\nBy Age (FDR < 0.05)") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20))
