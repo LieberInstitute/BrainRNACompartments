@@ -1,58 +1,84 @@
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/new/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
-enrich = read.csv("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_FractionDEGs.csv")
+load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
+aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
+enrich = read.csv("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/Birnbaum_geneSet_enrichment_FractionDEGs.csv")
+
+pgc = read.delim("./Dropbox/sorted_figures/github_controlled/disease/data/tableS3_Nature2014_pgc2_loci.txt",as.is=TRUE)
+pgc$chr = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[1]))
+pgc$range = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[2]))
+pgc$start = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[1])))
+pgc$end = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[2])))
+pgcGR = GRanges(pgc$chr, IRanges(pgc$start,pgc$end))
+geneMapGR = makeGRangesFromDataFrame(geneMap, keep.extra.columns = T)
+pgc2 = geneMap[queryHits(findOverlaps(geneMapGR, pgcGR)),]
 
 
 # Assign lengths to disease genes
 
 geneuniverse = as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% rownames(Ipres.down)),"Symbol"]))) # all expressed genes
 aej_sets_expressed = aej_sets[which(as.character(aej_sets$Gene.Symbol) %in% geneuniverse), ] # drop genes that are not present in the test set
+aej_sets_expressed = aej_sets_expressed[which(aej_sets_expressed$Gene.Set!="SCZ PGC GWAS"),]
+aej_sets_expressed = rbind(aej_sets_expressed[,colnames(aej_sets_expressed) %in% c("Gene.Set","Gene.Symbol")], 
+                           data.frame(Gene.Set = "PGC2", Gene.Symbol = pgc2$Symbol))
 length(unique(aej_sets$Gene.Symbol)) # 1007
-length(unique(aej_sets_expressed$Gene.Symbol)) # 947
+length(unique(aej_sets_expressed$Gene.Symbol)) # 1240
 len = cbind(aej_sets_expressed, geneMap[match(aej_sets_expressed$Gene.Symbol, geneMap$Symbol),colnames(geneMap) %in% c("Length", "gencodeID")])
+len$cat = ifelse(len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV"), "Nuclear in Both", "Not Nuclear")
+len[which(len$Gene.Set %in% c("BPAD GWAS","SCZ SNV","PGC2")),"cat"] = "Nuclear in Adult Only"
 
+head(len)
 
 # Compare retained gene set lengths to others
 
-enrich[enrich$FDR<=0.05 & enrich$Comparison=="both_retained","GeneSet"]
-res = list(Allsets.v.disease = t.test(x = len[len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV","BPAD GWAS"),"Length"],
-                         y = len[!len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV"),"Length"]),
-           BPAD.v.disease = t.test(x = len[len$Gene.Set == "BPAD GWAS","Length"],
-                                   y = len[len$Gene.Set != "BPAD GWAS","Length"]),
-           ASD.CNV.v.disease = t.test(x = len[len$Gene.Set == "ASD CNV","Length"],
-                             y = len[len$Gene.Set != "ASD CNV","Length"]),
-            ASD.DATABASE.v.disease = t.test(x = len[len$Gene.Set == "ASD DATABASE","Length"],
-                                  y = len[len$Gene.Set != "ASD DATABASE","Length"]),
-            SCZ.CNV.v.disease = t.test(x = len[len$Gene.Set == "SCZ CNV","Length"],
-                             y = len[len$Gene.Set != "SCZ CNV","Length"]),
-           Allsets.v.all = t.test(x = len[len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV","BPAD GWAS"),"Length"],
-                                      y = geneMap[!geneMap$gencodeID %in% len[len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV"),"gencodeID"],"Length"]),
-           BPAD.v.all = t.test(x = len[len$Gene.Set == "BPAD GWAS","Length"],
-                                  y = geneMap[!geneMap$gencodeID %in% len[len$Gene.Set =="BPAD GWAS","gencodeID"],"Length"]),
-           ASD.CNV.v.all = t.test(x = len[len$Gene.Set == "ASD CNV","Length"],
-                                      y = geneMap[!geneMap$gencodeID %in% len[len$Gene.Set =="ASD CNV","gencodeID"],"Length"]),
-           ASD.DATABASE.v.all = t.test(x = len[len$Gene.Set == "ASD DATABASE","Length"],
-                                           y = geneMap[!geneMap$gencodeID %in% len[len$Gene.Set == "ASD DATABASE","gencodeID"],"Length"]),
-           SCZ.CNV.v.all = t.test(x = len[len$Gene.Set == "SCZ CNV","Length"],
-                                      y = geneMap[!geneMap$gencodeID %in% len[len$Gene.Set == "SCZ CNV","gencodeID"],"Length"]))
+enrich[enrich$FDR<=0.05 & enrich$Comparison %in% c("both_retained","Ad_retained"),"GeneSet"]
+res = list(allNuc.vs.disease = t.test(x = len[len$cat!="Not Nuclear","Length"], y = len[len$cat=="Not Nuclear","Length"]),
+           bothNuc.vs.disease = t.test(x = len[len$cat=="Nuclear in Both","Length"], y = len[len$cat!="Nuclear in Both","Length"]),
+           adNuc.vs.disease = t.test(x = len[len$cat=="Nuclear in Adult Only","Length"], y = len[len$cat!="Nuclear in Adult Only","Length"]),
+           
+           allNuc.vs.disease.noTTN = t.test(x = len[len$cat!="Not Nuclear" & len$Gene.Symbol!="TTN","Length"], 
+                                            y = len[len$cat=="Not Nuclear" & len$Gene.Symbol!="TTN","Length"]),
+           bothNuc.vs.disease.noTTN = t.test(x = len[len$cat=="Nuclear in Both" & len$Gene.Symbol!="TTN","Length"], 
+                                             y = len[len$cat!="Nuclear in Both" & len$Gene.Symbol!="TTN","Length"]),
+           ad.Nuc.vs.disease.noTTN = t.test(x = len[len$cat=="Nuclear in Adult Only" & len$Gene.Symbol!="TTN","Length"], 
+                                            y = len[len$cat!="Nuclear in Adult Only" & len$Gene.Symbol!="TTN","Length"]),
+           
+           allNuc.vs.allGenes = t.test(x = len[len$cat!="Not Nuclear","Length"], 
+                                       y = geneMap[!geneMap$Symbol %in% len[len$cat!="Not Nuclear","Gene.Symbol"],"Length"]),
+           bothNuc.vs.allGenes = t.test(x = len[len$cat=="Nuclear in Both","Length"], 
+                                        y = geneMap[!geneMap$Symbol %in% len[len$cat=="Nuclear in Both","Gene.Symbol"],"Length"]),
+           adNuc.vs.allGenes = t.test(x = len[len$cat=="Nuclear in Adult Only","Length"], 
+                                      y = geneMap[!geneMap$Symbol %in% len[len$cat=="Nuclear in Adult Only","Gene.Symbol"],"Length"]),
+           
+           adNuc.vs.allGenes.noTTN = t.test(x = len[len$cat!="Not Nuclear" & len$Gene.Symbol!="TTN","Length"], 
+                                            y = geneMap[!geneMap$Symbol %in% len[len$cat!="Not Nuclear" & len$Gene.Symbol!="TTN","Gene.Symbol"],"Length"]),
+           bothNuc.vs.allGenes.noTTN = t.test(x = len[len$cat=="Nuclear in Both" & len$Gene.Symbol!="TTN","Length"], 
+                                              y = geneMap[!geneMap$Symbol %in% len[len$cat=="Nuclear in Both" & len$Gene.Symbol!="TTN","Gene.Symbol"],"Length"]),
+           adNuc.vs.allGenes.noTTN = t.test(x = len[len$cat=="Nuclear in Adult Only" & len$Gene.Symbol!="TTN","Length"], 
+                                            y = geneMap[!geneMap$Symbol %in% len[len$cat=="Nuclear in Adult Only" & len$Gene.Symbol!="TTN","Gene.Symbol"],"Length"]))
+
+
 res = do.call(rbind, Map(cbind, Comparison = names(res), lapply(res, function(x) data.frame(Tstat = x$statistic, pval = x$p.value,
                                                                                             diseaseMean = x$estimate[1], restMean = x$estimate[2]))))
 res$FDR = p.adjust(res$pval, method = "fdr")
 row.names(res) = NULL
-write.csv(res, file = "./Dropbox/sorted_figures/new/github_controlled/disease/figures/geneSet_length_ttest.csv")
+write.csv(res, file = "./Dropbox/sorted_figures/github_controlled/disease/figures/geneSet_length_ttest.csv")
 
 res[res$FDR<=0.05,]
-#2          BPAD.v.disease -2.663323 8.566176e-03    6070.684 7529.644 9.517973e-03
-#3       ASD.CNV.v.disease -4.042939 6.845300e-05    5965.167 7607.110 9.779000e-05
-#4  ASD.DATABASE.v.disease  2.962179 3.316670e-03    8763.711 6998.879 4.145838e-03
-#5       SCZ.CNV.v.disease -5.172468 6.817025e-07    5398.173 7567.640 1.136171e-06
-#6           Allsets.v.all 17.580704 3.038193e-56    6979.091 2215.128 3.038193e-55
-#7              BPAD.v.all  7.489405 1.469118e-11    6070.684 2242.915 2.938236e-11
-#8           ASD.CNV.v.all 10.650744 3.105944e-20    5965.167 2240.705 1.035315e-19
-#9      ASD.DATABASE.v.all 11.484335 1.647416e-24    8763.711 2224.845 8.237081e-24
-#10          SCZ.CNV.v.all  8.534498 1.905627e-13    5398.173 2245.220 4.764069e-13
+#                  Comparison     Tstat         pval diseaseMean restMean          FDR
+#1          allNuc.vs.disease -5.635511 4.744633e-08    5879.202 8368.462 5.693559e-08
+#2         bothNuc.vs.disease  4.220835 2.754719e-05    7196.440 5749.614 2.754719e-05
+#3           adNuc.vs.disease -8.044180 2.215194e-15    5200.456 7535.440 3.322792e-15
+#4    allNuc.vs.disease.noTTN -5.682031 3.961024e-08    5897.107 8368.462 5.281365e-08
+#5   bothNuc.vs.disease.noTTN  4.281310 2.045875e-05    6967.383 5869.879 2.231863e-05
+#6    ad.Nuc.vs.disease.noTTN -8.434380 8.470616e-17    5330.012 7373.227 1.452106e-16
+#7         allNuc.vs.allGenes 18.453901 1.168248e-68    5879.202 3201.681 4.672990e-68
+#8        bothNuc.vs.allGenes 15.963149 1.730060e-46    7196.440 2215.128 5.190181e-46
+#9          adNuc.vs.allGenes 13.576974 1.272268e-38    5200.456 3249.888 2.544537e-38
+#10   adNuc.vs.allGenes.noTTN 21.882516 2.984813e-92    5897.107 3205.296 3.581776e-91
+#11 bothNuc.vs.allGenes.noTTN 22.369224 6.275669e-77    6967.383 2217.079 3.765401e-76
+#12   adNuc.vs.allGenes.noTTN 14.262444 5.445507e-42    5330.012 3249.888 1.306922e-41
+
 
 max(len[len$Gene.Set=="ASD DATABASE","Length"])
 len[len$Length==118976,] # titin
@@ -61,33 +87,35 @@ max(len[len$Gene.Set=="ASD DATABASE","Length"])-
 max(len$Length)-max(len[len$Length!=118976,"Length"]) # 73327
 
 head(len)
-len$cat = ifelse(len$Gene.Set %in% c("ASD CNV","ASD DATABASE","SCZ CNV"), "Nuclear in Both", "Not Nuclear")
-len[len$Gene.Set=="BPAD GWAS","cat"] = "Nuclear in Adult Only"
-len$cat = factor(len$cat, levels = c("Nuclear in Both","Nuclear in Adult Only","Not Nuclear"))
-len$Gene.Set = gsub("NDD", "Neuro-\ndevel.", len$Gene.Set)     
-len$Gene.Set = gsub("Neurodegenerative", "Neuro-\ndegen.", len$Gene.Set) 
-len$Gene.Set = gsub("SCZ Meta-analysis" ,"SCZ\n(Meta\nanalysis)", len$Gene.Set)
-len$Gene.Set = gsub("SCZ PGC GWAS","SCZ\n(GWAS)", len$Gene.Set)     
-len$Gene.Set = gsub("SCZ CNV", "SCZ\n(CNV)", len$Gene.Set)         
-len$Gene.Set = gsub("SCZ SNV", "SCZ\n(SNV)", len$Gene.Set)
 len$Gene.Set = gsub("ASD CNV", "ASD\n(CNV)", len$Gene.Set)
 len$Gene.Set = gsub("ASD DATABASE", "ASD\n(Database)", len$Gene.Set)
-len$Gene.Set = gsub("BPAD GWAS","BPAD\n(GWAS)", len$Gene.Set)     
+len$Gene.Set = gsub("BPAD GWAS", "BPAD\n(GWAS)", len$Gene.Set)
 len$Gene.Set = gsub("ID", "Intellectual\nDisability", len$Gene.Set)
+len$Gene.Set = gsub("NDD", "Neuro-\ndevel.", len$Gene.Set)
+len$Gene.Set = gsub("Neurodegenerative", "Neuro-\ndegen.", len$Gene.Set)
+len$Gene.Set = gsub("SCZ Meta-analysis", "SCZ\n(Meta\nanalysis)", len$Gene.Set)
+len$Gene.Set = gsub("SCZ SNV", "SCZ\n(SNV)", len$Gene.Set)
+len$Gene.Set = gsub("PGC2", "SCZ\n(PGC2)", len$Gene.Set)
+len$Gene.Set = gsub("SCZ CNV", "SCZ\n(CNV)", len$Gene.Set)
 len$Gene.Set = factor(len$Gene.Set, levels = 
-                        c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)","BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(Meta\nanalysis)",
-                          "SCZ\n(GWAS)","Neuro-\ndevel.","Intellectual\nDisability","Neuro-\ndegen."))
+                          c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)","BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)","SCZ\n(Meta\nanalysis)",
+                            "Neuro-\ndevel.","Intellectual\nDisability","Neuro-\ndegen."))
+len$cat = ifelse(len$Gene.Set %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)"), "Nuclear in Both", "Not Nuclear")
+len[which(len$Gene.Set %in% c("BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")),"cat"] = "Nuclear in Adult Only"
+len$cat = factor(len$cat, levels = c("Nuclear in Both","Nuclear in Adult Only","Not Nuclear"))
+len[len$cat=="Nuclear in Adult Only",]
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/disease/figures/disease_geneSet_length.pdf", width = 13.5, height = 3.5)
+
+pdf("./Dropbox/sorted_figures/github_controlled/disease/figures/disease_geneSet_length.pdf", width = 13, height = 3)
 ggplot(len, aes(x=Gene.Set, y=Length/1000, fill = cat)) + geom_boxplot() + 
   ylab("Gene Length (Kb)") + xlab("") +
-  ylim(0,46) + scale_fill_manual(values=c("cornsilk4", "antiquewhite2", "white")) +
+  ylim(0,46) + scale_fill_manual(values=c("cornsilk4", "antiquewhite3", "white")) +
   ggtitle("Gene Lengths by Disease Gene Set") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
   labs(fill="")
 ggplot(len, aes(x=Gene.Set, y=Length/1000, fill = cat)) + geom_boxplot() + 
-  ylab("Gene Length (Kb)") + xlab("") + scale_fill_manual(values=c("cornsilk4", "antiquewhite2", "white")) +
+  ylab("Gene Length (Kb)") + xlab("") + scale_fill_manual(values=c("cornsilk4", "antiquewhite3", "white")) +
   ggtitle("Gene Lengths by Disease Gene Set") +
   theme(title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
