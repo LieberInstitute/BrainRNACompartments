@@ -67,15 +67,15 @@ df.down$Fraction = pd[match(df.down$ID, pd$SampleID),"Zone"]
 df.down$Fraction = gsub("Cytosol", "Cytoplasm", df.down$Fraction)
 df.down$Fraction = factor(df.down$Fraction)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
-    width = 8.5, height = 4)
+pdf("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/figures/proportion_junction_reads_downsampled.pdf", 
+    width = 6, height = 4)
 ggplot(df.down, aes(x=Age, y=propJunc, fill = Fraction)) + geom_boxplot() + 
   facet_grid(. ~ Library) +
   scale_fill_brewer(palette="Dark2") +
   ylim(0, 0.4) + xlab("") +
   ylab("Junction Read Count/\nTotal Mapped Reads") + 
-  theme(legend.position = c(.9, 0.85)) +
-  ggtitle("Proportion of Reads Overlapping Splice Junctions") + 
+  theme(legend.position = c(.85, 0.85)) +
+  ggtitle("Proportion Splice Junction Reads") + 
   theme(title = element_text(size = 20), legend.title=element_blank(), legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent")) +
   theme(text = element_text(size = 20))
