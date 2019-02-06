@@ -23,9 +23,9 @@ library(plyr)
 library(clusterProfiler)
 require("org.Hs.eg.db")
 
-load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/rna_editing/data/rna_editing_results.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
-load("/Users/amanda/Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
+load("./Dropbox/sorted_figures/github_controlled/rna_editing/data/rna_editing_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/data/DESeq2_results.rda")
+load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
 
 # Explore results
 lapply(editingres, head)
@@ -36,7 +36,7 @@ editingres = Map(cbind, editingres, conversion = lapply(editingres, function(x) 
                  editingID = lapply(editingres, function(x) paste0(x$chromosome,":",x$start,"-",x$end,":",x$ref,":",x$alt)))
 for (i in 1:length(editingres)){
   tmp = editingres[[i]]
-  tmp$Fraction = ifelse((tmp$rnum %in% grep("N", tmp$sampleID)), "Nucleus", "Cytosol")
+  tmp$Fraction = ifelse((tmp$rnum %in% grep("N", tmp$sampleID)), "Nucleus", "Cytoplasm")
   tmp$Age = ifelse((tmp$rnum %in% grep("53", tmp$sampleID)), "Prenatal", "Adult")
   tmp$Group = paste0(tmp$Age, ":", tmp$Fraction)
   tmp$collapsedconversion = NA
@@ -79,16 +79,14 @@ editingtypecounts = as.data.frame(editingtypecounts)
 editingtypecounts$collapsedconversion = factor(editingtypecounts$collapsedconversion,
                                                levels = c("A:G / T:C","A:C / T:G","A:T / T:A","C:A / G:T","C:G / G:C","C:T / G:A"))
 
-ggplot(editingtypecounts, aes(x = Fraction, y = V1, fill = collapsedconversion)) + geom_bar(stat = "identity") +
-  coord_flip() +
-  facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
-  ggtitle("Unique RNA Editing Sites by Group") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
-# Unique_RNA_Editing_Sites_byGroup.pdf
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/Unique_RNA_Editing_Sites_byGroup.pdf", width=5.5,height=3.25)
+ggplot(editingtypecounts, aes(x = Fraction, y = V1/1000, fill = collapsedconversion)) + geom_bar(stat = "identity") +
+  coord_flip() + facet_grid(. ~ Age) + scale_fill_brewer(palette = "Accent") +
+  labs(fill="") + ylab("Count (x1,000)") + 
+  xlab("") + ggtitle("") +
+  theme(title = element_text(size = 20), text = element_text(size = 20)) +
+  guides(fill=guide_legend(title="Editing Type"))
+dev.off()
 
 # What is the range of editing rate by group?
 editingres_df[, list(min = min(na.omit(rate)),max = max(na.omit(rate)), median = median(na.omit(rate)), 
@@ -124,15 +122,19 @@ editingres_df[, list(min = min(valdepth),max = max(valdepth), median = median(va
 #11: Br5339C1   0 108     11 15.18437 12.81806
 #12: Br5340C1   0 107     11 15.21979 12.80784
 
+editingres_df$collapsedconversion = factor(editingres_df$collapsedconversion,
+                                           levels = c("A:G / T:C","A:C / T:G","A:T / T:A","C:A / G:T","C:G / G:C","C:T / G:A"))
+
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/valDepth_byEditingType_bySampleID_byGroup.pdf", width=10.5,height=4.5)
 ggplot(editingres_df, aes(x = sampleID, y = valdepth, fill = collapsedconversion)) + geom_boxplot() +
-  facet_grid(. ~ Group, scales = "free") +
-  labs(fill="") +
-  ylab("Read Depth\n(Filtered By Read Quality)") + 
-  xlab("") +
+  facet_grid(. ~ Group, scales = "free") + scale_fill_brewer(palette = "Accent") +
+  labs(fill="") + ylab("Read Depth\n(Filtered By Read Quality)") + xlab("") +
   ggtitle("Validated Coverage Range By Sample At Edited Sites") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
-# valDepth_byEditingType_bySampleID_byGroup.pdf
+  theme(title = element_text(size = 20), plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 20), legend.position = "bottom",
+        axis.text.x = element_text(angle = 15, hjust = .5, vjust=.9)) +
+  guides(fill = guide_legend(nrow = 1))
+dev.off()
 
 ggplot(editingres_df[which(editingres_df$collapsedconversion=="A:G / T:C"),], 
        aes(x = sampleID, y = valdepth)) + geom_boxplot() +
@@ -146,7 +148,7 @@ ggplot(editingres_df[which(editingres_df$collapsedconversion=="A:G / T:C"),],
 # valDepth_bySampleID_byGroup_AtoG_only.pdf
 
 # Annotate editing sites to features in the genome
-txdb = loadDb("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
+txdb = loadDb("./Dropbox/sorted_figures/github_controlled/intron_retention/data/SGSeq_out/gencode.v25lift37.annotation.sqlite")
 features = list(genes = genes(txdb), CDS = cdsBy(txdb, by="tx", use.names=T), Introns = intronsByTranscript(txdb, use.names=T), 
                 UTR5 = fiveUTRsByTranscript(txdb, use.names=T), UTR3 = threeUTRsByTranscript(txdb, use.names=T))
 features = lapply(features, function(x) unlist(x, recursive = TRUE, use.names = TRUE))
@@ -190,17 +192,16 @@ editing_anno$annotation = factor(editing_anno$annotation, levels = c("CDS","Intr
 
 # What is the distribution of features edited across groups?
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_allSites.pdf", width = 7,height = 4)
+pdf("./Dropbox/sorted_figures/github_controlled/rna_editing/figures/Genomic_features_editing_allSites.pdf", width = 5.25,height = 3.5)
 ggplot(editing_anno[,length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
-  facet_grid(. ~ Age) +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
-  ggtitle("Number of RNA Editing Sites\n by Feature and Group") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  facet_grid(. ~ Age) + scale_fill_brewer(palette = "Accent") +
+  labs(fill="") + ylab("Count") + xlab("") +
+  ggtitle("Number of Editing Sites\n by Feature and Group") +
+  theme(title = element_text(size = 20), text = element_text(size = 20), 
+        axis.text.x = element_text(angle = 15, hjust = .5, vjust=.9)) 
 dev.off()
+
 pdf("./Dropbox/sorted_figures/new/github_controlled/rna_editing/figures/Genomic_features_editing_AtoGOnly.pdf", width = 7,height = 4)
 ggplot(editing_anno[collapsedconversion=="A:G / T:C",length(unique(editingID)), by = c("annotation", "Fraction", "Age")], 
        aes(x = Fraction, y = V1, fill = annotation)) + geom_bar(stat = "identity") +
