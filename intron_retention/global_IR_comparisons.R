@@ -36,7 +36,7 @@ introns$num.genes = as.numeric(lapply(lapply(lapply(IRfiltered, function(x) unli
                                              function(x) x[grep("ENSG", x)]), function(x) length(unique(x))))
 introns$MeanIntronDepth = as.numeric(lapply(IRfiltered, function(x) mean(x$IntronDepth)))
 write.csv(introns, file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
-df = read.csv("./Dropbox/sorted_figures/new/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
+df = read.csv("./Dropbox/sorted_figures/github_controlled/intron_retention/data/global_IR_comparisons/filtered.intron.stats.csv")
 range(df$num.introns) # 166661 173125
 range(df$num.genes) # 15345 15389
 
@@ -207,17 +207,13 @@ ggplot(PercentIRsOverlap, aes(x=variable, y=value, fill=Group), color=Group) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off() 
-pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/percent_introns_byIRRatio_greaterthan5perc_QC_introns.pdf",width =8,height = 5)
+
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/percent_introns_byIRRatio_greaterthan5perc_QC_introns.pdf",width =7,height = 4)
 ggplot(PercentIRsOverlap[which(PercentIRsOverlap$variable != "Constitutively\nSpliced" & PercentIRsOverlap$variable != ">0%"),],
-       aes(x=variable, y=value, fill=Group), color=Group) + 
-  geom_boxplot() +
-  ylab("Percent") + 
-  xlab("Intron Retention") +
-  ggtitle("Percent Introns By IR Ratio\n(Introns Passing QC In All Groups)") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20)) +
-  labs(fill="") +
-  theme(legend.position = c(.8, 0.6)) +
+       aes(x=variable, y=value, fill=Group), color=Group) + geom_boxplot() +
+  ylab("Percent") + xlab("Intron Retention") + ggtitle("Percent Introns By IR Ratio") +
+  theme(title = element_text(size = 20), text = element_text(size = 20)) +
+  labs(fill="") + theme(legend.position = c(.75, 0.6)) +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()

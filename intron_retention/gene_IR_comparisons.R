@@ -34,8 +34,7 @@ elementNROWS(lapply(IRfiltered, function(x) unique(x$genes)))
 elementNROWS(sig)
 
 # Get IR info for genes significantly regulated by fraction 
-max = do.call(rbind, irbyGene)
-max$SampleID = gsub("\\..*","", rownames(max))
+max = do.call(rbind, Map(cbind, irbyGene, SampleID = as.list(names(irbyGene))))
 max$rownum = c(1:nrow(max))
 max$Fraction = ifelse(max$rownum %in% grep("C", max$SampleID), "Cytoplasm", "Nucleus")
 max$Age = ifelse(max$rownum %in% grep("Br53", max$SampleID), "Prenatal", "Adult")
@@ -152,6 +151,7 @@ dev.off()
 sigIR = lapply(age.sig, function(x) max[which(max$genes %in% x$ensID),])
 unlist(lapply(sigIR, function(x) length(unique(x$genes))))
 
+
 # genes >50% or >10% Nuclear in at least one sample
 perc = lapply(sigIR, function(x) list(sig.more50=as.character(unique(x[which(x$IRratio>=0.50),"genes"])),
                                       sig.less50=as.character(unique(x[which(x$IRratio<0.50),"genes"])),
@@ -226,45 +226,45 @@ write.csv(x, quote=F, file="./Dropbox/sorted_figures/new/github_controlled/intro
 # What does the distribution of IR Ratios by Sig group look like?
 gr = c("Both Decreasing","Both Increasing","Decreasing in Cytoplasm","Decreasing in Nucleus","Increasing in Cytoplasm","Increasing in Nucleus",
        "Decreasing in Nucleus\nIncreasing in Cytoplasm","Decreasing in Cytoplasm\nIncreasing in Nucleus","Interaction")
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byAge.pdf")
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byAge.pdf")
 for (i in 1:length(sigIR)){
   sigIR[[i]]$Group = factor(sigIR[[i]]$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
-  x = ggplot(sigIR[[i]], aes(x=IRratio)) +
-    geom_density(aes(group=Group, colour=Group)) +
-    ylab("") + 
-    xlim(0,0.15) +
-    xlab("IR Ratio") +
+  x = ggplot(sigIR[[i]], aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) +
+    ylab("") + xlim(0,0.15) + xlab("IR Ratio") +
     ggtitle(paste0("Intron Retention: ", gr[i])) +
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
+    theme(title = element_text(size = 20), text = element_text(size = 20)) +
     theme(legend.position = c(0.8, 0.55)) +
     labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
+    theme(legend.background = element_rect(fill = "transparent"), legend.key = element_rect(fill = "transparent", color = "transparent"))
   print(x)
 }
-x = rbind(cbind(sigIR[["Cyt_decreasing"]], Genes = "Decreasing in Cytoplasm"), cbind(sigIR[["Cyt_increasing"]], Genes = "Increasing in Cytoplasm"))
-x$Genes = factor(x$Genes, levels = c("Decreasing in Cytoplasm","Increasing in Cytoplasm"))
-ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
-  geom_density() + ylab("") + 
-  xlim(0,0.15) + xlab("IR Ratio") +
+dev.off()
+x = do.call(rbind, Map(cbind, sigIR[!names(sigIR) %in% c("decr_Nuc_incr_Cyt","decr_Cyt_incr_Nuc", "interacting")],
+                       comp = as.list(c("Both Decreasing","Both Increasing","Decreasing in Cytoplasm",
+                                 "Decreasing in Nucleus","Increasing in Cytoplasm","Increasing in Nucleus"))))
+x$compLoc = Dir = NA
+x[grep("Decreasing", x$comp),"Dir"] = "Decreasing"
+x[grep("Increasing", x$comp),"Dir"] = "Increasing"
+x[grep("Both", x$comp),"compLoc"] = "In Both"
+x[grep("Cytoplasm", x$comp),"compLoc"] = "In Cytoplasm"
+x[grep("Nucleus", x$comp),"compLoc"] = "In Nucleus"
+x$Group = factor(x$Group, levels = c("Adult:Cytoplasm","Prenatal:Cytoplasm","Adult:Nucleus","Prenatal:Nucleus"))
+
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/IR_sig_group_density_byAge2.pdf")
+ggplot(x[which(x$compLoc!="In Both"),], aes(x=IRratio, linetype = Dir, col = Group)) +
+  geom_density(size=1) + facet_grid(compLoc~.) + theme_classic() +
+  ylab("Density") + xlim(0,0.15) + xlab("IR Ratio") +
   ggtitle("Developmental IR") +
-  theme(title = element_text(size = 28)) +
-  theme(text = element_text(size = 28)) +
-  theme(legend.position = c(0.7, 0.65)) +
-  labs(fill="") +
+  theme(title = element_text(size = 28), text = element_text(size = 28)) +
+  theme(legend.position = c(0.6, 0.8)) + labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
-x = rbind(cbind(sigIR[["Nuc_decreasing"]], Genes = "Decreasing in Nucleus"), cbind(sigIR[["Nuc_increasing"]], Genes = "Increasing in Nucleus"))
-x$Genes = factor(x$Genes, levels = c("Decreasing in Nucleus","Increasing in Nucleus"))
-ggplot(x, aes(x=IRratio, linetype = Genes, col = Group)) +
-  geom_density() + ylab("") + 
-  xlim(0,0.15) + xlab("IR Ratio") +
+ggplot(x[which(x$compLoc!="In Both"),], aes(x=Dir,y=IRratio), fill = Group) +
+  geom_boxplot() + facet_grid(compLoc~.) + theme_classic() +
+  ylab("Density") + xlab("IR Ratio") +
   ggtitle("Developmental IR") +
-  theme(title = element_text(size = 28)) +
-  theme(text = element_text(size = 28)) +
-  theme(legend.position = c(0.7, 0.65)) +
-  labs(fill="") +
+  theme(title = element_text(size = 28), text = element_text(size = 28)) +
+  theme(legend.position = c(0.6, 0.8)) + labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
         legend.key = element_rect(fill = "transparent", color = "transparent"))
 dev.off()

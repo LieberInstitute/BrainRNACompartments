@@ -2,7 +2,7 @@ library(GenomicRanges)
 library(plyr)
 library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 ## read in Differential IR results files
 comps = c("Adult_PolyA_Zone_cleanIntrons_adultShared","Fetal_PolyA_Zone_cleanIntrons_prenatalShared",
@@ -101,42 +101,54 @@ stats$retention = c("NA","Cytoplasmic","Nuclear","Cytoplasmic","Nuclear","Adult"
 
 
 # distribution of introns measured
-posDF = Map(cbind, position = lapply(position, function(x) if (length(x)>0) { data.frame(x) } else { data.frame("no") }), Comparison = as.list(names(position)))
-for (i in 1:length(posDF)) { colnames(posDF[[i]]) = c("Position", "Comparison") }
-posDF = do.call(rbind, posDF)
+
+posDF = do.call(rbind, Map(cbind, lapply(position, function(x) if (length(x)>0) { data.frame(Position = x) } else { data.frame(Position = "no") }), 
+            Comparison = as.list(names(position))))
 posDF = posDF[posDF$Position!="no",]
-posDF$Comparison = factor(posDF$Comparison, 
+posDF$FracAge = NA
+posDF[c(grep("Nucleus-Increased", posDF$Comparison),grep("Cytoplasm-Increased", posDF$Comparison),grep("Fraction", posDF$Comparison)),"FracAge"] = "By Fraction"
+posDF[c(grep("Adult-Increased", posDF$Comparison),grep("Prenatal-Increased", posDF$Comparison),grep("Age", posDF$Comparison)),"FracAge"] = "By Age"
+
+posDF$Dir = compLoc = NA
+posDF[grep("Nucleus-Increased", posDF$Comparison),"Dir"] = "Nuclear"
+posDF[grep("Cytoplasm-Increased", posDF$Comparison),"Dir"] = "Cytoplasmic"
+posDF[grep("Prenatal-Increased", posDF$Comparison),"Dir"] = "Prenatal-enriched"
+posDF[grep("Adult-Increased", posDF$Comparison),"Dir"] = "Adult-enriched"
+
+posDF[grep("Adult:", posDF$Comparison),"compLoc"] = "In Adult"
+posDF[grep("Prenatal:", posDF$Comparison),"compLoc"] = "In Prenatal"
+posDF[grep("Nucleus:", posDF$Comparison),"compLoc"] = "In Nucleus"
+posDF[grep("Cytoplasm:", posDF$Comparison),"compLoc"] = "In Cytoplasm"
+
+
+unique(posDF$Comparison)
+head(posDF)
+
+posDF$Comparison = factor(posDF$Comparison,
                           levels = c("All Introns","Adult:Cytoplasm-Increased","Adult:Nucleus-Increased","Prenatal:Cytoplasm-Increased","Prenatal:Nucleus-Increased",
                                      "Cytoplasm:Adult-Increased","Cytoplasm:Prenatal-Increased","Nucleus:Adult-Increased","Nucleus:Prenatal-Increased"))
-posDF$FracAge = NA
-posDF[c(grep("Nucleus-Increased", posDF$Comparison),grep("Cytoplasm-Increased", posDF$Comparison),grep("Fraction", posDF$Comparison)),"FracAge"] = "Fraction"
-posDF[c(grep("Adult-Increased", posDF$Comparison),grep("Prenatal-Increased", posDF$Comparison),grep("Age", posDF$Comparison)),"FracAge"] = "Age"
 posDF$Position = as.numeric(posDF$Position)
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_fraction.pdf", width=7,height=5)
-ggplot(posDF[which(posDF$FracAge=="Fraction"),], aes(x=Position)) +
-    geom_density(aes(group=Comparison, colour=Comparison)) +
-    ylab("") +
-    xlim(0,1) +
-    xlab("Proportion of Transcript") + ylab("Density") +
-    ggtitle("Distance from Transcript End") +
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"), legend.position = "bottom", legend.title = element_blank())
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_fraction.pdf", width=4,height=3.25)
+ggplot(posDF[which(posDF$FracAge=="By Fraction"),], aes(x=Position)) +
+  geom_density(aes(group=compLoc, colour=compLoc), size = 1) + theme_classic() +
+  scale_color_brewer(palette = "Set1") + ylab("") + xlim(0,1) +
+  xlab("Proportion of Transcript") + ylab("Density") +
+  ggtitle("Location of Nuclear-\nEnriched Introns") +
+  guides(colour = guide_legend(ncol = 2)) +
+  theme(title = element_text(size = 20), text = element_text(size = 20)) +
+  labs(fill="") + theme(legend.position = c(0.5, 0.2)) +
+  theme(legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"), legend.title = element_blank())
 dev.off()
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/intron_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_age.pdf", width=8.5,height=5)
-ggplot(posDF[which(posDF$FracAge=="Age"),], aes(x=Position)) +
-  geom_density(aes(group=Comparison, colour=Comparison)) +
-  ylab("") +
-  xlim(0,1) +
-  xlab("Proportion of Transcript") + ylab("Density") +
-  ggtitle("Distance from Transcript End") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20)) +
-  labs(fill="") +
+pdf("./Dropbox/sorted_figures/github_controlled/intron_retention/figures/gene_IR_comparisons/density_proportionalDistance_fromIntron_toTxEnd_age.pdf", width=6.15,height=3.75)
+ggplot(posDF[which(posDF$FracAge=="By Age"),], aes(x=Position)) + theme_classic() +
+  geom_density(aes(group=Dir, colour=Dir), size=1) + ylab("") + xlim(0,1) +
+  scale_color_brewer(palette = "Set1") +
+  xlab("Proportion of Transcript") + ylab("Density") + facet_grid(. ~ compLoc) +
+  ggtitle("Distance from Transcript End") + theme(legend.position = c(0.68, 0.75)) +
+  theme(title = element_text(size = 20), text = element_text(size = 20)) + labs(fill="") +
   theme(legend.background = element_rect(fill = "transparent"),
         legend.key = element_rect(fill = "transparent", color = "transparent"),legend.title = element_blank())
 dev.off()
