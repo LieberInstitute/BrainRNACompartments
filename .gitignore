@@ -1,4 +1,11 @@
+<<<<<<< HEAD
+*/.DS_Store
+*/.Rapp.history
+rdas/
+=======
 .DS_Store
 .Rapp.history
 .Rhistory
 paper/
+>>>>>>> 8a6e09ac2eb2a45017be1f37dfb531ddfb7fa4e0
+IRfinder/
