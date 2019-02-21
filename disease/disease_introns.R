@@ -85,6 +85,65 @@ ggplot(di, aes(x = Disease, y = IRratio, fill = NuclearEnriched)) + geom_jitter(
   theme(title = element_text(size = 20), text = element_text(size = 20), legend.position = "bottom")
 dev.off()
 
+di$NuclearEnriched = NA
+di[which(di$Disease %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)")), "NuclearEnriched"] = "Nuclear\nin Both"
+di[which(di$Disease %in% c("BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")), "NuclearEnriched"] = "Nuclear\nin Adult Only"
+di[-which(di$Disease %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)","BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")), "NuclearEnriched"] = "Not Enriched"
+di$NuclearEnriched = factor(di$NuclearEnriched, levels = c("Nuclear\nin Both", "Nuclear\nin Adult Only", "Not Enriched"))
+
+pdf("./Dropbox/sorted_figures/github_controlled/disease/figures/diseaseGene_IRratios_collapsed.pdf",width=6,height=3.5)
+ggplot(di, aes(x = NuclearEnriched, y = IRratio, fill = NuclearEnriched)) + geom_jitter(size=0.5) +
+  scale_fill_manual(values=c("cornsilk4", "antiquewhite3", "white")) +
+  labs(fill="") + ylab("IR Ratio") + xlab("") +
+  ggtitle("Disease-Associated Gene Introns") +
+  theme(title = element_text(size = 20), text = element_text(size = 20), legend.position = "none")
+dev.off()
+
+
+## intron number 
+
+di[which(di$Disease %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)")), "NuclearEnriched"] = "Nuclear in Both"
+di[which(di$Disease %in% c("BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")), "NuclearEnriched"] = "Nuclear in Adult Only"
+di[-which(di$Disease %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)","BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")), "NuclearEnriched"] = "Not Enriched"
+di$NuclearEnriched = factor(di$NuclearEnriched, levels = c("Nuclear in Both", "Nuclear in Adult Only", "Not Enriched"))
+
+library(data.table)
+num = data.table(di)[,length(unique(intronID)), by = c("NuclearEnriched","genes")]
+num=data.frame(num)
+
+res = list("Nuclear in Both" = t.test(num[which(num$NuclearEnriched=="Nuclear in Both"),"V1"], num[which(num$NuclearEnriched!="Nuclear in Both"),"V1"]),
+           "Nuclear in Adult Only" = t.test(num[which(num$NuclearEnriched=="Nuclear in Adult Only"),"V1"], num[which(num$NuclearEnriched!="Nuclear in Adult Only"),"V1"]),
+           "Nuclear in Both or Adult Only" = t.test(num[which(num$NuclearEnriched!="Not Enriched"),"V1"], num[which(num$NuclearEnriched=="Not Enriched"),"V1"]))
+res = do.call(rbind, Map(cbind, Group = as.list(names(res)), 
+                         lapply(res, function(x) data.frame(Tstat = x$statistic, mean.NucGroup = x$estimate[1], 
+                                                            mean.Other = x$estimate[2], pval = x$p.value))))
+res$FDR = p.adjust(res$pval, method="fdr")
+res
+#                           Group      Tstat mean.NucGroup mean.Other      pval       FDR
+#t                Nuclear in Both  0.2948938      18.07979   17.70761 0.7681726 0.7681726
+#t1         Nuclear in Adult Only -0.9846388      17.29049   18.38420 0.3250165 0.4875247
+#t2 Nuclear in Both or Adult Only -1.0883943      17.60487   19.01657 0.2772957 0.4875247
+
+
+## intron length
+
+di$width = width(makeGRangesFromDataFrame(di, strand="Direction"))
+head(di)
+
+res = list("Nuclear in Both" = t.test(di[which(di$NuclearEnriched=="Nuclear in Both"),"width"], di[which(di$NuclearEnriched!="Nuclear in Both"),"width"]),
+           "Nuclear in Adult Only" = t.test(di[which(di$NuclearEnriched=="Nuclear in Adult Only"),"width"], di[which(di$NuclearEnriched!="Nuclear in Adult Only"),"width"]),
+           "Nuclear in Both or Adult Only" = t.test(di[which(di$NuclearEnriched!="Not Enriched"),"width"], di[which(di$NuclearEnriched=="Not Enriched"),"width"]))
+res = do.call(rbind, Map(cbind, Group = as.list(names(res)), 
+                         lapply(res, function(x) data.frame(Tstat = x$statistic, mean.NucGroup = x$estimate[1], 
+                                                            mean.Other = x$estimate[2], pval = x$p.value))))
+res$FDR = p.adjust(res$pval, method="fdr")
+res
+#                           Group      Tstat mean.NucGroup mean.Other          pval           FDR
+#t                Nuclear in Both  23.015304      14271.85   10580.07 5.437485e-117 8.156228e-117
+#t1         Nuclear in Adult Only -30.591829       9629.23   13958.54 4.183539e-205 1.255062e-204
+#t2 Nuclear in Both or Adult Only  -8.489985      11509.18   13339.76  2.119020e-17  2.119020e-17
+
+
 ## maximum IR for each gene
 
 irbyGene = data.frame(data.table(di)[, list(IRratio=max(IRratio)), by=c("genes","SampleID","Disease","NuclearEnriched","SampleGroup")]) 
