@@ -1,6 +1,7 @@
 library(DESeq2)
+library(ggplot2)
 
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
 
 dds = DESeqDataSetFromMatrix(countData = geneCounts, colData = pd, design = ~ Library + Fetal + Zone)
 dds.down = DESeqDataSetFromMatrix(countData = geneCounts.down, colData = pd, design = ~ Library + Fetal + Zone)
@@ -22,7 +23,8 @@ plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE)
     stop("the argument 'intgroup' should specify columns of colData(dds)")
   }
   intgroup.df <- as.data.frame(colData(x)[, intgroup, drop = FALSE])
-  group <- factor(apply(intgroup.df, 1, paste, collapse = " : "))
+  group <- factor(apply(intgroup.df[,1:2], 1, paste, collapse = " : "), 
+                  levels = c("Adult : Cytoplasm", "Prenatal : Cytoplasm", "Adult : Nucleus", "Prenatal : Nucleus"))
   d <- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2], group = group, 
                   intgroup.df, names = colnames(x))
   if (returnData) {
@@ -30,7 +32,7 @@ plotPCA <- function (x, intgroup = "condition", ntop = 500, returnData = FALSE)
     return(d)
   }
   ggplot(data = d, aes_string(x = "PC1", y = "PC2", color = "group")) + 
-    geom_point(size = 3) + 
+    geom_point(size = 3, aes(shape=Library)) + 
     xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
     ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
     theme(title = element_text(size = 20)) +
@@ -132,7 +134,7 @@ plotPCA4(rlog, intgroup = c("Fetal", "Zone", "Library"))
 colData(rlog.down)$Zone = gsub("Cytosol", "Cytoplasm", colData(rlog.down)$Zone)
 colData(rlog.down)$Zone = factor(colData(rlog.down)$Zone)
 
-pdf("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2_downsampled.pdf", width = 6.75,height = 3.25)
+pdf("./Dropbox/sorted_figures/github_controlled/characterize_fractioned_transcriptome/figures/PC1_vs_PC2_downsampled.pdf", width = 6,height = 3.5)
 plotPCA(rlog.down, intgroup = c("Fetal", "Zone", "Library"))
 dev.off()
 
