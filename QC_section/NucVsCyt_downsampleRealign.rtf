@@ -1,0 +1,339 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf200
+{\fonttbl\f0\fmodern\fcharset0 Courier;\f1\fnil\fcharset0 Menlo-Regular;\f2\fswiss\fcharset0 ArialMT;
+\f3\froman\fcharset0 Times-Roman;\f4\fmodern\fcharset0 Courier-Bold;\f5\fnil\fcharset0 Calibri;
+}
+{\colortbl;\red255\green255\blue255;\red60\green95\blue255;\red252\green33\blue24;\red47\green189\blue29;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c23529\c37255\c100000;\csgenericrgb\c98824\c12941\c9412;\csgenericrgb\c18431\c74118\c11373;
+}
+\margl1440\margr1440\vieww34420\viewh19060\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf0 Outline:\
+1) concatenate all lanes of a sample, keeping R1 and R2 separate  (for polyA only)\
+2) downsample from fastq file\
+3) zip fastq files\
+4) align\
+\
+Location:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 [jhpce01 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol]
+\f2\fs24 \CocoaLigature1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0 \cf0 \
+\'97\'97\'97\'97
+\f2 \
+Template commands:\
+\
+
+\f0 paste f1.fastq f2.fastq |\\ #merge the two fastqs\
+awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' |\\ #merge by group of 4 lines\
+shuf  |\\ #shuffle\
+head |\\ #only 10 records\
+sed 's/\\t\\t/\\n/g' |\\ #restore the delimiters\
+awk '\{print $1 > "file1.fastq"; print $2 > "file2.fatsq"\}' #split in two files.\
+\
+\
+paste <(zcat f1.gz) <(zcat f2.gz)\
+\
+\'97\'97\'97\
+Modified template (general form):\
+paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R1.fastq.gz) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R2.fastq.gz)
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 25000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "file1.fastq"; print $2 > "file2.fastq"\}'\
+\'97\'97\'97\'97\'97\
+Commands, by sample:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\f4\b \cf0 Sample: Br5339C1 PolyA  **Done**
+\f0\b0 \
+\
+\
+1)\
+-read1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5339C1/*L001_R1*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5339C1/*L002_R1*.gz > fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R1.fastq.gz\
+\
+-read2\
+cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5339C1/*L001_R2*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5339C1/*L002_R2*.gz > fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R2.fastq.gz\
+\
+\
+2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R1.fastq.gz) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/Br5339C1_CTGAAGCT_L0102_R2.fastq.gz)
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 25000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf0 Br5339C1_CTGAAGCT_L0102_R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf0 Br5339C1_CTGAAGCT_L0102_R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'
+\f1\fs30 \CocoaLigature0 \
+\
+3) \
+gzip Br5339C1_CTGAAGCT_L0102_R1.fastq; gzip Br5339C1_CTGAAGCT_L0102_R2.fastq\
+\
+\'97\'97\
+\pard\pardeftab720\partightenfactor0
+
+\f4\b\fs24 \cf0 \CocoaLigature1 Sample: 
+\f1\b0\fs30 \CocoaLigature0 Sample_Br5340C1
+\f4\b\fs24 \CocoaLigature1  PolyA  
+\f0\b0 \
+\
+\
+1)\
+-read1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5340C1/*L001_R1*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5340C1/*L002_R1*.gz > fastq_lanesCombined/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R1.fastq.gz;\
+\
+-read2\
+cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5340C1/*L001_R2*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5340C1/*L002_R2*.gz > fastq_lanesCombined/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R2.fastq.gz;\
+\
+\
+2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R1.fastq.gz) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R2.fastq.gz)
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 25000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R2
+\f0\fs24 \CocoaLigature1 .fastq"\}';
+\f1\fs30 \CocoaLigature0 \
+\
+3) \
+gzip \cf2 fastq_25Mreads_random/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R1.fastq; gzip \cf2 fastq_25Mreads_random/\cf3 Br5340C1_ATTCAGAA\cf0 _L0102_R2.fastq;\
+\
+\'97\'97\
+\'97\'97\
+\pard\pardeftab720\partightenfactor0
+
+\f4\b\fs24 \cf0 \CocoaLigature1 Sample: 
+\f1\b0\fs30 \CocoaLigature0 Sample_Br5341C1
+\f4\b\fs24 \CocoaLigature1  PolyA  
+\f0\b0 \
+\
+\
+1)\
+-read1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5341C1/*L001_R1*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5341C1/*L002_R1*.gz > fastq_lanesCombined/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R1.fastq.gz;\
+\
+-read2\
+cat /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5341C1/*L001_R2*.gz /dcl01/lieber/ajaffe/Brain/CytosolNucleus/polyA/FASTQ/Sample_Br5341C1/*L002_R2*.gz > fastq_lanesCombined/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R2.fastq.gz;\
+\
+\
+2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R1.fastq.gz) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Nina/Amanda_NucleusVsCytosol/fastq_lanesCombined/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R2.fastq.gz)
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 25000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf3 Br5341C1_CGGCTATG\cf0 L0102_R2
+\f0\fs24 \CocoaLigature1 .fastq"\}';
+\f1\fs30 \CocoaLigature0 \
+\
+3) \
+gzip \cf2 fastq_25Mreads_random/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R1.fastq; gzip \cf2 fastq_25Mreads_random/\cf3 Br5341C1_CGGCTATG\cf0 _L0102_R2.fastq;\
+\
+ gzip: fastq_25Mreads_random/Br5341C1_CGGCTATG_L0102_R2.fastq: No such file or directory\
+\'97\'97\
+\
+Sample:  Sample_Br1113C1\
+\
+2)\
+
+\f0\fs24 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br1113C1/\cf4 Br1113C1_ATTACTCG_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br1113C1/\cf4 Br1113C1_ATTACTCG_L005_R2_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br1113C1_ATTACTCG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br1113C1_ATTACTCG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br1113C1_ATTACTCG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br1113C1_ATTACTCG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq;
+\f1\fs30 \CocoaLigature0 \
+\
+\
+-\
+Sample:  
+\f5\fs24 \CocoaLigature1 Br2046C_RiboZero **done**
+\f1\fs30 \CocoaLigature0 \
+\
+2)\
+
+\f0\fs24 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br2046C/\cf4 Br2046C_TCCGGAGA_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br2046C/\cf4 Br2046C_TCCGGAGA_L005_R2_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf4 Br2046C_TCCGGAGA\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf4 Br2046C_TCCGGAGA\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}' &  **zipped and moved**
+\f1\fs30 \CocoaLigature0 \
+\
+\
+-\
+Sample: 
+\f5\fs24 \CocoaLigature1 Br2074N_RiboZero  **done**\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 \
+2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br2074N/\cf4 Br2074N_CGGCTATG_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br2074N/\cf4 Br2074N_CGGCTATG_L005_R2_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf4 Br2074N_CGGCTATG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_25Mreads_random/\cf4 Br2074N_CGGCTATG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf4 \CocoaLigature0 Br2074N_CGGCTATG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf4 \CocoaLigature0 Br2074N_CGGCTATG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq; ***zipped and moved***
+\f1\fs30 \CocoaLigature0 \
+--\
+Sample: 
+\f5\fs24 \CocoaLigature1 Br5339C1_RiboZero \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5339C1/\cf4 Br5339C1_GAGATTCC_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5339C1/\cf4 Br5339C1_GAGATTCC_L005_R1_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339C1_GAGATTCC\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339C1_GAGATTCC\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339C1_GAGATTCC\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339C1_GAGATTCC\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq;  \
+\
+\'97-\
+Sample: 
+\f5 Br5339N1_RiboZero\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5339N1/\cf4 Br5339N1_TCCGCGAA_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5339N1/\cf4 Br5339N1_TCCGCGAA_L005_R1_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339N1_TCCGCGAA\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339N1_TCCGCGAA\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339N1_TCCGCGAA\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5339N1_TCCGCGAA\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq;\
+\
+\
+\'97-\
+Sample: 
+\f5 Br5340C1_RiboZero\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5340C1/\cf4 Br5340C1_ATTCAGAA_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5340C1/\cf4 Br5340C1_ATTCAGAA_L005_R1_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5340C1_ATTCAGAA\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5340C1_ATTCAGAA\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5340C1_ATTCAGAA\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5340C1_ATTCAGAA\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq;\
+\
+\'97-\
+Sample: 
+\f5 Br5341N1_RiboZero\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f1\fs30 \cf0 \CocoaLigature0 2)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \CocoaLigature1 paste <(zcat 
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5341N1/\cf4 Br5341N1_AGCGATAG_L005_R1_001.fastq.gz\cf0 ) <(zcat
+\f0\fs24 \CocoaLigature1  
+\f1\fs30 \CocoaLigature0 /dcl01/lieber/ajaffe/Brain/CytosolNucleus/RiboZero/FASTQ/Sample_Br5341N1/\cf4 Br5341N1_AGCGATAG_L005_R1_001.fastq.gz\cf0 )
+\f0\fs24 \CocoaLigature1  | awk '\{ printf("%s",$0); n++; if(n%4==0) \{ printf("\\n");\} else \{ printf("\\t\\t");\} \}' | shuf | head -n 15000000 | sed 's/\\t\\t/\\n/g' | 
+\f3 awk -F '\\t'
+\f0  '\{print $1 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5341N1_AGCGATAG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq"; print $2 > "
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5341N1_AGCGATAG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq"\}'; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5341N1_AGCGATAG\cf0 _R1
+\f0\fs24 \CocoaLigature1 .fastq; gzip 
+\f1\fs30 \cf2 \CocoaLigature0 fastq_15Mreads_random/\cf4 Br5341N1_AGCGATAG\cf0 _R2
+\f0\fs24 \CocoaLigature1 .fastq;\
+\
+}
