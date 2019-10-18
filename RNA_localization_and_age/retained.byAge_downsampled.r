@@ -175,8 +175,10 @@ colnames(TypeFreq) = c("RNA_Type", "Count", "Group")
 # Condense to 4 groups
 group = as.character(names(freq))
 RNA.Type = c("Protein-coding", "Pseudogene", "Long Non-coding", "Short Non-coding")
-type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), rep.int(RNA.Type[2],9),
-                                            rep.int(RNA.Type[3], 9),rep.int(RNA.Type[4], 9))),
+type = data.frame(RNA.Type = as.character(c(rep.int(RNA.Type[1], 9), 
+                                            rep.int(RNA.Type[2],9),
+                                            rep.int(RNA.Type[3], 9),
+                                            rep.int(RNA.Type[4], 9))),
                   Count = NA, Group = factor(x=rep.int(group, 4)))
 for (i in 1:length(group)){
   type[which(type$RNA.Type=="Protein-coding" & type$Group==group[i]),2] = 
@@ -226,17 +228,19 @@ type$Group = factor(x=rep.int(group, 4), levels = c("Nuclear: Both", "Cytoplasmi
                                                     "Cytoplasmic:\nPrenatal Only", "Cytoplasmic:\nAdult Only",
                                                     "Nuclear: Adult/\nCytoplasmic: Prenatal", "Nuclear: Prenatal/\nCytoplasmic: Adult", "Interaction"))
 # Graph the Frequencies
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.pdf", height = 6, width = 8)
+pdf(paste0("./Dropbox/sorted_figures/github_controlled/",
+           "RNA_localization_and_age/figures/",
+           "annotation_DEG_interaction_fraction-age_LFC1.pdf"), 
+    height = 6, width = 8)
 ggplot(type[which(type$Group!="Nuclear: Adult/\nCytoplasmic: Prenatal" &
                     type$Group!="Nuclear: Prenatal/\nCytoplasmic: Adult"),], 
-       aes(x = Group, y = Count, fill = RNA.Type)) + geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(fill="") +
-  ylab("Count") + 
-  xlab("") +
+       aes(x = Group, y = Count, fill = RNA.Type)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Accent") +
+  coord_flip() + labs(fill="") + ylab("Count") + xlab("") +
   ggtitle("Gene Annotation:\nabs(Log2 Fold Change) >1") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  theme(title = element_text(size = 20),
+        text = element_text(size = 20))
 dev.off()
 
 
@@ -248,9 +252,13 @@ type$perc = round(type$Count/type$sum*100,1)
 type = ddply(type, .(Group), transform, pos = cumsum(perc) - (0.5 * perc))
 type$pos = 100
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.percent.pdf", height = 6, width = 8)
+pdf(paste0("./Dropbox/sorted_figures/github_controlled/",
+           "RNA_localization_and_age/figures/",
+           "annotation_DEG_interaction_fraction-age_LFC1.percent.pdf"),
+    height = 6, width = 8)
 ggplot(type, aes(x = Group, y = perc, fill = RNA.Type)) + 
   geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Accent") +
   geom_text(data=type[type$RNA.Type=="Long Non-coding",], 
             aes(x = Group, y = pos, label = sum), size=4, nudge_y = 5) +
   coord_flip() + labs(fill="") + ylab("Percent") + xlab("") +

@@ -28,8 +28,11 @@ totals = do.call(rbind, total)
 save(dist, totals, file="/media/DATA/Amanda/read_distribution/read_distribution_data.rda")
 
 # load and format objects
-load("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/data/read_distribution_data.rda")
-load("./Dropbox/sorted_figures/new/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load(paste0("./Dropbox/sorted_figures/github_controlled/",
+            "characterize_fractioned_transcriptome/data/",
+            "read_distribution_data.rda"))
+load(paste0("./Dropbox/sorted_figures/github_controlled/QC_section/data/",
+     "rawCounts_combined_NucVSCyt_n23.rda"))
 
 head(dist)
 names = unique(totals$SampleID)
@@ -37,16 +40,26 @@ dist[grep("C", dist$SampleID), "Fraction"] = "Cytoplasm"
 dist[grep("N", dist$SampleID), "Fraction"] = "Nucleus"
 dist[grep("53", dist$SampleID), "Age"] = "Prenatal"
 dist[-grep("53", dist$SampleID), "Age"] = "Adult"
-dist[c(grep("poly", dist$SampleID),grep("down", dist$SampleID)), "Library"] = "polyA"
-dist[grep("Ribo", dist$SampleID), "Library"] = "RiboZero"
+dist[c(grep("poly", dist$SampleID),grep("down", 
+                                        dist$SampleID)), "Library"] = "poly(A)"
+dist[grep("Ribo", dist$SampleID), "Library"] = "Ribo-Zero"
 dist$label = factor(paste(dist$Age, dist$Fraction, dist$Library, sep="\n"), 
-                    levels = c("Prenatal\nCytoplasm\npolyA", "Prenatal\nNucleus\npolyA", "Adult\nCytoplasm\npolyA","Adult\nNucleus\npolyA",   
-                               "Prenatal\nCytoplasm\nRiboZero","Prenatal\nNucleus\nRiboZero","Adult\nCytoplasm\nRiboZero","Adult\nNucleus\nRiboZero")) 
+                    levels = c("Prenatal\nCytoplasm\npoly(A)", 
+                               "Prenatal\nNucleus\npoly(A)", 
+                               "Adult\nCytoplasm\npoly(A)",
+                               "Adult\nNucleus\npoly(A)",   
+                               "Prenatal\nCytoplasm\nRibo-Zero",
+                               "Prenatal\nNucleus\nRibo-Zero",
+                               "Adult\nCytoplasm\nRibo-Zero",
+                               "Adult\nNucleus\nRibo-Zero")) 
 for (i in 1:nrow(dist)){
-  dist[i,"Percent"] = dist[i,"Tag_count"] / totals[which(totals$total=="Total.Assigned.Tags" & totals$SampleID==dist[i,"SampleID"]),"values"] * 100   
+  dist[i,"Percent"] = dist[i,"Tag_count"] / 
+    totals[which(totals$total=="Total.Assigned.Tags" & 
+                   totals$SampleID==dist[i,"SampleID"]),"values"] * 100   
 }
 for (i in 1:nrow(dist)){
-  dist[i,"Percent.Kb"] = dist[i,"Tags.Kb"] / sum(dist[which(dist$SampleID==dist[i,"SampleID"]),"Tags.Kb"]) * 100   
+  dist[i,"Percent.Kb"] = dist[i,"Tags.Kb"] / 
+    sum(dist[which(dist$SampleID==dist[i,"SampleID"]),"Tags.Kb"]) * 100   
 }
 dist$Group = gsub("3'UTR_Exons","3'UTR", dist$Group)
 dist$Group = gsub("5'UTR_Exons","5'UTR", dist$Group)
@@ -54,36 +67,46 @@ dist$Group = gsub("CDS_Exons","CDS Exons", dist$Group)
 dist$Group = gsub("TES_down_10kb","TES (10kb downstream)", dist$Group)
 dist$Group = gsub("TSS_up_10kb","TSS (10kb upstream)", dist$Group)
 dist = data.table(dist)
-dist = dist[Group!="TSS_up_1kb" & Group!="TSS_up_5kb" & Group!="TES_down_1kb" & Group!="TES_down_5kb" &
+dist = dist[Group!="TSS_up_1kb" & Group!="TSS_up_5kb" & 
+              Group!="TES_down_1kb" & Group!="TES_down_5kb" &
               SampleID!="Br5340C1_polyA" & SampleID!="Br5339C1_polyA",,]
-dist$Group = factor(dist$Group, levels=c("TES (10kb downstream)","TSS (10kb upstream)",
+dist$Group = factor(dist$Group, levels=c("TES (10kb downstream)",
+                                         "TSS (10kb upstream)",
                                          "Introns","3'UTR","5'UTR","CDS Exons"))
 
 perc = dist[, mean(Percent), by=c("Group", "label")]
 Tags.Kb = dist[, mean(Tags.Kb), by=c("Group", "label")]
 
 # Plot read distribution (using 2 downsampled counts)
-pdf("./Dropbox/sorted_figures/new/github_controlled/characterize_fractioned_transcriptome/figures/read_distribution_6_features.pdf", width = 12, height = 6)
+
+pdf(paste0("./Dropbox/sorted_figures/github_controlled/",
+           "characterize_fractioned_transcriptome/figures/",
+           "read_distribution_6_features.pdf"), width = 10, height = 5)
 ggplot(perc, aes(x=label, y=V1, fill=Group), color=Group) + 
-    geom_bar(position = "fill",stat = "identity", width=0.75) + 
-    scale_y_continuous(labels = percent_format()) +
-    ylab("Percent") + 
-    xlab("") + ggtitle("Percent of Reads Mapping to Six Genomic Features") +
-    theme(title = element_text(size = 20)) +
-    theme(text = element_text(size = 20)) +
-    labs(fill="") +
-    theme(legend.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent", color = "transparent"))
+  geom_bar(position = "fill",stat = "identity", width=0.75) + 
+  scale_y_continuous(labels = percent_format()) +
+  scale_fill_brewer(palette = "Accent") +
+  ylab("Percent") + xlab("") + labs(fill="") +
+  ggtitle("Percent of Reads Mapping to Six Genomic Features") +
+  theme(title = element_text(size = 20),
+        text = element_text(size = 20),
+        legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"),
+        legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 2))
+
 ggplot(Tags.Kb, aes(x=label, y=V1, fill=Group), color=Group) + 
   geom_bar(position = "fill",stat = "identity", width=0.75) + 
   scale_y_continuous(labels = percent_format()) +
-  ylab("Percent") + 
-  xlab("") + ggtitle("Percent of Tags Per Kb of Genomic Feature ") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20)) +
-  labs(fill="") +
-  theme(legend.background = element_rect(fill = "transparent"),
-        legend.key = element_rect(fill = "transparent", color = "transparent"))
+  scale_fill_brewer(palette = "Accent") +
+  ylab("Percent") + xlab("") + labs(fill="") +
+  ggtitle("Percent of Tags Per Kb of Genomic Feature ") +
+  theme(title = element_text(size = 20),
+        text = element_text(size = 20),
+        legend.background = element_rect(fill = "transparent"),
+        legend.key = element_rect(fill = "transparent", color = "transparent"),
+        legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 2))
 dev.off()
 
 

@@ -3,8 +3,10 @@ library(pheatmap)
 library(RColorBrewer)
 library(pvclust)
 library(rafalib)
+library(ggplot2)
 
-load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/rawCounts_Amanda_ENCODE_n65.rda")
+load(pate0("./Dropbox/sorted_figures/github_controlled/other_datasets/data/",
+           "rawCounts_Amanda_ENCODE_n65.rda"))
 encCounts = geneCounts
 
 # load the phenotype table
@@ -35,24 +37,37 @@ dim(encCounts)
 celltypes = as.character(unique(encpd$CellType))
 dds = list()
 for (i in 1:length(celltypes)) {
-  dds[[i]] = DESeqDataSetFromMatrix(countData = encCounts[,which(colnames(encCounts) %in% encpd[which(encpd$CellType==celltypes[i]),"SRA_Run"])], 
-                                    colData = encpd[which(encpd$CellType==celltypes[i]),], design = ~ Fraction)
+  dds[[i]] = DESeqDataSetFromMatrix(
+                countData = encCounts[,which(colnames(encCounts) %in% encpd[which(
+                    encpd$CellType==celltypes[i]),"SRA_Run"])], 
+                colData = encpd[which(encpd$CellType==celltypes[i]),], 
+                design = ~ Fraction)
 }
 names(dds) = celltypes
-dds$Fraction = DESeqDataSetFromMatrix(countData = encCounts, colData = encpd, design = ~ CellType + Fraction)
+dds$Fraction = DESeqDataSetFromMatrix(countData = encCounts, colData = encpd, 
+                                      design = ~ CellType + Fraction)
 
 dds = lapply(dds, DESeq)
 res = lapply(dds, results)
-sigres1 = lapply(res, function(x) list(Cytoplasmic = x[which(x$log2FoldChange<0 & x$padj<=0.05 & abs(x$log2FoldChange)>1),],
-                                      Nuclear = x[which(x$log2FoldChange>0 & x$padj<=0.05 & abs(x$log2FoldChange)>1),]))
-sigres = lapply(res, function(x) list(Cytoplasmic = x[which(x$log2FoldChange<0 & x$padj<=0.05),],
-                                       Nuclear = x[which(x$log2FoldChange>0 & x$padj<=0.05),]))
+sigres1 = lapply(res, function(x) list(Cytoplasmic = x[which(x$log2FoldChange<0 & 
+                                                               x$padj<=0.05 & 
+                                                               abs(x$log2FoldChange)>1),],
+                                      Nuclear = x[which(x$log2FoldChange>0 & 
+                                                          x$padj<=0.05 & 
+                                                          abs(x$log2FoldChange)>1),]))
+sigres = lapply(res, function(x) list(Cytoplasmic = x[which(x$log2FoldChange<0 & 
+                                                              x$padj<=0.05),],
+                                       Nuclear = x[which(x$log2FoldChange>0 & 
+                                                           x$padj<=0.05),]))
 
-save(res, dds,sigres, encpd, file = "./Dropbox/sorted_figures/github_controlled/other_datasets/data/ENCODE_DESeq2_output.rda")
+save(res, dds,sigres, encpd, 
+     file = "./Dropbox/sorted_figures/github_controlled/other_datasets/data/ENCODE_DESeq2_output.rda")
 
-load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/ENCODE_DESeq2_output.rda")
+load(paste0("./Dropbox/sorted_figures/github_controlled/other_datasets/data/",
+            "ENCODE_DESeq2_output.rda"))
 
-x = data.frame(CellType = names(res), DEGs = unlist(lapply(res, function(x) nrow(x[which(x$padj<=0.05 & abs(x$log2FoldChange)>=1),]))), row.names = NULL)
+x = data.frame(CellType = names(res), DEGs = unlist(lapply(res, function(x) 
+  nrow(x[which(x$padj<=0.05 & abs(x$log2FoldChange)>=1),]))), row.names = NULL)
 #   CellType  DEGs
 #1   Gm12878  7651
 #2     Huvec  8931
@@ -69,7 +84,8 @@ x = data.frame(CellType = names(res), DEGs = unlist(lapply(res, function(x) nrow
 
 pdf("./Dropbox/sorted_figures/github_controlled/other_datasets/figures/MAplots_encode_byFraction.pdf", width= 4,height = 4)
 for (i in 1:length(res)) {
-  p = plotMA(res[[i]], alpha = 0.05, main=paste0(names(res)[i], ": Nucleus vs.Cytosol"), ylim=c(-8,8))
+  p = plotMA(res[[i]], alpha = 0.05, main=paste0(names(res)[i], ": Nucleus vs.Cytosol"), 
+             ylim=c(-8,8))
   print(p)
 }
 dev.off()
@@ -78,10 +94,13 @@ res = Map(cbind, lapply(res, as.data.frame), CellType = as.list(names(res)))
 res = do.call(rbind, res[1:11])
 res$FDR = "FDR>0.05"
 res[which(res$padj<=0.05),"FDR"] = "FDR<0.05"
-res$CellType = factor(res$CellType, levels = c("H1hesc","Helas3","Imr90","K562","Gm12878","Nhek","A549","Huvec","Hepg2","Sknsh","Mcf7"))
+res$CellType = factor(res$CellType, levels = c("H1hesc","Helas3","Imr90","K562",
+                                               "Gm12878","Nhek","A549","Huvec",
+                                               "Hepg2","Sknsh","Mcf7"))
 head(res)
 
-pdf("./Dropbox/sorted_figures/github_controlled/other_datasets/figures/ENCODE_MAplots.pdf", width=6.5, height=5.25)
+pdf("./Dropbox/sorted_figures/github_controlled/other_datasets/figures/ENCODE_MAplots.pdf", 
+    width=6.5, height=5.25)
 ggplot(res, aes(x=baseMean/1000, y=log2FoldChange)) + 
   geom_point(aes(colour = factor(FDR))) + scale_colour_manual(values=c("red3","gray47")) +
   facet_wrap(. ~ CellType) + geom_hline(aes(yintercept=0), linetype="dashed") +
@@ -90,8 +109,10 @@ ggplot(res, aes(x=baseMean/1000, y=log2FoldChange)) +
   ggtitle("MA Plot: Nucleus Vs. Cytoplasm") + 
   theme(title = element_text(size = 16), text = element_text(size = 16)) +
   labs(fill="") +
-  theme(legend.background = element_rect(fill = "transparent"), legend.title = element_blank(),
-        legend.key = element_rect(fill = "transparent", color = "transparent"), legend.position = c(.87, .15))
+  theme(legend.background = element_rect(fill = "transparent"), 
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = "transparent", color = "transparent"), 
+        legend.position = c(.87, .15))
 dev.off()
 
 
@@ -102,7 +123,8 @@ mat = do.call(cbind, lapply(res, function(x) x$log2FoldChange))
 rownames(mat) = rownames(res[[1]])
 head(mat)
 mat = mat[complete.cases(mat),1:11]
-sigmat = mat[which(rownames(mat) %in% unlist(lapply(res[1:11], function(x) rownames(x[which(x$padj<=0.05 & abs(x$log2FoldChange)>=1),])))),]
+sigmat = mat[which(rownames(mat) %in% unlist(lapply(res[1:11], function(x) 
+  rownames(x[which(x$padj<=0.05 & abs(x$log2FoldChange)>=1),])))),]
 dim(sigmat) # 18803
 
 hc = hclust(dist(t(mat[,1:11])), method="ward")
@@ -112,8 +134,10 @@ shc_cut = cutree(shc, k= 9)
 
 pdf("./Dropbox/sorted_figures/github_controlled/other_datasets/figures/hclust_encode_Fraction_LFCs.pdf", h = 4, w = 4)
 palette(brewer.pal(12,"Paired"))
-myplclust(hc, lab.col=hc_cut, xlab="", hang=0.05, cex=1.1, main = "Cluster by Fraction LFC")
-myplclust(shc, lab.col=shc_cut, xlab="", hang=0.05, cex=1.1, main = "Cluster by Fraction LFC")
+myplclust(hc, lab.col=hc_cut, xlab="", hang=0.05, cex=1.1, 
+          main = "Cluster by Fraction LFC")
+myplclust(shc, lab.col=shc_cut, xlab="", hang=0.05, cex=1.1, 
+          main = "Cluster by Fraction LFC")
 dev.off()
 
 
@@ -123,77 +147,135 @@ pdf("./Dropbox/sorted_figures/github_controlled/other_datasets/figures/heatmap_e
 sampleDists <- dist(t(mat))
 sampleDistMatrix <- as.matrix(sampleDists)
 colors <- colorRampPalette(rev(brewer.pal(9, "Blues")) )(255)
-pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists, clustering_distance_cols=sampleDists,
+pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists, 
+         clustering_distance_cols=sampleDists,
          col=colors, main="Euclidean Distance Between Samples\nby Fraction LFC: All Genes")
 sampleDists <- dist(t(sigmat))
 sampleDistMatrix <- as.matrix(sampleDists)
-pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists, clustering_distance_cols=sampleDists,
+pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists, 
+         clustering_distance_cols=sampleDists,
          col=colors, main="Euclidean Distance Between Samples\nby Fraction LFC: FDR<0.05")
 dev.off()
 
 
 ## look for enrichment in nuclear-enriched genes (FDR<0.05) for all cell types and gene sets
+# Enrichment in genes differentially expressed by fraction in ENCODE samples
 
-aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
+path <- "./Dropbox/sorted_figures/github_controlled/"
+load(paste0(path, "other_datasets/data/ENCODE_DESeq2_output.rda"))
+load(paste0(path, "RNA_localization_and_age/data/retained.byAge.downsampled.rda"))
+load(paste0(path, "updated_gene_sets.rda"))
 
-pgc = read.delim("./Dropbox/sorted_figures/github_controlled/disease/data/tableS3_Nature2014_pgc2_loci.txt",as.is=TRUE)
-pgc$chr = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[1]))
-pgc$range = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[2]))
-pgc$start = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[1])))
-pgc$end = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[2])))
-pgcGR = GRanges(pgc$chr, IRanges(pgc$start,pgc$end))
-geneMapGR = makeGRangesFromDataFrame(geneMap, keep.extra.columns = T)
-pgc2 = geneMap[queryHits(findOverlaps(geneMapGR, pgcGR)),]
+geneuniverse <- as.character(na.omit(unique(
+  geneMap[which(geneMap$gencodeID %in% 
+                  rownames(res[[1]])),"Symbol"])))
+splitSets <- lapply(updated, function(f) 
+  f[which(f$Symbol %in% geneuniverse), ])
 
+inGroup <- unlist(lapply(sigres, function(x) lapply(x, function(y) 
+  as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% 
+                                              rownames(y)),"Symbol"]))))), recursive = F)
+outGroup <- unlist(lapply(sigres, function(x) lapply(x, function(y) 
+  geneuniverse[!(geneuniverse %in% as.character(geneMap[which(
+    geneMap$gencodeID %in% rownames(y)),"Symbol"]))])), recursive = F)
 
-## Enrichment in genes differentially expressed by fraction in ENCODE samples
+inGroup <- lapply(inGroup, function(x) x[which(x!="")])
+outGroup <- lapply(outGroup, function(x) x[which(x!="")])
 
-load("./Dropbox/sorted_figures/github_controlled/other_datasets/data/ENCODE_DESeq2_output.rda")
-load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.downsampled.rda")
-
-geneuniverse = as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% rownames(Ipres.down)),"Symbol"]))) # all expressed genes
-aej_sets_expressed = aej_sets[which(as.character(aej_sets$Gene.Symbol) %in% geneuniverse ), ] # drop genes that are not present in the test set
-aej_sets_expressed$Gene.Symbol = as.character(aej_sets_expressed$Gene.Symbol)
-splitSets = split(aej_sets_expressed, aej_sets_expressed$Gene.Set)
-splitSets$PGC2 = data.frame(Gene.Symbol = unique(pgc2$Symbol))
-splitSets = splitSets[which(names(splitSets)!="SCZ PGC GWAS")]
-
-inGroup = unlist(lapply(sigres, function(x) lapply(x, function(y) 
-                          as.character(na.omit(unique(geneMap[which(geneMap$gencodeID %in% rownames(y)),"Symbol"]))))), recursive = F)
-outGroup = unlist(lapply(sigres, function(x) lapply(x, function(y) 
-                    geneuniverse[!(geneuniverse %in% as.character(geneMap[which(geneMap$gencodeID %in% rownames(y)),"Symbol"]))])), recursive = F)
-
-enrich = mapply(function(inG,outG) lapply(splitSets, function(x) {
-  INGROUP_OVERLAP = c( sum(inG %in% x$Gene.Symbol),sum(!(inG %in% x$Gene.Symbol)))
-  OUTGROUP_OVERLAP= c(sum(outG %in% x$Gene.Symbol), sum(!(outG %in% x$Gene.Symbol)))
+enrich <- mapply(function(inG,outG) lapply(splitSets, function(x) {
+  INGROUP_OVERLAP = c( sum(inG %in% x$Symbol), sum(!(inG %in% x$Symbol)))
+  OUTGROUP_OVERLAP= c(sum(outG %in% x$Symbol), sum(!(outG %in% x$Symbol)))
   enrich_table = cbind(INGROUP_OVERLAP, OUTGROUP_OVERLAP)
   res = fisher.test(enrich_table)
-  dat=c(res$p.value, res$estimate)
-  names(dat) <- c("P.Value","Odds Ratio")
+  dat=c(res$p.value, res$estimate, enrich_table[1,], enrich_table[2,],
+        res$conf.int[1], res$conf.int[2])
+  names(dat) <- c("P.Value","Odds Ratio","YesSig.YesSet","NoSig.YesSet",
+                  "YesSig.NoSet","NoSig.NoSet","conf.int.lower","conf.int.upper")
   return(dat)
 }), inGroup, outGroup, SIMPLIFY =F)
 
-enrich = lapply(enrich, data.frame)
-enrich = do.call(rbind, Map(cbind, CellType = as.list(gsub("\\..*","",names(enrich))), Compartment = as.list(gsub("^.*\\.","",names(enrich))), lapply(enrich, function(x) 
-  data.frame(GeneSet = colnames(x), P.Value = as.numeric(x["P.Value",]), OddsRatio = as.numeric(x["Odds Ratio",]), 
-             row.names=NULL))))
-enrich$FDR = p.adjust(enrich$P.Value, method = "fdr")
-enrich$Description = encpd[match(enrich$CellType, encpd$CellType),"Description"] 
+enrich <- lapply(enrich, data.frame)
+enrich <- do.call(rbind, Map(cbind, Comparison = as.list(names(enrich)), 
+                             lapply(enrich, function(x) 
+                               data.frame(GeneSet = colnames(x),
+                                          YesSig.YesSet = as.numeric(x["YesSig.YesSet",]),
+                                          YesSig.NoSet = as.numeric(x["YesSig.NoSet",]),
+                                          NoSig.YesSet = as.numeric(x["NoSig.YesSet",]),
+                                          NoSig.NoSet = as.numeric(x["NoSig.NoSet",]),
+                                          P.Value = as.numeric(x["P.Value",]), 
+                                          OddsRatio = as.numeric(x["Odds Ratio",]),
+                                          conf.int.lower = as.numeric(x["conf.int.lower",]),
+                                          conf.int.upper = as.numeric(x["conf.int.upper",]),
+                                          row.names = NULL))))
+enrich$FDR <- p.adjust(enrich$P.Value, method = "fdr")
+enrich$CellType <- gsub('\\..*', '', enrich$Comparison)
+enrich$Fraction <- gsub('.*\\.', '', enrich$Comparison)
+enrich$Description <- encpd[match(enrich$CellType, encpd$CellType),"Description"] 
 
-write.csv(enrich, quote=F, file="./Dropbox/sorted_figures/github_controlled/other_datasets/data/Birnbaum_geneSet_enrichment_ENCODE_FractionDEGs.csv")
-bb = read.csv("./Dropbox/sorted_figures/github_controlled/other_datasets/data/Birnbaum_geneSet_enrichment_ENCODE_FractionDEGs.csv")
+
+write.csv(enrich, quote = FALSE, 
+          file = paste0(path, "other_datasets/data/",
+                        "Birnbaum_geneSet_enrichment_ENCODE_FractionDEGs.csv"))
+bb <- read.csv(paste0(path, "other_datasets/data/",
+                          "Birnbaum_geneSet_enrichment_ENCODE_FractionDEGs.csv"))
+
+bb[bb$FDR<=0.05,c("Comparison","GeneSet","OddsRatio","FDR")]
+
+#              Comparison           GeneSet OddsRatio          FDR
+#8    Gm12878.Cytoplasmic           SCZ.CNV 2.0188535 4.204871e-02
+#13       Gm12878.Nuclear          SCZ.GWAS 1.4401667 2.743237e-03
+#24     Huvec.Cytoplasmic         ASD.SFARI 0.5465130 4.456312e-04
+#26     Huvec.Cytoplasmic           SCZ.CNV 2.2075464 1.646008e-02
+#48         Hepg2.Nuclear Neurodegenerative 1.6965860 2.990030e-02
+#49         Hepg2.Nuclear          SCZ.GWAS 1.4168974 2.743237e-03
+#50         Hepg2.Nuclear         BPAD.GWAS 1.7291461 1.326827e-02
+#78      K562.Cytoplasmic         ASD.SFARI 0.6072302 6.271282e-03
+#80      K562.Cytoplasmic           SCZ.CNV 2.0736630 4.204871e-02
+#85          K562.Nuclear          SCZ.GWAS 1.4551381 5.115783e-03
+#96      Nhek.Cytoplasmic         ASD.SFARI 0.5892807 2.288313e-03
+#99      Nhek.Cytoplasmic           SCZ.SNV 0.3820461 4.569378e-03
+#101         Nhek.Nuclear               NDD 3.4479550 1.224920e-02
+#102         Nhek.Nuclear Neurodegenerative 1.7689359 1.948844e-02
+#104         Nhek.Nuclear         BPAD.GWAS 1.6496618 2.764670e-02
+#105         Nhek.Nuclear         ASD.SFARI 1.7739829 2.072008e-07
+#108         Nhek.Nuclear           SCZ.SNV 2.5327137 1.009864e-07
+#121       Helas3.Nuclear          SCZ.GWAS 1.7010439 5.950150e-05
+#122       Helas3.Nuclear         BPAD.GWAS 1.9706309 8.544360e-03
+#135    Imr90.Cytoplasmic           SCZ.SNV 0.2200544 2.188003e-03
+#139        Imr90.Nuclear          SCZ.GWAS 1.3308199 4.344183e-02
+#140        Imr90.Nuclear         BPAD.GWAS 2.1032652 1.228176e-03
+#145     Mcf7.Cytoplasmic                ID 1.7573357 4.347171e-02
+#147     Mcf7.Cytoplasmic Neurodegenerative 1.5356680 3.671317e-02
+#150     Mcf7.Cytoplasmic         ASD.SFARI 1.2813491 1.164279e-02
+#157         Mcf7.Nuclear          SCZ.GWAS 1.4716888 4.259028e-05
+#158         Mcf7.Nuclear         BPAD.GWAS 1.8104502 1.281222e-03
+#160         Mcf7.Nuclear           ASD.CNV 1.5588824 4.347171e-02
+#161         Mcf7.Nuclear           SCZ.CNV 2.1581347 2.375562e-03
+#162         Mcf7.Nuclear           SCZ.SNV 1.6345674 3.375040e-03
+#174         A549.Nuclear Neurodegenerative 1.7722922 1.326827e-02
+#176         A549.Nuclear         BPAD.GWAS 2.0602282 2.608913e-04
+#177         A549.Nuclear         ASD.SFARI 1.4281872 2.111627e-03
+#178         A549.Nuclear           ASD.CNV 2.5693296 4.056323e-06
+#179         A549.Nuclear           SCZ.CNV 3.0080423 1.330273e-05
+#180         A549.Nuclear           SCZ.SNV 1.9070216 3.934294e-04
+#184    Sknsh.Cytoplasmic          SCZ.GWAS 0.7326504 4.954077e-03
+#186    Sknsh.Cytoplasmic         ASD.SFARI 1.2785251 2.009936e-02
+#192        Sknsh.Nuclear Neurodegenerative 1.8075323 4.324007e-03
+#193        Sknsh.Nuclear          SCZ.GWAS 1.4281938 4.087724e-04
+#194        Sknsh.Nuclear         BPAD.GWAS 2.6799862 1.655533e-08
+#196        Sknsh.Nuclear           ASD.CNV 2.1222001 1.845089e-04
+#197        Sknsh.Nuclear           SCZ.CNV 2.4267167 4.456312e-04
+#198        Sknsh.Nuclear           SCZ.SNV 1.4714374 4.204871e-02
+#204 Fraction.Cytoplasmic         ASD.SFARI 0.5388736 8.673968e-07
+#210     Fraction.Nuclear Neurodegenerative 1.6040556 1.567265e-02
+#211     Fraction.Nuclear          SCZ.GWAS 1.4702703 8.588896e-06
+#212     Fraction.Nuclear         BPAD.GWAS 2.0789845 9.114064e-06
+#213     Fraction.Nuclear         ASD.SFARI 1.4419459 4.605811e-05
+#214     Fraction.Nuclear           ASD.CNV 1.5923922 1.685932e-02
+#216     Fraction.Nuclear           SCZ.SNV 1.5904752 3.104038e-03
 
 
-bb[bb$CellType=="Fraction" & bb$FDR<=0.05,]
-#        X CellType Compartment      GeneSet      P.Value OddsRatio          FDR Description
-#  222 222 Fraction Cytoplasmic ASD.DATABASE 8.490516e-04 0.5170464 0.0135848257        <NA>
-#  231 231 Fraction     Nuclear      ASD.CNV 2.885493e-03 1.6313473 0.0329770656        <NA>
-#  232 232 Fraction     Nuclear ASD.DATABASE 1.781139e-03 1.5253235 0.0237485258        <NA>
-#  233 233 Fraction     Nuclear    BPAD.GWAS 6.068541e-03 1.6729367 0.0485483286        <NA>
-#  240 240 Fraction     Nuclear         PGC2 7.861570e-06 1.6088334 0.0003493339        <NA>
-
-
-bb[bb$CellType=="Fraction" & bb$Compartment=="Nuclear" & bb$FDR<=0.05,"GeneSet"]
+bb[bb$CellType=="Fraction" & bb$Fraction=="Nuclear" & bb$FDR<=0.05,"GeneSet"]
 # ASD.CNV      BPAD.GWAS    PGC2 in nuclear
 # ASD.DATABASE in both compartments
 
@@ -303,32 +385,52 @@ do.call(rbind, Map(cbind, GeneSet = as.list(names(lapply(x, elementNROWS))), lap
                 
 x = bb[bb$CellType!="Fraction" & bb$FDR<=0.05,]
 x$GeneSet = gsub("ASD.CNV", "ASD\n(CNV)", x$GeneSet)
-x$GeneSet = gsub("ASD.DATABASE", "ASD\n(Database)", x$GeneSet)
+x$GeneSet = gsub("ASD.SFARI", "ASD\n(SFARI)", x$GeneSet)
 x$GeneSet = gsub("BPAD.GWAS", "BPAD\n(GWAS)", x$GeneSet)
 x$GeneSet = gsub("ID", "Intellectual\nDisability", x$GeneSet)
 x$GeneSet = gsub("NDD", "Neuro-\ndevel.", x$GeneSet)
 x$GeneSet = gsub("Neurodegenerative", "Neuro-\ndegen.", x$GeneSet)
-x$GeneSet = gsub("SCZ.Meta.analysis", "SCZ\n(Meta\nanalysis)", x$GeneSet)
 x$GeneSet = gsub("SCZ.SNV", "SCZ\n(SNV)", x$GeneSet)
-x$GeneSet = gsub("PGC2", "SCZ\n(PGC2)", x$GeneSet)
+x$GeneSet = gsub("SCZ.GWAS", "SCZ\n(GWAS)", x$GeneSet)
 x$GeneSet = gsub("SCZ.CNV", "SCZ\n(CNV)", x$GeneSet)
-x$cat = ifelse(x$GeneSet %in% c("ASD\n(CNV)","ASD\n(Database)","SCZ\n(CNV)"), "Nuclear\nin Both", "Not\nNuclear")
-x[which(x$GeneSet %in% c("BPAD\n(GWAS)","SCZ\n(SNV)","SCZ\n(PGC2)")),"cat"] = "Nuclear in\nAdult Only"
-x$cat = factor(x$cat, levels = c("Nuclear\nin Both","Nuclear in\nAdult Only","Not\nNuclear"))
-x$Compartment = factor(x$Compartment, levels = c("Nuclear","Cytoplasmic"))
+x$cat <- ifelse(x$GeneSet %in% c("ASD\n(CNV)","SCZ\n(CNV)"),
+                     "Nuclear in Both", "Not Nuclear")
+x[which(x$GeneSet %in% c("ASD\n(SFARI)","BPAD\n(GWAS)","SCZ\n(SNV)",
+                                   "Neuro-\ndegen.")),"cat"] <- "Nuclear in Adult Only"
+x$cat <- factor(x$cat, levels = c("Nuclear in Both",
+                                  "Nuclear in Adult Only",
+                                  "Not Nuclear"))
+x$Compartment = factor(x$Fraction, levels = c("Nuclear","Cytoplasmic"))
 x
 
-pdf("./Dropbox/sorted_figures/github_controlled/disease/figures/ENCODE_OR_plot.pdf", width = 7.5, height = 3.25)
+pdf(paste0(path, "disease/figures/ENCODE_OR_plot.pdf"), width = 7.5, height = 3.25)
 ggplot(x, aes(cat, OddsRatio, fill = cat)) +
-  geom_boxplot(outlier.shape = NA) + ylab("Odds Ratio") +  
+  geom_boxplot(outlier.shape = NA) + 
+  ylab("Odds Ratio") +  
   scale_fill_manual(values=c("cornsilk4", "antiquewhite3", "white")) +
   xlab("") + facet_grid(. ~ Compartment) + geom_jitter() +
-  geom_hline(yintercept=1, linetype="dotted") + ggtitle("ENCODE Cell Line Enrichment\nIn Disease-Associated Gene Sets") +
-  theme(title = element_text(size = 20), text = element_text(size = 20), legend.title=element_blank(),
-        legend.position = "none", legend.background = element_rect(fill = "transparent"), 
-        legend.key = element_rect(fill = "transparent", color = "transparent"))
+  geom_hline(yintercept=1, linetype="dotted") + 
+  ggtitle("ENCODE Cell Line Enrichment\nIn Disease-Associated Gene Sets") +
+  theme(title = element_text(size = 20), 
+        text = element_text(size = 20), 
+        legend.title=element_blank(),
+        legend.position = "none", 
+        legend.background = element_rect(fill = "transparent"), 
+        legend.key = element_rect(fill = "transparent", 
+                                  color = "transparent"))
 dev.off()
 
+enrich$GeneSet = gsub("ASD.CNV", "Autism Spectrum Disorder (from CNVs)", enrich$GeneSet)
+enrich$GeneSet = gsub("ASD.SFARI", "Autism Spectrum Disorder (from SAFARI)", enrich$GeneSet)
+enrich$GeneSet = gsub("BPAD.GWAS", "Bipolar Affective Disorder (from GWAS)", enrich$GeneSet)
+enrich$GeneSet = gsub("ID", "Intellectual Disability", enrich$GeneSet)
+enrich$GeneSet = gsub("NDD", "Syndromal Neurodevelopmental Disorder", enrich$GeneSet)
+enrich$GeneSet = gsub("Neurodegenerative", "Neurodegenerative Disorder", enrich$GeneSet)
+enrich$GeneSet = gsub("SCZ.SNV", "Schizophrenia (from rare SNVs)", enrich$GeneSet)
+enrich$GeneSet = gsub("SCZ.GWAS", "Schizophrenia (from GWAS)", enrich$GeneSet)
+enrich$GeneSet = gsub("SCZ.CNV", "Schizophrenia (from CNVs)", enrich$GeneSet)
+
+openxlsx::write.xlsx(enrich, file = paste0(path, "updatedEncode.xlsx"))
 
 ## look for enrichment in nuclear-enriched genes (FDR<0.05 AND abs(LFC)>1) for all cell types and gene sets
 

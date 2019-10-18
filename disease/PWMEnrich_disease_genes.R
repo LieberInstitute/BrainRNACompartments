@@ -3,141 +3,89 @@ library(GenomicFeatures)
 library(data.table)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(PWMEnrich)
-library("VennDiagram")
+library(VennDiagram)
 
-
-load("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_fraction_genes.rda")
-
+path <- "/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/"
+load(paste0(path, "ATtRACT_fraction_genes.rda"))
+load(paste0(path, "updated_gene_sets.rda"))
 
 ## Calculate RBP motif enrichment for disease gene sets
 
-registerCoresPWMEnrich(5)
+registerCoresPWMEnrich(10)
 
-aej_sets = openxlsx::read.xlsx('./Dropbox/sorted_figures/github_controlled/Birnbaum_2013_AJP_Supplementary_table.xlsx')
+elementNROWS(updated)
 
-AEJmap = geneMap[which(geneMap$Symbol %in% as.character(aej_sets$Gene.Symbol)),]
-AEJmap = cbind(AEJmap, Gene.Set = aej_sets[match(AEJmap$Symbol, aej_sets$Gene.Symbol),"Gene.Set"])
-AEJmap = split(AEJmap, AEJmap$Gene.Set)
-elementNROWS(AEJmap)
-AEJmap = lapply(AEJmap, function(x) makeGRangesFromDataFrame(x, keep.extra.columns = T))
+sets <- lapply(splitSets, function(x) 
+                            makeGRangesFromDataFrame(x, keep.extra.columns = T))
 
-DiseaseSeq = lapply(AEJmap, function(x) getSeq(Hsapiens, x))
-DiseaseSeq = lapply(DiseaseSeq, reverseComplement)
-save(DiseaseSeq, file = "./Dropbox/sorted_figures/github_controlled/RNA_binding_proteins/data/DiseaseSeq.rda")
+DiseaseSeq <- lapply(sets, function(x) getSeq(Hsapiens, x))
+DiseaseSeq <- lapply(DiseaseSeq, reverseComplement)
+save(DiseaseSeq, file = paste0(path, "DiseaseSeq_updated.rda"))
 
-res_Disease = list()
-for (i in 1:length(DiseaseSeq)){
-  res_Disease[[i]] = motifEnrichment(DiseaseSeq[[i]], gene.BG, verbose=F)
-  save(res_Disease, file=paste0("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_Disease_genes",i,".rda"))
-}
-names(res_Disease) = names(DiseaseSeq)
+Disease.Nuc <- motifEnrichment(c(DiseaseSeq[["ASD.CNV"]], DiseaseSeq[["ASD.SFARI"]],
+                                 DiseaseSeq[["BPAD.GWAS"]], DiseaseSeq[["SCZ.SNV"]],
+                                 DiseaseSeq[["SCZ.CNV"]],DiseaseSeq[["Neurodegenerative"]])
+                               [unique(names(c(DiseaseSeq[["ASD.CNV"]], 
+                                               DiseaseSeq[["ASD.SFARI"]],
+                                               DiseaseSeq[["BPAD.GWAS"]], 
+                                               DiseaseSeq[["SCZ.SNV"]],
+                                               DiseaseSeq[["SCZ.CNV"]],
+                                               DiseaseSeq[["Neurodegenerative"]])))], 
+                               gene.BG, verbose = F)
+save(Disease.Nuc, file = paste0(path, "ATtRACT_disease_genes.Nuc_updated.rda"))
 
-DiseaseReport = lapply(res_Disease, groupReport)
+Disease.notNucAll <- motifEnrichment(c(DiseaseSeq[["ID"]], DiseaseSeq[["NDD"]], 
+                                       DiseaseSeq[["SCZ.GWAS"]])
+                                     [unique(names(c(DiseaseSeq[["ID"]],
+                                                     DiseaseSeq[["NDD"]], 
+                                                     DiseaseSeq[["SCZ.GWAS"]])))],
+                                     gene.BG, verbose = F)
 
-save(res_Disease, DiseaseReport, gene.BG, 
-     file="/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_Disease_genes.rda")
-
-
-pgc = read.delim("./Dropbox/sorted_figures/github_controlled/disease/data/tableS3_Nature2014_pgc2_loci.txt",as.is=TRUE)
-pgc$chr = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[1]))
-pgc$range = unlist(lapply(strsplit(pgc$Position..hg19.,":"), function(x) x[2]))
-pgc$start = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[1])))
-pgc$end = as.numeric(unlist(lapply(strsplit(pgc$range,"-"), function(x) x[2])))
-pgcGR = GRanges(pgc$chr, IRanges(pgc$start,pgc$end))
-geneMapGR = makeGRangesFromDataFrame(geneMap, keep.extra.columns = T)
-pgc2 = geneMap[queryHits(findOverlaps(geneMapGR, pgcGR)),]
-pgc2 = makeGRangesFromDataFrame(pgc2, keep.extra.columns = T)
-
-pgc2Seq = getSeq(Hsapiens, pgc2)
-pgc2Seq = reverseComplement(pgc2Seq)
-save(pgc2Seq, file="./Dropbox/sorted_figures/github_controlled/disease/data/pgc2Seq.rda")
-
-load("./Dropbox/sorted_figures/github_controlled/RNA_binding_proteins/data/ATtRACT_Disease_genes.rda")
-
-res_pgc2 = motifEnrichment(pgc2Seq, gene.BG, verbose=F)
-
-res_Disease = c(res_Disease, list(PGC2 = res_pgc2))
-DiseaseReport = c(DiseaseReport, list(PGC2 = groupReport(res_pgc2)))
+res_Disease <- list(Enriched = Disease.Nuc, NotEnriched = Disease.notNucAll)
+DiseaseReport <- lapply(res_Disease, groupReport)
 
 save(res_Disease, DiseaseReport, gene.BG, 
-     file="./Dropbox/sorted_figures/github_controlled/RNA_binding_proteins/data/ATtRACT_Disease_genes.rda")
-
-
-load("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/DiseaseSeq.rda")
-load("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_Disease_genes.rda")
-load("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/pgc2Seq.rda")
-
-Disease.Nuc.Both = motifEnrichment(c(DiseaseSeq[["ASD CNV"]],DiseaseSeq[["ASD DATABASE"]], DiseaseSeq[["SCZ CNV"]]), gene.BG, verbose=F)
-save(Disease.Nuc.Both, file="/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_disease_genes.Nuc.Both.rda")
-
-Disease.Nuc.Ad = motifEnrichment(c(DiseaseSeq[["BPAD GWAS"]],DiseaseSeq[["SCZ SNV"]], pgc2Seq), gene.BG, verbose=F)
-save(Disease.Nuc.Ad, file="/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_disease_genes.Nuc.Ad.rda")
-
-Disease.Nuc = motifEnrichment(c(DiseaseSeq[["ASD CNV"]],DiseaseSeq[["ASD DATABASE"]], DiseaseSeq[["SCZ CNV"]],
-                                DiseaseSeq[["BPAD GWAS"]],DiseaseSeq[["SCZ SNV"]], pgc2Seq)
-                              [unique(names(c(DiseaseSeq[["ASD CNV"]],DiseaseSeq[["ASD DATABASE"]], DiseaseSeq[["SCZ CNV"]],
-                                              DiseaseSeq[["BPAD GWAS"]],DiseaseSeq[["SCZ SNV"]], pgc2Seq)))], gene.BG, verbose=F)
-save(Disease.Nuc, file="/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_disease_genes.Nuc.rda")
-
-res_Disease = c(res_Disease, list(Disease.Nuc = Disease.Nuc, Disease.Nuc.Both = Disease.Nuc.Both, Disease.Nuc.Ad = Disease.Nuc.Ad))
-
-
-Disease.notNucAll = motifEnrichment(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                DiseaseSeq[["SCZ Meta-analysis"]])
-                                [unique(names(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                              DiseaseSeq[["SCZ Meta-analysis"]])))], gene.BG, verbose=F)
-
-Disease.notNucAd = motifEnrichment(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                      DiseaseSeq[["SCZ Meta-analysis"]],DiseaseSeq[["ASD CNV"]],DiseaseSeq[["ASD DATABASE"]], DiseaseSeq[["SCZ CNV"]])
-                                    [unique(names(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                                    DiseaseSeq[["SCZ Meta-analysis"]],DiseaseSeq[["ASD CNV"]],DiseaseSeq[["ASD DATABASE"]], DiseaseSeq[["SCZ CNV"]])))],
-                                   gene.BG, verbose=F)
-
-Disease.notNucBoth = motifEnrichment(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                      DiseaseSeq[["SCZ Meta-analysis"]], DiseaseSeq[["BPAD GWAS"]],DiseaseSeq[["SCZ SNV"]], pgc2Seq)
-                                    [unique(names(c(DiseaseSeq[["ID"]],DiseaseSeq[["NDD"]], DiseaseSeq[["Neurodegenerative"]],
-                                                    DiseaseSeq[["SCZ Meta-analysis"]],DiseaseSeq[["BPAD GWAS"]],DiseaseSeq[["SCZ SNV"]], pgc2Seq)))],
-                                    gene.BG, verbose=F)
-
-
-res_Disease = c(res_Disease, list(Disease.notNucAll = Disease.notNucAll, Disease.notNucAd = Disease.notNucAd, Disease.notNucBoth = Disease.notNucBoth))
-
-DiseaseReport = lapply(res_Disease, groupReport)
-
-save(res_Disease, DiseaseReport, gene.BG, 
-     file="/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/ATtRACT_Disease_genes.rda")
+     file = paste0(path, "ATtRACT_Disease_genes_updated.rda"))
 
 
 ## Explore disease results:
 
-load("./Dropbox/sorted_figures/github_controlled/RNA_binding_proteins/data/ATtRACT_Disease_genes.rda")
+path <- "./Dropbox/sorted_figures/github_controlled/"
+load(paste0(path, "RNA_binding_proteins/data/ATtRACT_Disease_genes_updated.rda"))
 
 DiseaseReport = lapply(DiseaseReport, as.data.frame)
-rbpdb = read.table("./Dropbox/sorted_figures/github_controlled/RNA_binding_proteins/data/ATtRACT/ATtRACT_db.txt", header=T, sep = "\t")
-DiseaseReport = Map(cbind, DiseaseReport, padj = lapply(DiseaseReport, function(x) p.adjust(x$p.value, method = "fdr")),
-                    lapply(DiseaseReport, function(x) rbpdb[match(x$id,rbpdb$Matrix_id),]))
+rbpdb = read.table(paste0(path, "RNA_binding_proteins/data/ATtRACT/ATtRACT_db.txt"),
+                   header = T, sep = "\t")
+DiseaseReport = Map(cbind, DiseaseReport, 
+                    padj = lapply(DiseaseReport, function(x) 
+                      p.adjust(x$p.value, method = "fdr")),
+                    lapply(DiseaseReport, function(x) 
+                      rbpdb[match(x$id,rbpdb$Matrix_id),]))
 
 elementNROWS(DiseaseReport)
 elementNROWS(lapply(DiseaseReport, function(x) x[x$padj<=0.01,]))
-names(DiseaseReport) = c("ASD\n(CNV)","ASD\n(Database)","BPAD\n(GWAS)","Intellectual\nDisability","Neuro-\ndevel.","Neuro-\ndegen.","SCZ\n(CNV)",
-                         "SCZ\n(Meta\nanalysis)","SCZ\n(PGC1)","SCZ\n(SNV)","SCZ\n(PGC2)", "All Nuclear-\nEnriched","Nuclear-Enriched\nin Both","Nuclear-Enriched\nin Adult",
-                         "Not Nuclear-\nEnriched","Not Nuclear-Enriched\nin Adult","Not Nuclear-Enriched\nin Both")
+names(DiseaseReport) = c("All Nuclear-\nEnriched", "Not Nuclear-\nEnriched")
 
 
 ## filter to those expressed in brain
 
-load("./Dropbox/sorted_figures/github_controlled/QC_section/data/rawCounts_combined_NucVSCyt_n23.rda")
+load(paste0(path, "QC_section/data/rawCounts_combined_NucVSCyt_n23.rda"))
 #load("/dcl01/lieber/ajaffe/Amanda/BrainRNACompartments/rdas/rawCounts_combined_NucVSCyt_n23.rda")
 
-rbps = geneMap[which(geneMap$ensemblID %in% unique(DiseaseReport[[1]][,"Gene_id"])),"gencodeID"]
-rbpCounts = geneCounts[which(rownames(geneCounts) %in% rbps),grep("polyA", colnames(geneCounts))]
+rbps = geneMap[which(geneMap$ensemblID %in% unique(DiseaseReport[[1]]
+                                                   [,"Gene_id"])),"gencodeID"]
+rbpCounts = geneCounts[which(rownames(geneCounts) %in% rbps),
+                       grep("polyA", colnames(geneCounts))]
 dim(rbpCounts) # 158 RBPs measured
 
-exprRBP = geneMap[which(geneMap$gencodeID %in% rownames(rbpCounts[which(apply(rbpCounts, 1, FUN=min)>5),])),"ensemblID"]
+exprRBP = geneMap[which(geneMap$gencodeID %in% 
+                          rownames(rbpCounts[which(apply(rbpCounts, 1,
+                                                         FUN=min)>5),])),"ensemblID"]
 length(exprRBP) # 140 expressed
 
 
-sigdRBP = lapply(DiseaseReport[which(names(DiseaseReport)!="SCZ\n(PGC1)")], function(x) x[which(x$padj<=0.01 & x$Gene_id %in% exprRBP),])
+sigdRBP = lapply(DiseaseReport, function(x) x[which(x$padj<=0.01 & 
+                                                      x$Gene_id %in% exprRBP),])
 head(sigdRBP[[1]])
 elementNROWS(lapply(sigdRBP, function(x) unique(x$Gene_id)))
 #                    ASD\n(CNV)                ASD\n(Database)                   BPAD\n(GWAS)       Intellectual\nDisability                 Neuro-\ndevel. 
@@ -148,6 +96,13 @@ elementNROWS(lapply(sigdRBP, function(x) unique(x$Gene_id)))
 #128                            128                            124                            129                            130 
 #Not Nuclear-Enriched\nin Both 
 #128 
+
+venn.diagram(lapply(sigdRBP, function(x) unique(x$Gene_id)),
+             paste0(path, "RNA_binding_proteins/figures/",
+                    "venn.RBPs.disease_nucAll.jpeg"),
+             alpha = 0.50, fontfamily = "Arial", fontface = "bold", 
+             cex = 1, cat.cex = 1.5, cat.dist = .2,
+             cat.fontfamily = "Arial", margin = 0.2)
 
 
 for (i in 1:length(sigdRBP)) {
@@ -193,17 +148,21 @@ dgenes = lapply(sigdRBP, function(x) unique(as.character(x$Gene_id)))
 names(dgenes)
 head(dgenes[[1]])
 
-Dis = list(NucOnly = dgenes$`All Nuclear-\nEnriched`[-which(dgenes$`All Nuclear-\nEnriched` %in% dgenes$`Not Nuclear-\nEnriched`)],
-           notNucOnly = dgenes$`Not Nuclear-\nEnriched`[-which(dgenes$`Not Nuclear-\nEnriched` %in% dgenes$`All Nuclear-\nEnriched`)],
-           Overlap = dgenes$`All Nuclear-\nEnriched`[which(dgenes$`All Nuclear-\nEnriched` %in% dgenes$`Not Nuclear-\nEnriched`)])
+Dis = list(NucOnly = dgenes$`All Nuclear-\nEnriched`
+           [-which(dgenes$`All Nuclear-\nEnriched` %in% dgenes$`Not Nuclear-\nEnriched`)],
+           notNucOnly = dgenes$`Not Nuclear-\nEnriched`
+           [-which(dgenes$`Not Nuclear-\nEnriched` %in% dgenes$`All Nuclear-\nEnriched`)],
+           Overlap = dgenes$`All Nuclear-\nEnriched`
+           [which(dgenes$`All Nuclear-\nEnriched` %in% dgenes$`Not Nuclear-\nEnriched`)])
 elementNROWS(Dis)
 
 lapply(Dis[1:2], function(x) geneMap[which(geneMap$ensemblID %in% x),"Symbol"])
 #$NucOnly
-# "ZNF638" "RBM6"   "G3BP2" 
+#[1] "PTBP2"   "HNRNPAB" "MSI1"    "PABPN1"  "YBX2"    "CELF4"   "CELF5"   "RBFOX2" 
 
 #$notNucOnly
-# "HNRNPAB"   "RBM28"     "HNRNPA1L2" "YBX2"
+#[1] "RBM28"
+
 
 # genes NOT enriched in adult nuclear enriched disease sets but in others
 geneMap[which(geneMap$ensemblID %in% dgenes$`Not Nuclear-Enriched\nin Adult`[!(dgenes$`Not Nuclear-Enriched\nin Adult` %in% dgenes$`Nuclear-Enriched\nin Adult`)]),"Symbol"]

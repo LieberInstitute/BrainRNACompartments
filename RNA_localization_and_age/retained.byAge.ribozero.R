@@ -115,6 +115,7 @@ save(Irres,Crres,Nrres,age.sig,age.sig.1,sig,sig.1,geneMap,
 ### Annotate by fraction
 ## Limiting to 1 LFC
 
+load("./Dropbox/sorted_figures/github_controlled/RNA_localization_and_age/data/retained.byAge.Ribozero.rda")
 freq = lapply(sig.1, function(x) data.frame(table(x$Type)))
 TypeFreq = do.call(rbind, freq)
 TypeFreq$Group = gsub("\\..*","", rownames(TypeFreq))
@@ -196,15 +197,19 @@ type$perc = round(type$Count/type$sum*100,1)
 type = ddply(type, .(Group), transform, pos = cumsum(perc) - (0.5 * perc))
 type$pos = 100
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_fraction-age_LFC1.percent.ribozero.pdf", height = 6, width = 8)
+pdf(paste0("./Dropbox/sorted_figures/github_controlled/",
+           "RNA_localization_and_age/figures/",
+           "annotation_DEG_interaction_fraction-age_LFC1.percent.ribozero.pdf"),
+    height = 6, width = 8)
 ggplot(type, aes(x = Group, y = perc, fill = RNA.Type)) + 
   geom_bar(stat = "identity") +
   geom_text(data=type[type$RNA.Type=="Long Non-coding",], 
             aes(x = Group, y = pos, label = sum), size=4, nudge_y = 5) +
+  scale_fill_brewer(palette = "Accent") +
   coord_flip() + labs(fill="") + ylab("Percent") + xlab("") +
   ggtitle("Gene Annotation:\nabs(Log2 Fold Change) >1") +
-  theme(title = element_text(size = 20)) +
-  theme(text = element_text(size = 20))
+  theme(title = element_text(size = 20),
+        text = element_text(size = 20))
 dev.off()
 
 
@@ -290,9 +295,13 @@ type$perc = round(type$Count/type$sum*100,1)
 type = ddply(type, .(Group), transform, pos = cumsum(perc) - (0.5 * perc))
 type$pos = 100
 
-pdf("./Dropbox/sorted_figures/new/github_controlled/RNA_localization_and_age/figures/annotation_DEG_interaction_age-fraction_LFC1.percent.ribozero.pdf", height = 6, width = 8)
+pdf(paste0("./Dropbox/sorted_figures/github_controlled/",
+           "RNA_localization_and_age/figures/",
+           "annotation_DEG_interaction_age-fraction_LFC1.percent.ribozero.pdf"),
+    height = 6, width = 8)
 ggplot(type, aes(x = Group, y = perc, fill = RNA.Type)) + 
   geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Accent") +
   geom_text(data=type[type$RNA.Type=="Long Non-coding",], 
             aes(x = Group, y = pos, label = sum), size=4, nudge_y = 5) +
   coord_flip() + labs(fill="") + ylab("Percent") + xlab("") +

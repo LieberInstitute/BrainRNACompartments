@@ -233,7 +233,11 @@ ggplot(df, aes(x=Cyt.LFC,y=FracLFC)) + geom_point(aes(colour = Dir)) +
   xlab(expression(paste(log[2], (Prenatal/Adult)))) + 
   ylab(expression(paste(log[2], (Nucleus/Cytoplasm)))) +
   ggtitle("Developmentally-Regulated Gene Sets") +
-  theme(plot.title = element_text(hjust = 0.5),title = element_text(size = 20), text = element_text(size = 20), legend.position="top",
-        legend.background = element_rect(fill = "transparent"), legend.title = element_blank())
+  theme(plot.title = element_text(hjust = 0.5),
+        title = element_text(size = 20), 
+        text = element_text(size = 20), 
+        legend.position="top",
+        legend.background = element_rect(fill = "transparent"), 
+        legend.title = element_blank())
 dev.off()
 
