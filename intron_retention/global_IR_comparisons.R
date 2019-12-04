@@ -12,17 +12,31 @@ for (i in 1:length(shortenedNames)){
   IRres[[i]] = read.table(paste0(path,"PolyA/",shortenedNames[i],"/IRFinder-IR-nondir.txt"), header = TRUE)
 }
 names(IRres) = shortenedNames
+IRres = Map(cbind, IRres, genes = lapply(lapply(IRres, function(x) 
+  unlist(strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE), recursive = F)), 
+  function(x) x[grep("ENSG", x)]))
 
 # Filter introns
+
+one = elementNROWS(lapply(IRres, function(x) unique(x$genes)))
 IRfiltered = lapply(IRres, function(x) x[which(x$Warnings!="NonUniformIntronCover"),])
+two = elementNROWS(lapply(IRfiltered, function(x) unique(x$genes)))
 IRfiltered = lapply(IRfiltered, function(x) x[grep("clean", x$GeneIntronDetails, fixed=T),])
-IRfiltered = lapply(IRfiltered, function(x) x[max(x$SplicesExact,x$SplicesRight,x$SplicesLeft)>4 | (x$ExonToIntronReadsLeft>4 & x$ExonToIntronReadsRight>4),])
+three = elementNROWS(lapply(IRfiltered, function(x) unique(x$genes)))
+
+IRfiltered = lapply(IRfiltered, function(x) x[max(x$SplicesExact,x$SplicesRight,x$SplicesLeft)>4 | 
+                                                (x$ExonToIntronReadsLeft>4 & 
+                                                   x$ExonToIntronReadsRight>4),])
+four = elementNROWS(lapply(IRfiltered, function(x) unique(x$genes)))
+
 IRfiltered = Map(cbind, IRfiltered, 
-                 genes = lapply(lapply(IRfiltered, function(x) unlist(strsplit(as.character(x$GeneIntronDetails), "/", fixed = TRUE), recursive = F)), function(x) x[grep("ENSG", x)]), 
-                 intronID = lapply(IRfiltered, function(x) paste0("chr",x$Chr,":",x$Start,"-",x$End,"(",x$Direction,")")))
+                 intronID = lapply(IRfiltered, function(x) 
+                   paste0("chr",x$Chr,":",x$Start,"-",x$End,"(",x$Direction,")")))
 elementNROWS(IRfiltered)
 head(IRfiltered[[1]])
 
+x = data.frame(one = one, two = two, three = three, four = four)
+diff =
 
 ## Look at distribution of filtered introns by group
 
@@ -73,16 +87,27 @@ dev.off()
 allintrons = Reduce(intersect, lapply(IRfiltered, function(x) paste0("chr",x$Chr,":",x$Start,"-",x$End,"(",x$Direction,")")))
 length(allintrons) # 152432 of the introns pass QC in all four groups
 
+library(VennDiagram)
+genes <- lapply(IRfiltered, function(x) as.character(unique(x$genes)))
+genes <- list("Adult:Cyt" = unlist(genes[names(genes) %in% c("Br1113C1","Br2046C","Br2074C")]),
+              "Prenatal:Cyt" = unlist(genes[names(genes) %in% c("Br5339C1","Br5340C1","Br5341C1")]),
+              "Adult:Nuc" = unlist(genes[names(genes) %in% c("Br1113N1","Br2046N","Br2074N")]),
+              "Prenatal:Nuc" = unlist(genes[names(genes) %in% c("Br5339N1","Br5340N1","Br5341N1")]))
+genes <- lapply(genes, unique)
+venn.diagram(genes, filename = "./Desktop/genes.tiff")
 
 
 ### Global IR Comparisons:
 # What does the distribution of IR Ratios look like?
 
-IRratios = do.call(rbind, Map(cbind, lapply(IRfiltered, function(x) data.frame(IRratio=x$IRratio,intronID=x$intronID)), SampleID = as.list(names(IRfiltered))))
+IRratios = do.call(rbind, Map(cbind, lapply(IRfiltered, function(x) 
+  data.frame(IRratio=x$IRratio,intronID=x$intronID)), SampleID = as.list(names(IRfiltered))))
 IRratios$rnum = 1:nrow(IRratios)
 IRratios$Age = ifelse(IRratios$rnum %in% grep("53", IRratios$SampleID), "Prenatal","Adult")
 IRratios$Fraction = ifelse(IRratios$rnum %in% grep("C", IRratios$SampleID), "Cytosplasm","Nucleus")
-IRratios$Group = factor(paste(IRratios$Age, IRratios$Fraction, sep=":"), levels = c("Adult:Cytosplasm","Prenatal:Cytosplasm","Adult:Nucleus","Prenatal:Nucleus"))
+IRratios$Group = factor(paste(IRratios$Age, IRratios$Fraction, sep=":"), 
+                        levels = c("Adult:Cytosplasm","Prenatal:Cytosplasm",
+                                   "Adult:Nucleus","Prenatal:Nucleus"))
 
 pdf(file="./Dropbox/sorted_figures/new/github_controlled/intron_retention/figures/global_IR_comparisons/IRratio_byGroup.pdf", width =6,height = 5)
 ggplot(IRratios, aes(x=IRratio)) + geom_density(aes(group=Group, colour=Group)) +

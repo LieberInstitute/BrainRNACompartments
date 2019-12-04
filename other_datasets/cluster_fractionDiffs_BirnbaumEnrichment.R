@@ -220,6 +220,32 @@ bb <- read.csv(paste0(path, "other_datasets/data/",
                           "Birnbaum_geneSet_enrichment_ENCODE_FractionDEGs.csv"))
 
 bb[bb$FDR<=0.05,c("Comparison","GeneSet","OddsRatio","FDR")]
+library(data.table)
+x = data.table(bb)
+
+x$cat = ifelse(x$GeneSet %in% c("ASD.CNV","SCZ.CNV"),
+                 "Nuclear in Both", "Not Nuclear")
+x[which(x$GeneSet %in% c("ASD.SFARI","BPAD.GWAS","SCZ.SNV",
+                            "Neurodegenerative")),"cat"] <- "Nuclear in Adult Only"
+x$cat <- factor(x$cat, levels = c("Nuclear in Both",
+                                    "Nuclear in Adult Only",
+                                    "Not Nuclear"))
+x$sig = ifelse(x$FDR<=0.05, "Sig","NS")
+x$id = seq(nrow(x))
+x$ORdir = ifelse(x$OddsRatio>1, "Enriched","Depleted")
+
+table(x$OddsRatio>1)
+x[sig=="Sig" & ORdir=="Enriched",length(unique(id)), by = c("cat","Fraction")]
+#                     cat    Fraction V1
+#1:       Nuclear in Both Cytoplasmic  5
+#5:           Not Nuclear Cytoplasmic  2
+#2:           Not Nuclear     Nuclear 13
+#6: Nuclear in Adult Only Cytoplasmic  3
+#3: Nuclear in Adult Only     Nuclear 27
+#4:       Nuclear in Both     Nuclear 11
+
+sum(x[sig=="Sig" & ORdir=="Enriched",length(unique(id)), by = c("cat","Fraction")]$V1)
+27+11
 
 #              Comparison           GeneSet OddsRatio          FDR
 #8    Gm12878.Cytoplasmic           SCZ.CNV 2.0188535 4.204871e-02
